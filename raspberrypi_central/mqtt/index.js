@@ -48,5 +48,5 @@ client.on('message', function (topic, message) {
     routes[topic](message)
   }
 
-  client.end()
+  // client.end()
 })

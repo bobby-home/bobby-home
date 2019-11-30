@@ -8,6 +8,9 @@
 #define MQTT_BROKER_PORT 8883
 #define MQTT_BROKER_IP 192,168,1,83
 
+
+using MilliSec = unsigned long;
+
 SetupWifi setupWifi(
     STASSID, STAPSK,
     CA_CERT_PROG, CLIENT_CERT_PROG, CLIENT_KEY_PROG
@@ -46,7 +49,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_LOGLN(payloadStr);
 }
 
-void reconnectToMQTT() {
+void reconnectToMQTT(unsigned long currentMilliSec) {
   if (pubsubClient.connected()) {
     return;
   }
@@ -55,10 +58,10 @@ void reconnectToMQTT() {
   String clientId = "ESP8266Client-";
   clientId += String(random(0xffff), HEX);
 
-//   static AsyncWait waitToRetry;
-//   if (waitToRetry.isWaiting(currentMilliSec)) {
-//     return;
-//   }
+  static AsyncWait waitToRetry;
+  if (waitToRetry.isWaiting(currentMilliSec)) {
+    return;
+  }
 
   DEBUG_LOG("Attempting MQTT connection...");
 
@@ -79,8 +82,7 @@ void reconnectToMQTT() {
         DEBUG_LOGLN("the network connection failed...");
     }
 
-    delay(5000);
-    // waitToRetry.startWaiting(currentMilliSec, 5000);
+    waitToRetry.startWaiting(currentMilliSec, 5000);
   }
 }
 
@@ -99,15 +101,13 @@ void loop() {
     setupWifi.loopWifi();
 
     if (!setupWifi.isReadyForProcessing()) {
-        // The WiFi is not ready yet so
-        // don't do any further processing.
-        return;
+      return;
     }
 
     if (!pubsubClient.connected()) {
-        // Reconnect if connection is lost for example.
-        // MilliSec currentMilliSec = millis();
-        reconnectToMQTT();
+      // Reconnect if connection is lost for example.
+      MilliSec currentMilliSec = millis();
+      reconnectToMQTT(currentMilliSec);
     }
 
     pubsubClient.loop();

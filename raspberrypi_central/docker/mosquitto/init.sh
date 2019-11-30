@@ -14,6 +14,11 @@ keybits=2048
 default_digest="-sha256"
 days=365
 
+#Important: Please mind that while creating the signign request is important to specify
+#the Common Name providing the IP address or domain name for the service,
+#otherwise the certificate cannot be verified.
+
+# If you generate the csr in this way, openssl will ask you questions about the certificate to generate like the organization details and the Common Name (CN) that is the web address you are creating the certificate for, e.g mydomain.com.
 SUBJ="/C=FR/ST=Occitanie/L=Toulouse/O=Mx home Security/OU=Security/CN=$(hostname)/emailAddress=contact@maxime-moreau.fr"
 
 kind='client'
@@ -73,7 +78,7 @@ else
 
     if [ ! -f $CLIENT.key ]; then
         openssl genrsa -out $CLIENT.key $keybits
-        openssl req -new -key $CLIENT.key -out $CLIENT.csr
+        openssl req -new -key $CLIENT.key -out $CLIENT.csr -subj "$SUBJ"
         openssl req -in $CLIENT.csr -noout -text
 
         openssl x509 -req -CA $CA_CRT -CAkey $CA_KEY -CAcreateserial -in $CLIENT.csr -out $CLIENT.crt

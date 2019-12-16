@@ -1,0 +1,24 @@
+version: '3.6'
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
+    environment:
+      TZ: ${TZ}
+      WEBPASSWORD: 'super-secure-web-password'
+    # Volumes store your data between container upgrades
+    volumes:
+    #    - ${USERDIR}/docker/pihole/etc-pihole:/etc/pihole/
+    #    - ${USERDIR}/docker/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+       - './etc-pihole/:/etc/pihole/'
+       - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    restart: unless-stopped

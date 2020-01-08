@@ -24,4 +24,4 @@ COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
 # copy project
 COPY . /usr/src/app/
 
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+# ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

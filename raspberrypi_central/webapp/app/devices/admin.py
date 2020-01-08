@@ -1,6 +1,6 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Locations
+from .models import Location
 
-admin.site.register(Locations)
+admin.site.register(Location)

@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Locations
+from .models import Location
 
 class LocationsSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Locations
+        model = Location
         fields = ('structure', 'sub_structure')

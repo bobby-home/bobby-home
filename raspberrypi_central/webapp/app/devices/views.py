@@ -3,10 +3,10 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import LocationsSerializer
-from .models import Locations
+from .models import Location
 
 class LocationsViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     
-    queryset = Locations.objects.all()
+    queryset = Location.objects.all()
     serializer_class = LocationsSerializer

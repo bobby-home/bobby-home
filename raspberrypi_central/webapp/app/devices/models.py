@@ -2,6 +2,43 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 
 
+class Attachment(models.Model):
+    S3 = 0
+
+    TYPE_CHOICES = [
+        (S3, 'Amazon s3')
+    ]
+
+    object_name = models.CharField(max_length=100)
+    bucket_name = models.CharField(max_length=60)
+    storage_type = models.IntegerField(choices=TYPE_CHOICES)
+
+
+class Alert(models.Model):
+
+    LOW = 0
+    MODERATE = 1
+    HIGH = 2
+
+    SEVERITY_CHOICES = [
+        (LOW, 'Low'),
+        (MODERATE, 'Moderate'),
+        (HIGH, 'High'),
+    ]
+
+    severity = models.IntegerField(choices=SEVERITY_CHOICES)
+    created_at = models.DateTimeField(editable=False)
+
+    attachments = models.ManyToManyField(Attachment)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        # else: lock the update?! Raise an error here?
+        return super(Alert, self).save(*args, **kwargs)
+
+
 class Location(models.Model):
     structure = models.CharField(max_length=60)
     sub_structure = models.CharField(max_length=60)
@@ -35,6 +72,7 @@ class SensorInformation(models.Model):
     type = models.IntegerField(choices=TYPE_CHOICES)
     reference = models.CharField(max_length=100)
 
+
 class Sensor(models.Model):
     sensor_information = models.ForeignKey('SensorInformation', on_delete=models.PROTECT)
     device = models.ForeignKey('Device', on_delete=models.PROTECT)
@@ -45,7 +83,6 @@ class SensorData(models.Model):
     # JSONField uses jsonb pgsql data type.
     data = JSONField()
     sensor = models.ForeignKey('Sensor', on_delete=models.PROTECT)
-
 
     # from https://stackoverflow.com/a/1737078
     def save(self, *args, **kwargs):

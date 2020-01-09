@@ -1,0 +1,8 @@
+version: "3"
+services:
+    py:
+        build: ./app
+        volumes:
+            - ./app/:/usr/src/app/
+        env_file:
+            - ./.env

@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/mx/Arduino/libraries/DHT_sensor_library",
+                "/home/mx/.arduino15/packages/arduino/tools/**",
+                "/home/mx/.arduino15/packages/arduino/hardware/avr/1.8.1/**"
+            ],
+            "forcedInclude": [
+                "/home/mx/.arduino15/packages/arduino/hardware/avr/1.8.1/cores/arduino/Arduino.h"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

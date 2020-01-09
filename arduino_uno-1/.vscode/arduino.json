@@ -1,0 +1,6 @@
+{
+    "output": "dist",
+    "sketch": "app.ino",
+    "board": "arduino:avr:uno",
+    "port": "/dev/ttyACM0"
+}

@@ -35,6 +35,7 @@ if os.environ.get("DJANGO_ALLOWED_HOSTS"):
 # Application definition
 
 INSTALLED_APPS = [
+    'api_keys.apps.ApiKeysConfig',
     'devices.apps.DevicesConfig',
     'rest_framework',
     'corsheaders',
@@ -52,9 +53,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    )
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # )
 }
 
 MIDDLEWARE = [

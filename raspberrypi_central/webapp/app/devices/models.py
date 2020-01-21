@@ -8,6 +8,9 @@ class Location(models.Model):
     structure = models.CharField(max_length=60)
     sub_structure = models.CharField(max_length=60)
 
+    def __str__(self):
+        return '{0}_{1}'.format(self.structure, self.sub_structure)
+
 
 class DeviceType(models.Model):
     '''
@@ -15,12 +18,18 @@ class DeviceType(models.Model):
     '''
     type = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.type
+
 
 class Device(models.Model):
     name = models.CharField(max_length=100, unique=True, blank=True)
     device_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     location = models.ForeignKey('Location', on_delete=models.PROTECT)
     device_type = models.ForeignKey('DeviceType', on_delete=models.PROTECT)
+
+    def __str__(self):
+        return '{0}_{1}'.format(self.name, self.device_type)
 
 class SensorInformation(models.Model):
     TEMPERATURE = 0

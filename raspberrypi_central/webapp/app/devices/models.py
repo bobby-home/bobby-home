@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
+import uuid
 
 
 class Location(models.Model):
@@ -17,6 +18,7 @@ class DeviceType(models.Model):
 
 class Device(models.Model):
     name = models.CharField(max_length=100, unique=True, blank=True)
+    device_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     location = models.ForeignKey('Location', on_delete=models.PROTECT)
     device_type = models.ForeignKey('DeviceType', on_delete=models.PROTECT)
 

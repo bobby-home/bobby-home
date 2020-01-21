@@ -30,7 +30,7 @@ class DeviceFactory(factory.DjangoModelFactory):
     class Meta:
         model = Device
     
-    name = faker.name()
+    name = factory.LazyAttribute(lambda obj: faker.name())
     device_type = factory.SubFactory(DeviceTypeFactory)
     location = factory.SubFactory(LocationFactory)
 

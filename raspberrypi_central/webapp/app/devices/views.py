@@ -13,6 +13,7 @@ class LocationsViewSet(viewsets.ModelViewSet):
     serializer_class = LocationsSerializer
 
 # The ListCreateAPIView is a generic view which provides GET (list all) and POST method handlers
+# Used for read-write endpoints to represent a collection of model instances.
 class AttachmentView(generics.ListCreateAPIView):
     permission_classes = (HasAPIAccess,)
 

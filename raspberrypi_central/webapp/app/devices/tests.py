@@ -3,7 +3,26 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 
-from .models import Attachment
+from .models import Alert, AlertType, Attachment
+from .factories import AlertTypeFactory, AlertFactory, DeviceFactory, LocationFactory
+
+class ModelTestCase(TestCase):
+
+    def setUp(self):
+        self.alert_type = AlertTypeFactory()
+        self.devices = []
+
+        location = LocationFactory()
+
+        for i in range(2):
+            device = DeviceFactory(location=location)
+            self.devices.append(device)
+
+        self.alert = AlertFactory(devices=self.devices, alert_type=self.alert_type, severity=2)
+
+    def test_model(self):
+        pass
+
 
 class ViewTestCase(TestCase):
 

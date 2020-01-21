@@ -2,7 +2,6 @@ version: "3"
 services:
     py:
         build: ./app
-        volumes:
-            - ./app/:/usr/src/app/
+        command: pipenv run python mxtechrequest.py
         env_file:
             - ./.env

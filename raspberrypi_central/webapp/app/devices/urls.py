@@ -5,7 +5,8 @@ from . import views
 
 router = routers.SimpleRouter()
 router.register(r'location', views.LocationsViewSet)
-router.register('attachment', views.AttachmentViewSet)
+router.register(r'attachment', views.AttachmentViewSet)
+router.register(r'alert', views.AlertViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

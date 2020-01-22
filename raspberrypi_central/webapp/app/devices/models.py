@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
+from enum import Enum
 import uuid
 
 
@@ -84,19 +86,13 @@ class AlertType(models.Model):
     type = models.CharField(max_length=60)
 
 
+class SeverityChoice(Enum):
+    LOW = 'low'
+    MODERATE = 'moderate'
+    HIGH = 'high'
+
 class Alert(models.Model):
-
-    LOW = 0
-    MODERATE = 1
-    HIGH = 2
-
-    SEVERITY_CHOICES = [
-        (LOW, 'Low'),
-        (MODERATE, 'Moderate'),
-        (HIGH, 'High'),
-    ]
-
-    severity = models.IntegerField(choices=SEVERITY_CHOICES)
+    severity = models.IntegerField(choices=[(tag, tag.value) for tag in SeverityChoice])
     created_at = models.DateTimeField(editable=False)
 
     alert_type = models.ForeignKey(AlertType, on_delete=models.PROTECT)
@@ -109,3 +105,20 @@ class Alert(models.Model):
             self.created_at = timezone.now()
         # else: lock the update?! Raise an error here?
         return super(Alert, self).save(*args, **kwargs)
+
+class UserCommunication(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    data = JSONField()
+
+
+class AlertNotificationSetting(models.Model):
+    alert_type = models.ForeignKey(AlertType, on_delete=models.PROTECT)
+    severity = models.IntegerField(choices=[(tag, tag.value) for tag in SeverityChoice])
+
+    communication = models.ForeignKey(
+        UserCommunication,
+        on_delete=models.CASCADE,
+    )

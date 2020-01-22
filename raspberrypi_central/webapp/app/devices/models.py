@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
+from enum import Enum
 import uuid
 
 
@@ -85,7 +86,7 @@ class AlertType(models.Model):
     type = models.CharField(max_length=60)
 
 
-from enum import Enum class SeverityChoice(Enum):
+class SeverityChoice(Enum):
     LOW = 'low'
     MODERATE = 'moderate'
     HIGH = 'high'

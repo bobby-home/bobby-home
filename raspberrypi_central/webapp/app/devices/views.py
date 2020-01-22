@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, mixins
 from rest_framework.permissions import IsAuthenticated
 from api_keys.permissions import HasAPIAccess
 
@@ -14,13 +14,21 @@ class LocationsViewSet(viewsets.ModelViewSet):
 
 # The ListCreateAPIView is a generic view which provides GET (list all) and POST method handlers
 # Used for read-write endpoints to represent a collection of model instances.
-class AttachmentView(generics.ListCreateAPIView):
-    permission_classes = (HasAPIAccess,)
+# class AttachmentView(generics.ListCreateAPIView):
+#     # permission_classes = (HasAPIAccess,)
 
-    """This class defines the create behavior of our rest api."""
+#     """This class defines the create behavior of our rest api."""
+#     queryset = Attachment.objects.all()
+#     serializer_class = AttachmentSerializer
+
+#     def perform_create(self, serializer):
+#         """Save the post data when creating a new bucketlist."""
+#         serializer.save()
+
+class AttachmentViewSet(mixins.CreateModelMixin,
+                        mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
+                        viewsets.GenericViewSet):
+
     queryset = Attachment.objects.all()
     serializer_class = AttachmentSerializer
-
-    def perform_create(self, serializer):
-        """Save the post data when creating a new bucketlist."""
-        serializer.save()

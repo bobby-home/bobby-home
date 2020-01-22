@@ -2,6 +2,6 @@ version: "3"
 services:
     py:
         build: ./app
-        command: pipenv run python mxtechrequest.py
+        command: pipenv run python send-alert.py
         env_file:
             - ./.env

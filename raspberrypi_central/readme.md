@@ -12,4 +12,4 @@ That can be done easily by the `keys.sh` script that will:
 
 This script is not bullet proof, this is my simple use case, how I create my keys. Simple but effective.
 
-Not that I also use this scrit to setup ssh on my servers on my day to day basis.
+Note that I also use this script to setup ssh on my servers on my day to day basis.

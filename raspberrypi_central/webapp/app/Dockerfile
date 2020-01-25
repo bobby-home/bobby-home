@@ -4,8 +4,10 @@ FROM python:3.8.1
 # set work directory
 WORKDIR /usr/src/app
 
-# set environment variables
+# don't generate *.pyc files
 ENV PYTHONDONTWRITEBYTECODE 1
+
+# print to stdout without buffering
 ENV PYTHONUNBUFFERED 1
 
 # netcat is not required for alpine images, but debian based yes.

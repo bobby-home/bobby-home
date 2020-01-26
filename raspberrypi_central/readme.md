@@ -13,3 +13,10 @@ That can be done easily by the `keys.sh` script that will:
 This script is not bullet proof, this is my simple use case, how I create my keys. Simple but effective.
 
 Note that I also use this script to setup ssh on my servers on my day to day basis.
+
+## Docker
+
+Instead of running all your docker commands as `sudo`, we suggest you to add the `docker` group to the user. This is done by the `docker-install.sh` script. Here is the command to do it.
+```
+sudo usermod -aG docker $(whoami)
+```

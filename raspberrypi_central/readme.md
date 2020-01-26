@@ -20,3 +20,4 @@ Instead of running all your docker commands as `sudo`, we suggest you to add the
 ```
 sudo usermod -aG docker $(whoami)
 ```
+Note that you have to disconnect/reconnect to apply group changes.

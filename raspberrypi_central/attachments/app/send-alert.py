@@ -14,6 +14,5 @@ s.headers.update({'API-KEY': api_key,})
 
 payload = {'device_id': device_id, 'alert_type': 'motion', 'severity': 2 }
 
-response = s.post(url=urljoin(api_url, '/devices/olpo$rjkge'), data=payload)
+response = s.post(url=urljoin(api_url, 'device/attachment/'), data=payload)
 response.raise_for_status()
-

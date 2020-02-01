@@ -44,7 +44,7 @@ class AlertViewTestCase(TestCase):
         print('coucou')
         # 'devices': self.devices BUT throw "Object of type Device is not JSON serializable"
         # goal: alert_type: 'motion', and then perform the creation with this value.
-        data = { 'severity': 'high', 'alert_type': 'motion' }
+        data = { 'severity': 0, 'alert_type': 'motion' }
 
         res = self.client.post(
             reverse('alert-list'),

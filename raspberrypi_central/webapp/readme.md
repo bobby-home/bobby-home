@@ -18,4 +18,4 @@ docker-compose exec database psql -U hello_django -d hello_django_dev
 \dt
 ```
 
-
+tK_OG3TF9wKRipWPMaOkArlJ1F_ahMXYCgl2dm_IGSYYhAo_37yHpVVvznBpMrcbp5dRPB1pmbug7mL0o299BQ

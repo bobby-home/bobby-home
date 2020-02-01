@@ -1,13 +1,14 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Location, DeviceType, Device, SensorInformation, Sensor
+from . import models
 
 class DeviceAdmin(admin.ModelAdmin):
-    readonly_fields = ('device_id',)
+    readonly_fields = ('id',)
 
-admin.site.register(Location)
-admin.site.register(DeviceType)
-admin.site.register(Device, DeviceAdmin)
-admin.site.register(SensorInformation)
-admin.site.register(Sensor)
+admin.site.register(models.Location)
+admin.site.register(models.DeviceType)
+admin.site.register(models.Device, DeviceAdmin)
+admin.site.register(models.AlertType)
+# admin.site.register(SensorInformation)
+# admin.site.register(Sensor)

@@ -4,6 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+faker = "*"
+factory-boy = "*"
 
 [packages]
 django = "*"
@@ -11,7 +13,6 @@ psycopg2-binary = "*"
 gunicorn = "*"
 djangorestframework = "*"
 django-cors-headers = "*"
-factory-boy = "*"
 
 [requires]
 python_version = "3.8"

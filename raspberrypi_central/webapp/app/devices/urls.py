@@ -3,13 +3,14 @@ from django.conf.urls import url
 from rest_framework import routers
 from . import views
 
-router = routers.DefaultRouter()
+router = routers.SimpleRouter()
 router.register(r'location', views.LocationsViewSet)
+router.register(r'attachment', views.AttachmentViewSet)
+router.register(r'alert', views.AlertViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    url('attachment/', views.AttachmentView.as_view()),
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

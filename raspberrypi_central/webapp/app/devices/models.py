@@ -83,7 +83,7 @@ class Attachment(models.Model):
 
 
 class AlertType(models.Model):
-    type = models.CharField(max_length=60)
+    type = models.CharField(max_length=60, unique=True)
 
 
 class SeverityChoice(Enum):

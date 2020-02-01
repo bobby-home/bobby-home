@@ -1,3 +1,19 @@
+# Docker network
+The django API and PostgreSQL database are accessible on the `webapp_backend` network.
+If you need to join the API with some services, you have to "join" this network. Ex with `docker-compose`:
+
+```yml
+# at the end of your docker-compose.yml
+networks:
+    default:
+        external: 
+            name: webapp_webapp_backend
+```
+
+Thank to this, you can request the api with `http://web:8000`. Django settings allows the domain `web` which is the name of the service.
+
+More information: [docker compose networking](https://docs.docker.com/compose/networking/).
+
 ## Utils
 
 Migrate the database.

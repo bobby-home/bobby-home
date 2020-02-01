@@ -12,7 +12,11 @@ api_url = os.environ['API_URL']
 s = requests.Session()
 s.headers.update({'API-KEY': api_key,})
 
-payload = {'device_id': device_id, 'alert_type': 'motion', 'severity': 2 }
+payload = {'device_id': [device_id], 'alert_type': 'motion', 'severity': 'high' }
 
-response = s.post(url=urljoin(api_url, 'device/attachment/'), data=payload)
-response.raise_for_status()
+full_url = urljoin(api_url, 'device/alert/')
+print(full_url)
+
+response = s.get(url=urljoin(api_url, 'device/alert/'))
+print(response.text)
+# response.raise_for_status()

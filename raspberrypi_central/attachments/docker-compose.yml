@@ -5,3 +5,8 @@ services:
         command: pipenv run python send-alert.py
         env_file:
             - ./.env
+
+networks:
+    default:
+        external: 
+            name: webapp_webapp_backend

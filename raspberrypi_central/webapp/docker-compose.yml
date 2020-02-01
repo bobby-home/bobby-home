@@ -7,6 +7,8 @@ services:
           - ./app/:/usr/src/app/
         ports:
           - 8000:8000
+        networks:
+          - webapp_backend
         env_file:
           - ./.env.dev
         depends_on:
@@ -19,8 +21,13 @@ services:
           - POSTGRES_DB=hello_django_dev
           - POSTGRES_USER=hello_django
           - POSTGRES_PASSWORD=hello_django
+        networks: 
+          - webapp_backend
         ports:
             - '5432:5432'
+
+networks: 
+  webapp_backend:
 
 volumes:
   psql-data:

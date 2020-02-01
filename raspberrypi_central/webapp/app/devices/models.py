@@ -62,7 +62,7 @@ class AlertType(models.Model):
         return '{0}'.format(self.type)
 
 
-class SeverityChoice(Enum):
+class SeverityChoice(models.TextChoices):
     LOW = 'low'
     MODERATE = 'moderate'
     HIGH = 'high'
@@ -70,8 +70,8 @@ class SeverityChoice(Enum):
 class Alert(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    severity = models.CharField(max_length=10, choices=[(tag, tag.value) for tag in SeverityChoice])
-    created_at = models.DateTimeField(editable=False)
+    severity = models.CharField(max_length=60, choices=SeverityChoice.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     alert_type = models.ForeignKey(AlertType, on_delete=models.PROTECT)
     attachments = models.ManyToManyField(Attachment, blank=True)

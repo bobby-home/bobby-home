@@ -6,6 +6,7 @@ from api_keys.permissions import HasAPIAccess
 from .serializers import LocationsSerializer, AttachmentSerializer, AlertSerializer, AlertTypeSerializer
 from .models import Location, Attachment, Alert, AlertType
 
+
 class LocationsViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     

@@ -37,6 +37,7 @@ if os.environ.get("DJANGO_ALLOWED_HOSTS"):
 INSTALLED_APPS = [
     'api_keys.apps.ApiKeysConfig',
     'devices.apps.DevicesConfig',
+    'alarm.apps.AlarmConfig',
     'rest_framework',
     'corsheaders',
     'debug_toolbar',

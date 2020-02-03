@@ -9,6 +9,5 @@ class DeviceAdmin(admin.ModelAdmin):
 admin.site.register(models.Location)
 admin.site.register(models.DeviceType)
 admin.site.register(models.Device, DeviceAdmin)
-admin.site.register(models.AlertType)
 # admin.site.register(SensorInformation)
 # admin.site.register(Sensor)

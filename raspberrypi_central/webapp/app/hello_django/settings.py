@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'api_keys.apps.ApiKeysConfig',
     'devices.apps.DevicesConfig',
     'alarm.apps.AlarmConfig',
+    'alerts.apps.AlertsConfig',
     'rest_framework',
     'corsheaders',
     'debug_toolbar',

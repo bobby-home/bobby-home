@@ -6,9 +6,7 @@ from django.conf import settings
 
 router = routers.SimpleRouter()
 router.register(r'location', views.LocationsViewSet)
-router.register(r'attachment', views.AttachmentViewSet)
-router.register(r'alert', views.AlertViewSet)
-router.register(r'alert_type', views.AlertTypeViewSet)
+
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

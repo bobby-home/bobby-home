@@ -34,4 +34,12 @@ docker-compose exec database psql -U hello_django -d hello_django_dev
 \dt
 ```
 
+Create new django application.
+```
+docker-compose exec web pipenv run python manage.py startapp <application_name>
+
+# as docker is sudo... We have to change the owner
+sudo chown -R $USER:$USER ./app/<application_name>
+```
+
 tK_OG3TF9wKRipWPMaOkArlJ1F_ahMXYCgl2dm_IGSYYhAo_37yHpVVvznBpMrcbp5dRPB1pmbug7mL0o299BQ

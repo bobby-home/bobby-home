@@ -13,11 +13,8 @@ Send SMS notifications to your cell phone with the Free Mobile's new service.
 Enable it on your user account page and get your credentials !
 """
 
-USER = os.environ['FREE_USER']
-PASSWORD = os.environ['FREE_PASSWORD']
 
-
-async def send_sms(user: str, password: str, message: str):
+async def send_sms(user: str, password: str, message: str, session: ClientSession):
     data = {'user': user, 'pass': password, 'msg': message}
     query = parse.urlencode(data)
     url = 'https://smsapi.free-mobile.fr/sendmsg?{}'.format(query)
@@ -34,13 +31,3 @@ async def send_sms(user: str, password: str, message: str):
 async def get_session() -> ClientSession:
     async with ClientSession() as session:
         return session
-
-
-async def main():
-    # session = await get_session()
-    sms = partial(send_sms, USER, PASSWORD)
-    await sms('Hello World !')
-    return 0
- 
-if __name__ == '__main__':
-    asyncio.run(main())

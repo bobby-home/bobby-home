@@ -37,12 +37,12 @@ if [ $kind == 'server' ]; then
     if [ ! -f "$CA_KEY" ]; then
         # Create Root CA
         echo "Creating the Root CA $CA_KEY"
-        openssl genrsa -des3 -out $CA_KEY 2048
+        openssl genrsa -des3 -out $CA_KEY $keybits
     fi
 
     # Create and self sign the Root Certificate with the CA Key
     if [ ! -f "$CA_CRT" ]; then
-        echo "Creating the Root Certificate and sign it $CA_CRT"
+        echo "Creating the Root Certificate $CA_CRT and sign it with $CA_KEY"
         # openssl req -x509 -new -nodes -key $CA_KEY -sha256 -days 1024 -out $CA_CRT
         openssl req -newkey rsa:${keybits} -x509 -nodes $default_digest -days $days -extensions v3_ca -keyout $CA_KEY -out $CA_CRT -subj "$SUBJ"
         openssl x509 -in $CA_CRT -nameopt multiline -subject -noout
@@ -72,6 +72,7 @@ if [ $kind == 'server' ]; then
         #     -extfile ${CNF} \
         #     -extensions JPMextensions
 
+        # verify & sign the certificate request
         openssl x509 -req -in $SERVER_CSR -CA $CA_CRT -CAkey $CA_KEY -CAcreateserial -out $SERVER_CRT -days $days $default_digest
         openssl x509 -in $SERVER_CRT -text -noout
 

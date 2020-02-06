@@ -12,10 +12,10 @@ const getMqttClient = () => {
     protocol: 'mqtts',
   
     // @TODO see https://stackoverflow.com/questions/40018804/node-js-mqtt-client-using-tls
-    rejectUnauthorized: false,
-    // key: fs.readFileSync('client-key.pem'),
-    // cert: fs.readFileSync('client-cert.pem'),
-    // ca: [ fs.readFileSync('../docker/mosquitto/config/certs/rootCA.crt') ],
+    // rejectUnauthorized: false,
+    key: fs.readFileSync('test_client.key'),
+    cert: fs.readFileSync('test_client.crt'),
+    ca: [ fs.readFileSync('/home/mx/www/playing-with-arduino/raspberrypi_central/webapp/config/mosquitto/certs/ca.crt') ],
   }
   
   return mqtt.connect(options)

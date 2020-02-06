@@ -32,10 +32,13 @@ services:
             - ./mosquitto-data:/mosquitto/data
         ports:
             - "8883:8883"
+        networks:
+            - mqtt_server
 
 
 networks:
-  webapp_backend:
+    webapp_backend:
+    mqtt_server:
 
 volumes:
-  psql-data:
+    psql-data:

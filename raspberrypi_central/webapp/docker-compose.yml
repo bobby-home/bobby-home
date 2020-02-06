@@ -21,12 +21,20 @@ services:
           - POSTGRES_DB=hello_django_dev
           - POSTGRES_USER=hello_django
           - POSTGRES_PASSWORD=hello_django
-        networks: 
+        networks:
           - webapp_backend
         ports:
             - '5432:5432'
+    mqtt:
+        image: eclipse-mosquitto
+        volumes:
+            - ./config/mosquitto:/mosquitto/config
+            - ./mosquitto-data:/mosquitto/data
+        ports:
+            - "8883:8883"
 
-networks: 
+
+networks:
   webapp_backend:
 
 volumes:

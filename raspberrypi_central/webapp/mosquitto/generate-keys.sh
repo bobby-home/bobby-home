@@ -1,7 +1,10 @@
 #!/bin/sh
+# usage: <script.sh> <client|server>
+# generate keys for server or for client. 
+
 #Create CA key-pair and server key-pair signed by CA
 
-CERTS_FOLDER="$PWD/config/certs"
+CERTS_FOLDER="$PWD/../config/mosquitto/certs"
 
 CA_KEY=$CERTS_FOLDER/rootCA.key
 CA_CRT=$CERTS_FOLDER/rootCA.crt
@@ -21,7 +24,7 @@ days=365
 # If you generate the csr in this way, openssl will ask you questions about the certificate to generate like the organization details and the Common Name (CN) that is the web address you are creating the certificate for, e.g mydomain.com.
 SUBJ="/C=FR/ST=Occitanie/L=Toulouse/O=Mx home Security/OU=Security/CN=$(hostname)/emailAddress=contact@maxime-moreau.fr"
 
-kind='client'
+kind="${1:-server}"
 
 CLIENT='client'
 
@@ -37,7 +40,7 @@ if [ $kind == 'server' ]; then
         openssl genrsa -des3 -out $CA_KEY 2048
     fi
 
-    # Create and self sign the Root Certificate
+    # Create and self sign the Root Certificate with the CA Key
     if [ ! -f "$CA_CRT" ]; then
         echo "Creating the Root Certificate and sign it $CA_CRT"
         # openssl req -x509 -new -nodes -key $CA_KEY -sha256 -days 1024 -out $CA_CRT

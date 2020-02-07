@@ -1,20 +1,22 @@
 # Docker network
-The django API and PostgreSQL database are accessible on the `webapp_backend` network.
-If you need to join the API with some services, you have to "join" this network. Ex with `docker-compose`:
+## Create your network's
+Please run the `docker-network.sh` script to create networks.
 
-```yml
-# at the end of your docker-compose.yml
-networks:
-    default:
-        external: 
-            name: webapp_webapp_backend
-```
+### MQTT
+Make sure that you have the subnetwork `172.19.0.0/16` available. The MQTT broker has to have static IP, so my devices, arduino, esp... can connect to it statically, no DNS needed it's way too heavy.
+
+
+The IP of the mqtt broker will be `172.19.0.3` by default.
+
+## Compose network
+The django API and PostgreSQL database are accessible on the `webapp_backend` network.
+If you need to join the API with some services, you have to "join" this network.
 
 Thank to this, you can request the api with `http://web:8000`. Django settings allows the domain `web` which is the name of the service.
 
 More information: [docker compose networking](https://docs.docker.com/compose/networking/).
 
-## Utils
+# Docker Utils
 
 Migrate the database.
 ```

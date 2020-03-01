@@ -18,5 +18,8 @@ RUN pip install --upgrade pip
 COPY ./Pipfile /usr/src/app/Pipfile
 RUN pipenv install
 
+ADD ca.crt /usr/local/share/ca-certificates/ca.cert
+RUN chmod 644 /usr/local/share/ca-certificates/ca.cert && update-ca-certificates
+
 # copy project
 COPY . /usr/src/app/

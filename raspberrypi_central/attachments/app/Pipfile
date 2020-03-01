@@ -9,6 +9,8 @@ verify_ssl = true
 boto3 = "*"
 requests = "*"
 aiohttp = "*"
+paho-mqtt = "*"
+certifi = "*"
 
 [requires]
 python_version = "3.8"

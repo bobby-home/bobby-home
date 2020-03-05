@@ -82,7 +82,21 @@ ROOT_URLCONF = 'hello_django.urls'
 
 TEMPLATES = [
     {
+        'BACKEND': 'django.template.backends.jinja2.Jinja2',
+        # Jinja2 handle my templates
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            # add basic django tags and django view environment.
+            'environment': 'hello_django.jinja2.environment',
+            'extensions': [
+                'jdj_tags.webpack_assets.WebpackAssets',
+            ]
+        }
+    },
+    {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # let Jinja2 handle my templates
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -91,7 +105,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-            ],
+            ]
         },
     },
 ]

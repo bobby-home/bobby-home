@@ -4,14 +4,14 @@ from .models import APIKey
 
 
 class ApiKeyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'label', 'created_at', 'modified_at')
+    list_display = ('id', 'label', 'key', 'created_at', 'modified_at')
 
     fieldsets = (
         ('Required Information', {'fields': ('label',)}),
         ('Additional Information', {'fields': ('key_message',)}),
     )
     readonly_fields = ('key_message',)
-    search_fields = ('id', 'label',)
+    search_fields = ('id', 'label')
 
 
     def has_delete_permission(self, request, obj=None):

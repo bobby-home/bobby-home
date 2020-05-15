@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+    telegram_bot:
+        build: ./app
+        command: pipenv run python bot.py
+        volumes:
+          - ./app/:/usr/src/app/
+        env_file:
+          - ./.env
+        networks:
+          - webapp_backend
+
+networks:
+    webapp_backend:
+        external:
+          name: webapp_webapp_backend

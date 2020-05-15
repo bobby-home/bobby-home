@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from . import models
+from .alarm_messaging.alarm_messaging import alarm_messaging_factory
 
 class AlarmStatusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,6 +10,9 @@ class AlarmStatusSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         status = validated_data.get('running')
         
+        messaging = alarm_messaging_factory()
+        messaging.set_status(status)
+
         # I don't know why, but this doesn't work!
         # I got "Got AttributeError when attempting to get a value for field `running` on serializer"
         # So, I've done this with the old fashion.

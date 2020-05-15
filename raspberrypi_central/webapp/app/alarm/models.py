@@ -1,7 +1,9 @@
 from django.db import models
+from rest_framework.test import APIClient
+
 
 class AlarmStatus(models.Model):
-    is_active = models.BooleanField()
+    running = models.BooleanField()
 
     # only one row can be created, otherwise: IntegrityError is raised.
     # from https://books.agiliq.com/projects/django-orm-cookbook/en/latest/singleton.html

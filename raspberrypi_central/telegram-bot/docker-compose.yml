@@ -4,10 +4,13 @@ services:
         build: ./app
         command: pipenv run python bot.py
         volumes:
-          - ./app/:/usr/src/app/
+            - ./app/:/usr/src/app/
         env_file:
-          - ./.env
+            - ./.env
+        networks:
+                - webapp_backend
 
 networks:
     webapp_backend:
-        external: true
+        external:
+            name: webapp_webapp_backend

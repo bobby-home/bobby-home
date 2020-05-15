@@ -18,4 +18,3 @@ def index(request):
 class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = models.AlarmStatus.objects.all()
     serializer_class = serializers.AlarmStatusSerializer
-

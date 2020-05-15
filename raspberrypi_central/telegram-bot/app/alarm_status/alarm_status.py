@@ -1,14 +1,25 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from urllib.parse import urljoin
+import requests
+import os
+
 
 class AlarmStatusRepository:
-    def __init__(self):
-        pass
+    def __init__(self, api_url: str, get_status_endpoint: str):
+        self.url = urljoin(api_url, get_status_endpoint)
+
+    def set_status(self, status: bool):
+        r = requests.post(self.url, data={'running': status})
+        r.raise_for_status()
 
     @property
     def is_on(self):
-        # @TODO make HTTP request to the rest api
-        return True
+        r = requests.get(self.url)
+        r.raise_for_status()
+        data = r.json()
+
+        return data[0]['running']
 
 
 class AlarmStatusBot:
@@ -18,7 +29,6 @@ class AlarmStatusBot:
     
     def _alarm_status(self, update, context):
         status = self.repository.is_on
-        print('_alarm_status called, alarm status is ', status)
 
         if status is True:
             text = "Votre alarme est activée, voulez-vous la désactiver ?"
@@ -36,19 +46,20 @@ class AlarmStatusBot:
         status = query.data
 
         if status == "on":
+            self.repository.set_status(True)
             text = "Votre alarme est désormais active."
         elif status == "off":
-            text = "Votre alarme est désormais désactivée"
-        
+            self.repository.set_status(False)
+            text = "Votre alarme est désormais désactivée."
 
         query.edit_message_text(text)
 
     
     def _register_commands(self, update):
-        print('register commands')
         update.dispatcher.add_handler(CommandHandler('status_alarm', self._alarm_status))
         update.dispatcher.add_handler(CallbackQueryHandler(self._set_alarm_status))
 
+
 def alarm_status_bot_factory(telegram_updater: Updater) -> AlarmStatusBot:
-    repository = AlarmStatusRepository()
+    repository = AlarmStatusRepository(os.environ['API_URL'], os.environ['API_GET_STATUS_ENDPOINT'])
     return AlarmStatusBot(repository, telegram_updater)

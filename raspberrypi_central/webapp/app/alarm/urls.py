@@ -4,7 +4,7 @@ from rest_framework import routers
 from . import views
 
 router = routers.SimpleRouter()
-router.register(r'alarm_status', views.AlarmStatusViewSet)
+router.register(r'status', views.AlarmStatusViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

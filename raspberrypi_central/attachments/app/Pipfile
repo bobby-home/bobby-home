@@ -6,8 +6,13 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+picamera = {extras = ["array"],version = "*"}
 boto3 = "*"
 requests = "*"
+aiohttp = "*"
+paho-mqtt = "*"
+certifi = "*"
+python-telegram-bot = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.7"

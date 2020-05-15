@@ -18,6 +18,7 @@ django-debug-toolbar = "*"
 factory-boy = "*"
 faker = "*"
 jinja2 = "*"
+paho-mqtt = "*"
 
 [requires]
 python_version = "3.8"

@@ -25,6 +25,14 @@ network={
 }
 ```
 
+### Find your raspberry pi on your LAN
+When your raspberry is connected to your network (LAN), you'll be able to connect to it remotly through SSH. But to do so... We need its ip address, and to do so, I'm using `nmap` like so:
+
+```
+nmap -sn 192.168.1.0/24
+```
+Where `192.168.1.0/24` is my network ip/mask.
+
 ### SSH Keys
 I suggest you (strongly recommend), to activate SSH connexion with ssh keys.
 That can be done easily by the `keys.sh` script that will:

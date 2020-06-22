@@ -44,4 +44,8 @@ Instead of running all your docker commands as `sudo`, we suggest you to add the
 ```
 sudo usermod -aG docker $(whoami)
 ```
-Note that you have to disconnect/reconnect to apply group changes.
+
+**Note that you have to disconnect/reconnect to apply group changes.**
+
+## Global install
+Run the script `install.sh`. It will install some useful software like docker-compose.

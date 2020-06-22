@@ -1,6 +1,0 @@
-data/*
-config/certs/*
-config/*
-*.crt
-*.key
-*.csr

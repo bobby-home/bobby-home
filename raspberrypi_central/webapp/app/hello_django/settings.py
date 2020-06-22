@@ -37,8 +37,11 @@ if os.environ.get("DJANGO_ALLOWED_HOSTS"):
 INSTALLED_APPS = [
     'api_keys.apps.ApiKeysConfig',
     'devices.apps.DevicesConfig',
+    'alarm.apps.AlarmConfig',
+    'alerts.apps.AlertsConfig',
     'rest_framework',
     'corsheaders',
+    'debug_toolbar',
 
     # django apps
     'django.contrib.admin',
@@ -60,6 +63,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -78,7 +82,21 @@ ROOT_URLCONF = 'hello_django.urls'
 
 TEMPLATES = [
     {
+        'BACKEND': 'django.template.backends.jinja2.Jinja2',
+        # Jinja2 handle my templates
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            # add basic django tags and django view environment.
+            'environment': 'hello_django.jinja2.environment',
+            'extensions': [
+                'jdj_tags.webpack_assets.WebpackAssets',
+            ]
+        }
+    },
+    {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # let Jinja2 handle my templates
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -87,7 +105,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-            ],
+            ]
         },
     },
 ]
@@ -147,6 +165,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+def show_toolbar(request):
+        return DEBUG
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': show_toolbar,
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

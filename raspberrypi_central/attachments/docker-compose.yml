@@ -1,0 +1,18 @@
+version: "3"
+services:
+    py:
+        build: ./app
+        command: pipenv run python alarm.py
+        env_file:
+            - ./.env
+        networks: 
+            - webapp_backend
+            - backend_mqtt
+
+networks:
+    webapp_backend:
+        external: 
+            name: webapp_webapp_backend
+    backend_mqtt:
+        external: 
+            name: backend_mqtt

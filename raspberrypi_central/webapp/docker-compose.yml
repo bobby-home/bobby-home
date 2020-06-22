@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 services:
     web:
         build: ./app
@@ -7,6 +7,10 @@ services:
           - ./app/:/usr/src/app/
         ports:
           - 8000:8000
+        networks:
+            webapp_backend:
+            backend_mqtt:
+                ipv4_address: "172.19.0.3"
         env_file:
           - ./.env.dev
         depends_on:
@@ -19,8 +23,26 @@ services:
           - POSTGRES_DB=hello_django_dev
           - POSTGRES_USER=hello_django
           - POSTGRES_PASSWORD=hello_django
+        networks:
+          - webapp_backend
         ports:
             - '5432:5432'
+    mqtt:
+        image: eclipse-mosquitto
+        volumes:
+            - ./config/mosquitto:/mosquitto/config
+            - ./mosquitto-data:/mosquitto/data
+        ports:
+            - "8883:8883"
+        networks:
+            backend_mqtt:
+                ipv4_address: "172.19.0.2"
+
+
+networks:
+    webapp_backend:
+    backend_mqtt:
+        external: true
 
 volumes:
-  psql-data:
+    psql-data:

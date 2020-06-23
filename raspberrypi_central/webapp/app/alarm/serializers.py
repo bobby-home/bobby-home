@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from . import models
-from .alarm_messaging.alarm_messaging import alarm_messaging_factory
 
 class AlarmStatusSerializer(serializers.ModelSerializer):
     class Meta:

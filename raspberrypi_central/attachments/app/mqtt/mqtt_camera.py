@@ -35,7 +35,6 @@ class MqttCamera():
         client.loop_forever()
         return client
 
-
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"
 # os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(

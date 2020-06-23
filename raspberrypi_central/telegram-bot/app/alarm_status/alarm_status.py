@@ -1,5 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+<<<<<<< HEAD
 from urllib.parse import urljoin
 import requests
 import os
@@ -20,6 +21,24 @@ class AlarmStatusRepository:
         data = r.json()
 
         return data[0]['running']
+=======
+import requests
+import os
+from urllib.parse import urljoin
+
+
+class AlarmStatusRepository:
+    def __init__(self, requests, alarm_status_url: str):
+        self.requests = requests
+        self._alarm_status_url = alarm_status_url
+
+    @property
+    def is_on(self):
+        r = self.requests.get(self._alarm_status_url)
+        print(r.status_code)
+        # @TODO make HTTP request to the rest api
+        return True
+>>>>>>> detect-motion
 
 
 class AlarmStatusBot:
@@ -29,6 +48,10 @@ class AlarmStatusBot:
     
     def _alarm_status(self, update, context):
         status = self.repository.is_on
+<<<<<<< HEAD
+=======
+        print('_alarm_status called, alarm status is ', status)
+>>>>>>> detect-motion
 
         if status is True:
             text = "Votre alarme est activée, voulez-vous la désactiver ?"
@@ -46,20 +69,41 @@ class AlarmStatusBot:
         status = query.data
 
         if status == "on":
+<<<<<<< HEAD
             self.repository.set_status(True)
             text = "Votre alarme est désormais active."
         elif status == "off":
             self.repository.set_status(False)
             text = "Votre alarme est désormais désactivée."
+=======
+            text = "Votre alarme est désormais active."
+        elif status == "off":
+            text = "Votre alarme est désormais désactivée"
+        
+>>>>>>> detect-motion
 
         query.edit_message_text(text)
 
     
     def _register_commands(self, update):
+<<<<<<< HEAD
         update.dispatcher.add_handler(CommandHandler('status_alarm', self._alarm_status))
         update.dispatcher.add_handler(CallbackQueryHandler(self._set_alarm_status))
 
 
 def alarm_status_bot_factory(telegram_updater: Updater) -> AlarmStatusBot:
     repository = AlarmStatusRepository(os.environ['API_URL'], os.environ['API_GET_STATUS_ENDPOINT'])
+=======
+        print('register commands')
+        update.dispatcher.add_handler(CommandHandler('status_alarm', self._alarm_status))
+        update.dispatcher.add_handler(CallbackQueryHandler(self._set_alarm_status))
+
+def alarm_status_bot_factory(telegram_updater: Updater) -> AlarmStatusBot:
+    api_url = os.environ['API_URL']
+    api_endpoint = os.environ['API_GET_STATUS_ENDPOINT']
+
+    url = urljoin(api_url, api_endpoint)
+    
+    repository = AlarmStatusRepository(requests, url)
+>>>>>>> detect-motion
     return AlarmStatusBot(repository, telegram_updater)

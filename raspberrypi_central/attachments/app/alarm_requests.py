@@ -20,7 +20,7 @@ class AlarmRequests():
         self.api_url = api_url
 
 
-    async def _send_alert(self, session: ClientSession, api_endpoint: str):
+    async def _send_alert_to_api(self, session: ClientSession, api_endpoint: str):
         headers = {'API-KEY': self.api_key,}
 
         payload = {'devices': [self.device_id], 'alert_type': 'motion', 'severity': 'high' }
@@ -30,7 +30,8 @@ class AlarmRequests():
             response.raise_for_status()
 
 
-    """FREE MOBILE SMS NOTIFICATION
+    """
+    FREE MOBILE SMS NOTIFICATION
 
     Send SMS notifications to your cell phone with the Free Mobile's new service.
     Enable it on your user account page and get your credentials !
@@ -56,7 +57,7 @@ class AlarmRequests():
             # but doesn't work for me here, if it goes to the global handler it doesn't catch it and let the program crashed
             # so if send_alert_task crashes, all the others are not executed, that is BAD!
             # @TODO research why it does that.
-            return await asyncio.gather(asyncio.ensure_future(self._send_alert(session, api_endpoint)), send_sms_task)
+            return await asyncio.gather(asyncio.ensure_future(self._send_alert_to_api(session, api_endpoint)), send_sms_task)
 
             # if isinstance(alerted, Exception):
             #     print("couldn't create the alert.")

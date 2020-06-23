@@ -1,7 +1,7 @@
-picamera=1.13
-boto3=1.14.*
-requests=2.24.*
-aiohttp=3.6.*
-paho-mqtt=1.5.*
-certifi=2020.6.*
-python-telegram-bot=12.8
+picamera==1.13
+boto3==1.14.*
+requests==2.24.*
+aiohttp==3.6.*
+paho-mqtt==1.5.*
+certifi==2020.6.*
+python-telegram-bot==12.8

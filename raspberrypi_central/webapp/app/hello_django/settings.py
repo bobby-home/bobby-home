@@ -31,10 +31,13 @@ DEBUG = int(os.environ.get("DEBUG", default=0))
 if os.environ.get("DJANGO_ALLOWED_HOSTS"):
     ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
+# Override default value to use my custom User model.
+AUTH_USER_MODEL = 'account.Account'
 
 # Application definition
-
 INSTALLED_APPS = [
+    'account',
+
     'api_keys.apps.ApiKeysConfig',
     'devices.apps.DevicesConfig',
     'alarm.apps.AlarmConfig',

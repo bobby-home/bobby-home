@@ -1,4 +1,5 @@
 picamera==1.13
+pygame==1.9.*
 boto3==1.14.*
 requests==2.24.*
 aiohttp==3.6.*

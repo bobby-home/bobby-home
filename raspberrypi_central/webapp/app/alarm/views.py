@@ -1,11 +1,7 @@
 from django.shortcuts import render
 from api_keys.permissions import HasAPIAccess
-<<<<<<< HEAD
-from rest_framework import viewsets, generics, mixins
-=======
 from rest_framework import viewsets, generics, mixins, status
 from rest_framework.response import Response
->>>>>>> detect-motion
 from . import serializers
 from . import models
 

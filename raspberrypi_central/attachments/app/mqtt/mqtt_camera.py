@@ -3,7 +3,12 @@ import os
 import ssl
 from motion.camera_manager import CameraManager
 
+
 class MqttCamera():
+    """
+    This class synchronise the alarm status with MQTT.
+    If we receive a message to switch on/off the alarm, we're doing it here.
+    """
     def __init__(self, camera_manager: CameraManager):
         self._camera_manager = camera_manager
         self._mqtt_client = self._mqtt_connect()

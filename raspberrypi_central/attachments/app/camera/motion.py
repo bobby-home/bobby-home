@@ -11,8 +11,6 @@ from typing import Callable
 
 conf = json.load(open('camera/motion-conf.json', 'r'))
 
-print(conf)
-
 def grab_contours(cnts):
     # if the length the contours tuple returned by cv2.findContours
     # is '2' then we are using either OpenCV v2.4, v4-beta, or
@@ -92,7 +90,6 @@ class DetectMotion():
         for f in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
             # grab the raw NumPy array representing the image
             frame = f.array
-            timestamp = datetime.datetime.now()
             text = "Unoccupied"
 
             frame = resize(frame, width=500)
@@ -133,12 +130,12 @@ class DetectMotion():
                 text = "Occupied"
 
                 if text == "Occupied":
+                    timestamp = datetime.datetime.now()
+
                     # check to see if enough time has passed between uploads
                     if (timestamp - self.lastUploaded).seconds >= conf["min_upload_seconds"]:
                         # increment the motion counter
                         self.motionCounter += 1
-                        print(cv2.contourArea(c), conf["min_area"])
-
 
                         # check to see if the number of frames with consistent motion is
                         # high enough
@@ -149,8 +146,6 @@ class DetectMotion():
                             cv2.imwrite(t.path, frame)
 
                             self.presenceCallback(True, t.path)
-
-                            print("TAKE A PICTURE")
 
                             # upload the image to Dropbox and cleanup the tempory image
                             # print("[UPLOAD] {}".format(ts))

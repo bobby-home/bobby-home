@@ -1,13 +1,12 @@
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 import os
-from dotenv import load_dotenv
 from pathlib import Path  # python3 only
 
-env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
+TOKEN=os.environ['TELEGRAM_BOT_TOKEN']
+
 
 def send_message(msg: str, picture_path: str) -> None:
-    updater = Updater(os.getenv("TELEGRAM_BOT_TOKEN"), use_context=True)
+    updater = Updater(TOKEN, use_context=True)
     bot = updater.bot
 
     bot.send_message(chat_id="749348319", text=msg)

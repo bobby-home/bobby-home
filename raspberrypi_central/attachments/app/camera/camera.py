@@ -1,5 +1,4 @@
 from .motion import DetectMotion
-from dotenv import load_dotenv
 from pathlib import Path 
 from telegram_bot.send_presence_message import send_message
 from sound.sound import Sound

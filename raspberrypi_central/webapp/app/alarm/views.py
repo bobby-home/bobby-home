@@ -21,24 +21,18 @@ class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewset
     serializer_class = serializers.AlarmStatusSerializer
 
     def create(self, request):
-        # alarm_status = self.get_object()
         serializer = serializers.AlarmStatusSerializer(data=request.data)
-        if serializer.is_valid():
-            status = request.data.get('status')
-            if (status == 'on'):
-                models.AlarmStatus.objects.update_or_create(
-                    is_active=True
-                )
-            elif (status == 'off'):
-                models.AlarmStatus.objects.update_or_create(
-                    is_active=False
-                )
-            return Response('WIP!')
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response('bad!')
+
+        serializer.is_valid(raise_exception=True)
+        status = request.data.get('status')
+        if (status == 'on'):
+            models.AlarmStatus.objects.update_or_create(is_active=True)
+        elif (status == 'off'):
+            models.AlarmStatus.objects.update_or_create(is_active=False)
+
+        return Response('WIP!')
 
     def list(self, request):
         alarm_status = models.AlarmStatus.objects.all()
         print(alarm_status)
         return Response('hello')
-

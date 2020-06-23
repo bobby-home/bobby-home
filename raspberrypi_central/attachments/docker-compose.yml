@@ -2,12 +2,20 @@ version: "3"
 services:
     py:
         build: ./app
-        command: pipenv run python alarm.py
+        command: python alarm.py
         env_file:
-            - ./.env
+            - .env
         networks: 
             - webapp_backend
             - backend_mqtt
+        # Give access to the rpi camera device.
+        privileged: true
+        environment:
+                - LD_LIBRARY_PATH=/opt/vc/lib
+        volumes:
+                - /opt/vc:/opt/vc
+        devices:
+                - "/dev/vchiq:/dev/vchiq"
 
 networks:
     webapp_backend:

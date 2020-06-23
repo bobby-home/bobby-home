@@ -11,8 +11,8 @@ services:
 
 networks:
     webapp_backend:
-        external: 
+        external:
             name: webapp_webapp_backend
     backend_mqtt:
-        external: 
+        external:
             name: backend_mqtt

@@ -10,18 +10,11 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # print to stdout without buffering
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update \
-    && apt-get install -y pipenv
+RUN apt-get update
 
 # install dependencies
-RUN pip install --upgrade pip
-COPY ./Pipfile /usr/src/app/Pipfile
-RUN pipenv install
-
-# copy entrypoint.sh
-# COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
+COPY requirements.txt /tmp/
+RUN pip install --requirement /tmp/requirements.txt
 
 # copy project
 COPY . /usr/src/app/
-
-# ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

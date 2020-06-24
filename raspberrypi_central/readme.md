@@ -44,6 +44,15 @@ This script is not bullet proof, this is my simple use case, how I create my key
 
 Note that I also use this script to setup ssh on my servers on my day to day basis.
 
+## Raspi config
+We need to configure a little bit the raspberry.
+```
+sudo raspi-config
+```
+
+- "Interfacing Optionns" -> "Camera" -> Enable camera accesss.
+- "Advanced Options" -> Expan filesystem ensures that all of the SD card storage is available to the OS (then reboot).
+
 ## Install & Setup Docker
 
 Run the script `install-docker.sh`.

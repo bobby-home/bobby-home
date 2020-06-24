@@ -27,7 +27,7 @@ services:
 
     py:
         build: ./app
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python run_task.py"
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python alarm.py"
         env_file:
             - .env
         networks: 

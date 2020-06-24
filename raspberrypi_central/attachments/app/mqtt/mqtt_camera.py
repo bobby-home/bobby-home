@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import os
 import ssl
-from motion.camera_manager import CameraManager
+from camera.camera_manager import CameraManager
 
 
 class MqttCamera():

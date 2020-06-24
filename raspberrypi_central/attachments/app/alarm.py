@@ -1,6 +1,6 @@
 from mqtt.mqtt_camera import MqttCamera
-from motion.camera_manager import CameraManager as CM
-from motion.camera_factory import camera_factory
+from camera.camera_manager import CameraManager as CM
+from camera.camera_factory import camera_factory
 
 print('coucou')
 manager = CM(camera_factory)

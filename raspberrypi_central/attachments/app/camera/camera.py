@@ -1,8 +1,7 @@
-from .motion import DetectMotion
+from camera.motion import DetectMotion
 from pathlib import Path 
-from telegram_bot.send_presence_message import send_message
+from tasks import send_telegram_message
 from sound.sound import Sound
-import os
 
 class Camera():
     def __init__(self):
@@ -10,9 +9,9 @@ class Camera():
 
     def start(self):
         DetectMotion(self._presenceCallback)
-    
-    def _presenceCallback(self, presence: bool, picture_path: str) -> None:
+
+    def _presenceCallback(self, presence: bool, picture_path: str):
         print(f'presence: {presence}')
-        send_message('Une présence étrangère a été détectée chez vous.', picture_path)
+        send_telegram_message.apply_async('Une présence étrangère a été détectée chez vous.', picture_path)
         # s = Sound()
         # s.alarm()

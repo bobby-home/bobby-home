@@ -1,13 +1,13 @@
 from picamera.array import PiRGBArray
 from picamera import PiCamera
+from typing import Callable
 import argparse
 import warnings
 import datetime
 import json
 import time
 import cv2
-from .tempimage import TempImage
-from typing import Callable
+from camera.tempimage import TempImage
 
 conf = json.load(open('camera/motion-conf.json', 'r'))
 
@@ -146,13 +146,6 @@ class DetectMotion():
                             cv2.imwrite(t.path, frame)
 
                             self.presenceCallback(True, t.path)
-
-                            # upload the image to Dropbox and cleanup the tempory image
-                            # print("[UPLOAD] {}".format(ts))
-                            # path = "/{base_path}/{timestamp}.jpg".format(
-                            #     base_path=conf["dropbox_base_path"], timestamp=ts)
-                            # client.files_upload(open(t.path, "rb").read(), path)
-                            # t.cleanup()
 
                             # update the last uploaded timestamp and reset the motion
                             # counter

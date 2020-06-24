@@ -1,6 +1,16 @@
 # Docker network
 ## Create your network's
 Please run the `docker-network.sh` script to create networks.
+You could, eventually, get this kind of error: `ERROR: Pool overlaps with other one on this address space`. That means that, you have another docker network that overlaps with the specified address space in the script.
+
+First of all, please make sure that you don't need the another network, this is your responsability, you could break other apps... If you need this address space, just change it on the script `docker-network.sh` and in Compose file. But be aware that you'll have also to change IP addresses for IoT devices, as they don't use Docker so they can't use service resolution name.
+
+If you're sure that you don't need the existing network, you can delete it. **Even if the containers are down the networks are still persist. With no container running docker network prune did it.**.
+
+```
+docker network prune
+```
+Will clean your networks.
 
 ### MQTT
 Make sure that you have the subnetwork `172.19.0.0/16` available. The MQTT broker has to have static IP, so my devices, arduino, esp... can connect to it statically, no DNS needed it's way too heavy.

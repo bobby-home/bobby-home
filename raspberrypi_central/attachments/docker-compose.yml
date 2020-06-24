@@ -1,13 +1,40 @@
-version: "3"
+version: "3.8"
 services:
+    rabbit:
+        hostname: rabbit
+        image: rabbitmq:3.8-management-alpine
+        environment:
+            - RABBITMQ_DEFAULT_USER=admin
+            - RABBITMQ_DEFAULT_PASS=mypass
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        networks:
+            - motion
+        # healthcheck:
+        #     test: ["CMD", "wget", "-qO-", "http://localhost:15672"]
+        #     interval: 30s
+        #     timeout: 10s
+        #     retries: 5
+
+    worker:
+        build: ./app
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A tasks worker --loglevel=info"
+        env_file:
+            - .env
+        networks:
+            - motion
+
     py:
         build: ./app
-        command: python alarm.py
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python run_task.py"
         env_file:
             - .env
         networks: 
             - webapp_backend
             - backend_mqtt
+            - motion
+
         # Give access to the rpi camera device.
         privileged: true
         environment:
@@ -18,6 +45,8 @@ services:
                 - "/dev/vchiq:/dev/vchiq"
 
 networks:
+    motion:
+        name: motion
     webapp_backend:
         external:
             name: webapp_webapp_backend

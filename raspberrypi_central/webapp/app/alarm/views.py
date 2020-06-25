@@ -2,8 +2,10 @@ from django.shortcuts import render
 from api_keys.permissions import HasAPIAccess
 from rest_framework import viewsets, generics, mixins, status
 from rest_framework.response import Response
+from rest_framework import status
 from . import serializers
 from . import models
+from . import tasks
 
 from django.shortcuts import render
 
@@ -24,15 +26,11 @@ class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewset
         serializer = serializers.AlarmStatusSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
-        status = request.data.get('status')
-        if (status == 'on'):
-            models.AlarmStatus.objects.update_or_create(is_active=True)
-        elif (status == 'off'):
-            models.AlarmStatus.objects.update_or_create(is_active=False)
+        request_status = request.data.get('running')
 
-        return Response('WIP!')
+        if (request_status == True):
+            models.AlarmStatus.objects.update_or_create(pk=1, defaults={'running': True})
+        elif (request_status == False):
+            models.AlarmStatus.objects.update_or_create(pk=1, defaults={'running': False})
 
-    def list(self, request):
-        alarm_status = models.AlarmStatus.objects.all()
-        print(alarm_status)
-        return Response('hello')
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -34,6 +34,8 @@ if os.environ.get("DJANGO_ALLOWED_HOSTS"):
 # Override default value to use my custom User model.
 AUTH_USER_MODEL = 'account.Account'
 
+CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
+
 # Application definition
 INSTALLED_APPS = [
     'account',

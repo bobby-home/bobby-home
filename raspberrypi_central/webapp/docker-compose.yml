@@ -22,7 +22,7 @@ services:
         build: ./app
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django worker --loglevel=info"
         env_file:
-            - .env.dev
+            - .env
         networks:
             rabbitmq:
             backend_mqtt:
@@ -39,9 +39,9 @@ services:
             rabbitmq:
             webapp_backend:
             backend_mqtt:
-                ipv4_address: "172.19.0.3"
+                ipv4_address: "172.19.0.50"
         env_file:
-          - ./.env.dev
+          - .env
 
     database:
         image: postgres:12.0-alpine

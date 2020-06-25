@@ -1,8 +1,8 @@
 from __future__ import absolute_import, unicode_literals
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
 import os
-
 
 class AlarmMessaging():
 
@@ -36,3 +36,20 @@ def alarm_messaging(status: bool):
         os.environ['MQTT_ALARM_CAMERA_TOPIC'])
 
     alarm_messaging.set_status(status)
+
+
+TOKEN=os.environ['TELEGRAM_BOT_TOKEN']
+
+@shared_task
+def send_telegram_message(msg: str, picture_path = None):
+    updater = Updater(TOKEN, use_context=True)
+    bot = updater.bot
+
+    bot.send_message(chat_id="749348319", text=msg)
+
+    if picture_path:
+        bot.send_photo(chat_id="749348319", photo=open(picture_path, 'rb'))
+
+@shared_task(name="security.camera_motion_detected")
+def camera_motion_detected(device_id: str):
+    send_telegram_message.apply_async(args=['Une présence étrangère a été détectée chez vous.'])

@@ -1,17 +1,18 @@
 from camera.motion import DetectMotion
 from pathlib import Path 
-from tasks import send_telegram_message
 from sound.sound import Sound
+
+from celery import Celery
 
 class Camera():
     def __init__(self):
-        pass
+        self.celery = Celery('tasks', broker='amqp://admin:mypass@rabbit:5672')
 
     def start(self):
         DetectMotion(self._presenceCallback)
 
     def _presenceCallback(self, presence: bool, picture_path: str):
         print(f'presence: {presence}')
-        send_telegram_message.apply_async(args=['Une présence étrangère a été détectée chez vous.', picture_path])
+        self.celery.send_task('security.camera_motion_detected', kwargs={'device_id': 'some device id here'})
         # s = Sound()
         # s.alarm()

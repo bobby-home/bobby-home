@@ -20,11 +20,13 @@ class MqttCamera():
     def _mqtt_on_message(self, client, userdata, msg):
         message = msg.payload.decode()
 
-        if message == 'on':
+        print(f"I've received a message: {message}")
+
+        if message == 'True':
             print('waking up the alarm system.')
             self._camera_manager.running = True
-        elif message == 'off':
-            print('alarm is off')
+        elif message == 'False':
+            print('turning off the alarm')
             self._camera_manager.running = False
 
     def _mqtt_connect(self) -> mqtt.Client:

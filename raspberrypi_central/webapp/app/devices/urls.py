@@ -5,9 +5,6 @@ from . import views
 
 router = routers.SimpleRouter()
 
-
-
 urlpatterns = [
     path('', include(router.urls)),
-    path('api/', include('devices.api.urls', 'device_api')),
 ]

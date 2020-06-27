@@ -3,7 +3,6 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
 from enum import Enum
-import uuid
 
 class SeverityChoice(models.TextChoices):
     LOW = 'low'
@@ -32,10 +31,12 @@ class DeviceType(models.Model):
 
 
 class Device(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    device_id = models.CharField(max_length=8, unique=True)
 
     name = models.CharField(max_length=100, unique=True, blank=True)
-    location = models.ForeignKey('Location', on_delete=models.PROTECT)
+
+    # When we're installing the system, location may not be known at the begining.
+    location = models.ForeignKey('Location', blank=True, on_delete=models.PROTECT)
     device_type = models.ForeignKey('DeviceType', on_delete=models.PROTECT)
 
     def __str__(self):

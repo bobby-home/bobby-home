@@ -38,10 +38,12 @@ AUTH_USER_MODEL = 'account.Account'
 INSTALLED_APPS = [
     'account',
 
-    'api_keys.apps.ApiKeysConfig',
-    'devices.apps.DevicesConfig',
-    'alarm.apps.AlarmConfig',
-    'alerts.apps.AlertsConfig',
+    'api_keys',
+    'devices',
+    'alarm',
+    'alerts',
+
+    # third parties
     'rest_framework',
     'corsheaders',
     'debug_toolbar',

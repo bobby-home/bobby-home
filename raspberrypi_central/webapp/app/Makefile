@@ -29,3 +29,7 @@ manage:
 .PHONY: db-login
 db-login:
 	$(de) $(db_image) psql -U hello_django -d hello_django_dev
+
+.PHONY: register_devices
+register_devices:
+	$(de) $(web_image) pipenv run python register_devices.py

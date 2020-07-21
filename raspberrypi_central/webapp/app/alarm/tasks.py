@@ -4,6 +4,7 @@ from celery import shared_task
 import paho.mqtt.client as mqtt
 import os
 
+
 class AlarmMessaging():
 
     def __init__(self, mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, mqtt_alarm_camera_topic):

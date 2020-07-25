@@ -1,4 +1,4 @@
-FROM rpi_opencv:1.4
+FROM mxmaxime/rpi4-opencv:1.0
 
 # set work directory
 WORKDIR /usr/src/app
@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y netcat libsdl1.2-dev libsdl-dev libsdl-
 
 # install dependencies via pip
 RUN pip install --upgrade pip
+
+ENV READTHEDOCS True
 
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt

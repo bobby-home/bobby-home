@@ -7,21 +7,8 @@ import json
 
 class Camera():
 
-    def __init__(self, mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str):
-        self.mqtt_user = mqtt_user
-        self.mqtt_pswd = mqtt_pswd
-        self.mqtt_hostname = mqtt_hostname
-        self.mqtt_port = mqtt_port
-
-        self.mqtt_client = self._mqtt_connect()
-
-    def _mqtt_connect(self):
-        client = mqtt.Client()
-        client.username_pw_set(self.mqtt_user, self.mqtt_pswd)
-
-        client.connect(self.mqtt_hostname, int(self.mqtt_port), keepalive=120)
-
-        return client
+    def __init__(self, mqtt_client):
+        self.mqtt_client = mqtt_client
 
     def start(self):
         DetectMotion(self._presenceCallback)
@@ -31,9 +18,12 @@ class Camera():
 
         payload = {
             # @TODO
-            device_id: 'some device id',
+            'device_id': 'some device id',
         }
 
-        self.mqtt_client.publish('motion/camera', payload=json.dumps(payload))
+        infot = self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
         # s = Sound()
         # s.alarm()
+
+    def __del__(self):
+        print('Del of Camera')

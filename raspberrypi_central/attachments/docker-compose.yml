@@ -15,7 +15,9 @@ services:
         environment:
                 - LD_LIBRARY_PATH=/opt/vc/lib
         volumes:
-                - /opt/vc:/opt/vc
+            - ./app/:/usr/src/app/
+            - /opt/vc:/opt/vc
+
         devices:
                 - "/dev/vchiq:/dev/vchiq"
 

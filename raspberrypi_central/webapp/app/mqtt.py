@@ -1,6 +1,7 @@
 from celery import Celery
 import paho.mqtt.client as mqtt
 import os
+import json
 
 celery_client = Celery('tasks', broker='amqp://admin:mypass@rabbit:5672')
 
@@ -21,10 +22,14 @@ mqtt_client = create_mqtt_client(
 )
 
 def on_motion_camera(client, userdata, msg):
-    print(msg.topic+" "+str(msg.payload))
+    payload = json.loads(msg.payload)
+
+    data = {
+        'device_id': payload['device_id']
+    }
 
     # @TODO
-    celery_client.send_task('security.camera_motion_detected', kwargs={'device_id': 'some device id here'})
+    celery_client.send_task('security.camera_motion_detected', kwargs=data)
 
 mqtt_client.subscribe('motion/camera', qos=1)
 mqtt_client.message_callback_add('motion/camera', on_motion_camera)

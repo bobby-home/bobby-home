@@ -52,4 +52,4 @@ def send_telegram_message(msg: str, picture_path = None):
 
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(device_id: str):
-    send_telegram_message.apply_async(args=['Une présence étrangère a été détectée chez vous.'])
+    send_telegram_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])

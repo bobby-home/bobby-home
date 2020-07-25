@@ -14,16 +14,25 @@ class Camera():
         DetectMotion(self._presenceCallback)
 
     def _presenceCallback(self, presence: bool, picture_path: str):
-        print(f'presence: {presence}')
-
         payload = {
             # @TODO
             'device_id': 'some device id',
         }
 
         infot = self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
+
+        with open(picture_path, 'rb') as image:
+            filecontent = image.read()
+            # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte 
+            # when I .decode() it
+            byteArr = bytes(filecontent)
+
+        # payload = {
+        #     # @TODO
+        #     'device_id': 'some device id',
+        #     'img': byteArr
+        # }
+
+        self.mqtt_client.publish('motion/picture', payload=byteArr)
         # s = Sound()
         # s.alarm()
-
-    def __del__(self):
-        print('Del of Camera')

@@ -6,7 +6,7 @@ de := docker-compose exec
 web_image=web
 db_image=database
 
-manage := $(de) $(web_image) pipenv run python manage.py
+manage := $(de) $(web_image) python manage.py
 
 
 .PHONY: migrations

@@ -1,6 +1,5 @@
 # Prototype for mx tech house
 from multiprocessing import Process
-from .camera_factory import camera_factory
 import time
 
 
@@ -13,7 +12,7 @@ class CameraManager:
 
     def _start_process(self):
         if (self._process is None):
-            instance = camera_factory()
+            instance = self.camera_factory()
             self._process = Process(target=instance.start)
             self._process.start()
     
@@ -29,6 +28,7 @@ class CameraManager:
     @running.setter
     def running(self, running):
         print('running: ', running)
+
         self._is_running = running
         if running is True:
             self._start_process()

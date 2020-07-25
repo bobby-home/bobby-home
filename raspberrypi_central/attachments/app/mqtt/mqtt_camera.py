@@ -1,7 +1,6 @@
 import paho.mqtt.client as mqtt
-import os
 import ssl
-from motion.camera_manager import CameraManager
+from camera.camera_manager import CameraManager
 
 
 class MqttCamera():
@@ -9,36 +8,26 @@ class MqttCamera():
     This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
     """
-    def __init__(self, camera_manager: CameraManager):
+    def __init__(self, mqtt_client, camera_manager: CameraManager, MQTT_ALARM_CAMERA_TOPIC: str):
         self._camera_manager = camera_manager
-        self._mqtt_client = self._mqtt_connect()
 
-    def _mqtt_on_connect(self, client, userdata, flags, rc):
-        print("Connected with result code "+str(rc))
-        client.subscribe(os.environ['MQTT_ALARM_CAMERA_TOPIC'])
+        # @TODO: remove this, tmp thing to test...
+        self._camera_manager.running = True
 
-    def _mqtt_on_message(self, client, userdata, msg):
+        mqtt_client.subscribe(MQTT_ALARM_CAMERA_TOPIC, qos=1)
+        mqtt_client.message_callback_add(MQTT_ALARM_CAMERA_TOPIC, self._switch_on_or_off_alarm)
+
+    def _switch_on_or_off_alarm(self, client, userdata, msg):
         message = msg.payload.decode()
 
-        if message == 'on':
+        print(f"I've received a message: {message}")
+
+        if message == 'True':
             print('waking up the alarm system.')
             self._camera_manager.running = True
-        elif message == 'off':
-            print('alarm is off')
+        elif message == 'False':
+            print('turning off the alarm')
             self._camera_manager.running = False
-
-    def _mqtt_connect(self) -> mqtt.Client:
-        print('mqtt connection')
-        client = mqtt.Client()
-        client.username_pw_set(os.environ['MQTT_USER'], os.environ['MQTT_PASSWORD'])
-
-        client.connect(os.environ['MQTT_HOSTNAME'], int(os.environ['MQTT_PORT']), keepalive=60)
-
-        client.on_connect = self._mqtt_on_connect
-        client.on_message = self._mqtt_on_message
-
-        client.loop_forever()
-        return client
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

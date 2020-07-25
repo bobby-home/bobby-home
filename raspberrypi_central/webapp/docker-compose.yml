@@ -69,6 +69,8 @@ services:
 
     python_process_mqtt:
         build: ./app
+        env_file:
+            - .env
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python mqtt.py"
         volumes:
             - ./app/:/usr/src/app/

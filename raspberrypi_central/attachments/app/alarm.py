@@ -24,17 +24,9 @@ mqtt_client = create_mqtt_client(
     os.environ['MQTT_PORT']
 )
 
-print(f'mqtt_client: {mqtt_client}')
 MQTT_ALARM_CAMERA_TOPIC = os.environ['MQTT_ALARM_CAMERA_TOPIC']
 
 camera_factory = partial(camera_factory, mqtt_client)
-
-# c = Camera(mqtt_client)
-# # c.start()
-
-# c._presenceCallback(True, 'fdp')
-
-# infot = mqtt_client.publish('motion/camera', payload=json.dumps({"coucou": True}), qos=2)
 
 manager = CM(camera_factory)
 mqtt_camera_manager = MqttCamera(mqtt_client, manager, MQTT_ALARM_CAMERA_TOPIC)

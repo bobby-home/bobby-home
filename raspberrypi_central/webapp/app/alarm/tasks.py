@@ -53,3 +53,10 @@ def send_telegram_message(msg: str, picture_path = None):
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(device_id: str):
     send_telegram_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])
+
+@shared_task(name="security.camera_motion_picture")
+def camera_motion_picture(file_path):
+    updater = Updater(TOKEN, use_context=True)
+    bot = updater.bot
+
+    bot.send_photo(chat_id="749348319", photo=open(file_path, 'rb'))

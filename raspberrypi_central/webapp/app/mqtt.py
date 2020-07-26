@@ -35,7 +35,6 @@ def on_motion_camera(client, userdata, msg):
         'device_id': payload['device_id']
     }
 
-    # @TODO
     celery_client.send_task('security.camera_motion_detected', kwargs=data)
 
 def on_status_alarm(client, userdata, msg):

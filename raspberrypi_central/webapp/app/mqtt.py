@@ -49,6 +49,12 @@ mqtt_client.message_callback_add('motion/camera', on_motion_camera)
 mqtt_client.subscribe('ask/#', qos=1)
 mqtt_client.message_callback_add('ask/status/alarm', on_status_alarm)
 
+"""
+Send the status when executing the script.
+So, If some devices are connected before the execution of this script
+(i.e this script crashed)
+They still receive the status.
+"""
 on_status_alarm(mqtt_client, None, None)
 
 mqtt_client.loop_forever()

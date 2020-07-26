@@ -23,15 +23,7 @@ class Camera():
 
         with open(picture_path, 'rb') as image:
             filecontent = image.read()
-            # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte 
-            # when I .decode() it
             byteArr = bytes(filecontent)
-
-        # payload = {
-        #     # @TODO
-        #     'device_id': 'some device id',
-        #     'img': byteArr
-        # }
 
         self.mqtt_client.publish('motion/picture', payload=byteArr)
         # s = Sound()

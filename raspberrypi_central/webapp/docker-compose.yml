@@ -28,6 +28,16 @@ services:
             backend_mqtt:
                 ipv4_address: "172.19.0.100"
 
+    celery_beat:
+        build: ./app
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
+        env_file:
+            - .env
+        networks:
+            rabbitmq:
+            backend_mqtt:
+            webapp_backend:
+
     web:
         build: ./app
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python manage.py runserver 0.0.0.0:8000"

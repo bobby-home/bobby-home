@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'debug_toolbar',
+    'django_celery_beat',
 
     # django apps
     'django.contrib.admin',

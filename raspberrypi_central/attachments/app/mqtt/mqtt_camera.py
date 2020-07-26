@@ -27,6 +27,9 @@ class MqttCamera():
         elif message == 'False':
             print('turning off the alarm')
             self._camera_manager.running = False
+        else:
+            t = type(message)
+            raise ValueError(f'Value ({t}) "{message}" incorrect')
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

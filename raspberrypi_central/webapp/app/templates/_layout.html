@@ -9,5 +9,6 @@
 <body>
     {% include "partials/_topbar.html" %}
     {% block body %}{% endblock %}
+    {% assets 'entrypoints/app.js' %}
 </body>
 </html>

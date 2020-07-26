@@ -2,6 +2,13 @@ from celery import Celery
 import paho.mqtt.client as mqtt
 import os
 import json
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
+django.setup()
+
+from alarm.models import AlarmStatus
 
 celery_client = Celery('tasks', broker='amqp://admin:mypass@rabbit:5672')
 
@@ -28,10 +35,25 @@ def on_motion_camera(client, userdata, msg):
         'device_id': payload['device_id']
     }
 
-    # @TODO
     celery_client.send_task('security.camera_motion_detected', kwargs=data)
 
-mqtt_client.subscribe('motion/camera', qos=1)
+def on_status_alarm(client, userdata, msg):
+    alarm_status = AlarmStatus.objects.get(pk=1)
+    client.publish('/something/else', payload=str(alarm_status), qos=1)
+
+
+mqtt_client.subscribe('motion/#', qos=1)
 mqtt_client.message_callback_add('motion/camera', on_motion_camera)
+
+mqtt_client.subscribe('ask/#', qos=1)
+mqtt_client.message_callback_add('ask/status/alarm', on_status_alarm)
+
+"""
+Send the status when executing the script.
+So, If some devices are connected before the execution of this script
+(i.e this script crashed)
+They still receive the status.
+"""
+on_status_alarm(mqtt_client, None, None)
 
 mqtt_client.loop_forever()

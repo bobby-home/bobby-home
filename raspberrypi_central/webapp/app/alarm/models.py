@@ -1,5 +1,4 @@
 from django.db import models
-from rest_framework.test import APIClient
 from . import tasks
 
 

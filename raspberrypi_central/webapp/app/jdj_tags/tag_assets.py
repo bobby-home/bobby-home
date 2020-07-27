@@ -26,6 +26,7 @@ assets_helper = AssetsHelper(asset, assets_uri)
 
 class Assets(Extension):
     tags = set(['assets'])
+    _is_hmr_injected = False
 
     def parse(self, parser):
         lineno = next(parser.stream).lineno
@@ -36,12 +37,28 @@ class Assets(Extension):
 
         return nodes.Output([nodes.MarkSafe(call)], lineno=lineno)
 
+    def _add_hmr_script(self):
+            hmr = assets_helper.path('vite/client')
+            
+            html = '<script type="module">'
+            html += f'import "{hmr}";'
+            html += 'window.process = { env: { NODE_ENV: "development" }}'
+            html += '</script>'
+            return html
+
     def _assets(self, filename):
         path = assets_helper.path(filename)
 
+        to_inject = ''
+
+        if (self._is_hmr_injected is False and settings.DEBUG):
+            to_inject += self._add_hmr_script()
+
         name, ext = filename.split('.')
         if ext == 'css':
-            return '<link rel="stylesheet" href="{}">'.format(path)
+            to_inject += '<link rel="stylesheet" href="{}">'.format(path)
         
         if ext == 'js':
-            return '<script type="module" defer src="{}"></script>'.format(path)
+            to_inject += '<script type="module" defer src="{}"></script>'.format(path)
+
+        return to_inject

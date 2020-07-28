@@ -8,7 +8,9 @@
 </head>
 <body>
     {% include "partials/_topbar.html" %}
-    {% block body %}{% endblock %}
+    <div class="l-stack-large">
+        {% block body %}{% endblock %}
+    </div>
     {% assets 'entrypoints/app.js' %}
 </body>
 </html>

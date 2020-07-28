@@ -155,7 +155,7 @@ class DetectMotion():
                 # otherwise, the room is not occupied
                 else:
                     self.motionCounter = 0
-                    self.presenceCallback(False)
+                    self.presenceCallback(False, None)
         
             # clear the stream in preparation for the next frame
             self.rawCapture.truncate(0)

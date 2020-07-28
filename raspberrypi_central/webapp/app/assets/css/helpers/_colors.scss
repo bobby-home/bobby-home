@@ -1,0 +1,169 @@
+$accent-color1: hsl(245, 93%, 76%);
+$accent-color2: hsl(239, 100%, 72%);
+
+$purple: $accent-color2;
+
+$mx-purple: (
+  "lighten-1": hsl(263, 43%, 63%),
+  "lighter":   hsl(263, 88%, 70%),
+  "lightest":  hsl(263, 88%, 96%),
+
+  "base":      hsl(260, 49%, 57%),
+
+  "dark":       hsl(260, 50%, 50%),
+  "darker":     hsl(263, 49%, 37%),
+  "darkest":    hsl(263, 49%, 30%),
+
+  "grey": hsl(253, 26%, 97%),
+  "grey-light": hsl(253, 25%, 98%),
+  "grey-dark": hsl(253, 20%, 95%),
+  "grey-darker": hsl(253, 20%, 90%),
+
+  "black-darker": hsl(209, 40%, 18%)
+);
+
+$teal: (
+  "lightest": hsl(177, 100%, 95%),
+  "lighter":  hsl(178, 73%, 78%),
+  "light":    hsl(174, 57%, 61%),
+  "base":     hsl(174, 48%, 53%),
+  "dark":     hsl(174, 50%, 44%),
+  "darker":   hsl(179, 43%, 22%),
+  "darkest":  hsl(177, 59%, 13%),
+);
+
+$light-accent-color: hsl(263, 43%, 63%);
+$accent-color: hsl(263, 49%, 57%);
+$dark-accent-color: hsl(263, 52%, 54%);
+
+/**
+ * Textes
+ */
+$dark-color: hsl(180, 0%, 18%);
+$light-color: hsl(180, 0%, 60%);
+
+$green: (
+  // cette couleur n'est plus utilisée mais reste jolie
+  "old-success":  hsl(102, 43%, 52%),
+
+  "lightest": hsl(160, 81%, 94%),
+  "lighter":  hsl(160, 81%, 80%),
+  "light":    hsl(160, 63%, 58%),
+  "base":     hsl(160, 48%, 47%),
+  "dark":     hsl(160, 67%, 37%),
+  "darker":   hsl(160, 46%, 19%),
+  "darkest":  hsl(160, 52%, 12%),
+);
+
+$red: (
+  "lightest": hsl(3, 75%, 95%),
+  "lighter":  hsl(2, 87%, 82%),
+  "light":    hsl(2, 83%, 63%),
+
+  "base":     hsl(2, 76%, 54%),
+
+  "dark":     hsl(2, 77%, 45%),
+  "darker":   hsl(2, 61%, 24%),
+  "darkest":  hsl(1, 66%, 14%)
+);
+
+$orange: (
+  "lightest": hsl(35, 100%, 92%),
+  "lighter":  hsl(35, 92%, 85%),
+  "light":    hsl(35, 94%, 68%),
+  "base":     hsl(35, 91%, 61%),
+  "dark":     hsl(35, 75%, 50%),
+  "darker":   hsl(35, 52%, 25%)
+);
+
+$blue: (
+  "base2": hsl(188, 61%, 55%),
+  "ss": hsl(191, 75%, 51%),
+
+  "lightest": hsl(207, 100%, 97%),
+  "lighter":  hsl(207, 86%, 86%),
+  "light":    hsl(207, 76%, 67%),
+  "base":     hsl(207, 73%, 53%),
+  "dark":     hsl(207, 66%, 45%),
+  "darker":   hsl(207, 53%, 23%),
+  "darkest":  hsl(207, 53%, 15%)
+);
+
+$grey: (
+  "lighten-1": hsl(180, 0%, 30%),
+  "lighten-2": hsl(180, 0%, 35%),
+  "lighten-3": hsl(180, 0%, 40%),
+  "lighten-4": hsl(180, 0%, 60%),
+
+  "base":      hsl(180, 0%, 23%),
+
+  "darken-1":  hsl(180, 0%, 19%)
+);
+
+$colors: (
+  "grey": $grey,
+  "mx-purple": $mx-purple,
+  "red": $red,
+  "orange": $orange,
+  "blue": $blue,
+  "green": $green,
+  "teal": $teal
+);
+
+/**
+ * Gradients
+ */
+@mixin orangeGradient() {
+  background-color: color('orange', 'base');
+  background-image: linear-gradient(90deg, color('orange', 'base') 0%, hsla(38, 94%, 68%, 1) 100%);
+}
+@mixin greenGradient() {
+  background-color: color('green', 'base');
+  background-image: linear-gradient(90deg, color('green', 'base') 0%, hsla(145, 63%, 58%, 1) 100%);
+}
+
+@mixin redGradient() {
+  background-color: color('red', 'base');
+  background-image: linear-gradient(90deg, color('red', 'base') 0%, hsla(10, 83%, 63%, 1) 100%);
+}
+
+/**
+ * Background and related colors.
+ */
+
+ $background-color: hsl(240, 33%, 98%);
+ $divider: hsl(240, 39%, 92%);
+
+$box-delimiter-hover: 0 2px 10px rgba(0,0,0,.20), 0 0 1px rgba(0,0,0,.30);
+
+/**
+ * CSS variables
+ */
+:root {
+  --box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 0 1px rgba(0,0,0,.20);
+}
+
+/**
+ * Mixins
+ */
+@mixin box_shadow() {
+  box-shadow: var(--box-shadow);
+}
+
+
+/**
+ * usage: color("name_of_color", "type_of_color")
+ * to avoid to repeating map-get($colors, ...)
+ */
+@function color($color, $type) {
+  @if map-has-key($colors, $color) {
+    $curr_color: map-get($colors, $color);
+
+    @if map-has-key($curr_color, $type) {
+      @return map-get($curr_color, $type);
+    }
+  }
+
+  @warn "Unknown `#{$color}` - `#{$type}` in $colors.";
+  @return null;
+}

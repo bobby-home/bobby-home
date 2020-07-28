@@ -1,0 +1,21 @@
+.topbar {
+  background-color: color("mx-purple", "black-darker");
+  background-color: #0F53BD;
+  color: color("mx-purple", "grey");
+}
+
+.topbar__nav {
+  display: flex;
+}
+
+.topbar__nav__menu {
+  display: grid;
+  align-items: center;
+  grid-auto-flow: column;
+  grid-gap: space(4);
+}
+
+.topbar__nav__menu a {
+  display: block;
+  padding: space(3) 0;
+}

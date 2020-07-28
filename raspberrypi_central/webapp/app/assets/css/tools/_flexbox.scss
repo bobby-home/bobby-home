@@ -1,0 +1,87 @@
+// Set the box type of the element to flex.
+.flex {
+  display: flex;
+}
+
+// Use flex-1 instead of an explicit width on your columns to have them size automatically to fill the row.
+.flex-1 {
+  flex: 1;
+}
+
+/**
+ * Flex Direction
+ */
+
+// Position flex items vertically.
+.flex-col {
+  flex-direction: column;
+}
+
+// Position flex items vertically in the reverse direction.
+.flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+// Position flex items in the normal horizontal direction.
+.flex-row {
+  flex-direction: row;
+}
+
+// 	Position flex items in the reverse horizontal direction.
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+// Justify items against the start of the container.
+.justify-start {
+  justify-content: flex-start;
+}
+
+// Justify items in the center of the container.
+.justify-center {
+  justify-content: center;
+}
+
+// Justify items against the end of the container.
+.justify-end {
+  justify-content: flex-end;
+}
+
+// Justify items by adding an equal amount of space between each one.
+.justify-between {
+  justify-content: space-between;
+}
+
+// Justify items by adding an equal amount of space around each one.
+.justify-around {
+  justify-content: space-around;
+}
+
+/**
+ * Align items
+ */
+
+// 	Stretch items to fill the cross axis.
+.items-stretch {
+  align-items: stretch;
+}
+
+// Align items against the start of the cross axis.
+.items-start {
+  align-items: flex-start;
+}
+
+// Align items along the center of the cross axis.
+.items-center {
+  align-items: center;
+}
+
+// Align items against the end of the cross axis.
+.items-end {
+  align-items: flex-end;
+}
+
+// Align the baselines of each item.
+.item-baseline {
+  align-items: baseline;
+}

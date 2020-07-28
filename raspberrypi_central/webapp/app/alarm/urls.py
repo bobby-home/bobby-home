@@ -7,6 +7,6 @@ router = routers.SimpleRouter()
 router.register(r'alarm_status', views.AlarmStatusViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
-    # path('', views.index, name='index'),
+    # path('', include(router.urls)),
+    path('', views.index, name='index'),
 ]

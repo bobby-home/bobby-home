@@ -14,7 +14,7 @@ def index(request):
     status = models.AlarmStatus.objects.all()
 
     context = {'status': status}
-    return render(request, 'home.html', context)
+    return render(request, 'alarm/schedule.html', context)
 
 class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (HasAPIAccess,)

@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap');
+
+$font: 'Inter', Arial, Helvetica, Verdana, sans-serif;
+// $mono-font-family: "Source Code Pro", Consolas, "Lucida Console", Courier, monospace;
+
+// From: https://stackoverflow.com/a/21622588
+@mixin headings {
+  h1, h2, h3,
+  h4, h5, h6,
+  .h1, .h2, .h3, .h4, .h5, .h6 {
+    @content;
+  }
+}
+
+h1, h2, h3,
+h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  @extend %headings !optional;
+}
+
+%headings {
+  line-height: 1;
+}
+
+body {
+  font-family: $font;
+  font-size: 16px;
+  color: var(--color);
+  line-height: 1.6;
+}
+
+.title, %headings {
+  color: color('grey', 'darken-1');
+  font-weight: 700;
+  & > .title-small {
+    font-size: .8em;
+    font-weight: 400;
+    margin-top: .2em;
+  }
+}
+
+h1, .h1 {
+  font-size: 2.5rem;
+  letter-spacing: -.02em;
+}
+
+h2, .h2 {
+  font-size: 2rem;
+  letter-spacing: -.01em;
+}
+
+h3, .h3 {
+  font-size: 1.75rem;
+  letter-spacing: -.01em;
+}
+
+h4, .h4 {
+  font-size: 1.5rem;
+  letter-spacing: -.01em;
+}
+
+h5, .h5 {
+  font-size: 1.25rem;
+  letter-spacing: -.01em;
+}
+
+h6, .h6 {
+  font-size: 1rem;
+}
+
+/**
+ * Text align
+ */
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right	{
+  text-align: right;
+}
+
+.text-justify	{
+  text-align: justify;
+}

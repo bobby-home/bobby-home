@@ -1,6 +1,6 @@
 from django.conf import settings
 
-class Assets:
+class AssetsHelper:
     def __init__(self, asset_path_file: str, asset_url: str):
         self._asset_path_file = asset_path_file
         self._asset_url = asset_url

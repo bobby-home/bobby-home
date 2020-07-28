@@ -1,5 +1,4 @@
 from picamera.array import PiRGBArray
-from picamera import PiCamera
 from typing import Callable
 import argparse
 import warnings
@@ -68,9 +67,9 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
 
 class DetectMotion():
 
-    def __init__(self, presenceCallback: Callable[[bool, str], None]):
+    def __init__(self, pi_camera, presenceCallback: Callable[[bool, str], None]):
         # Initialize RPI Camera.
-        self.camera = PiCamera()
+        self.camera = pi_camera
         self.camera.resolution = (640, 480)
         self.camera.framerate = 32
         self.rawCapture = PiRGBArray(self.camera, size=(640, 480))

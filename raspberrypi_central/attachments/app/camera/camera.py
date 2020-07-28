@@ -1,4 +1,4 @@
-from camera.motion import DetectMotion
+from camera.detect_motion import DetectMotion
 from pathlib import Path 
 from sound.sound import Sound
 import paho.mqtt.client as mqtt
@@ -11,7 +11,8 @@ class Camera():
         self.mqtt_client = mqtt_client
 
     def start(self):
-        DetectMotion(self._presenceCallback)
+        from picamera import PiCamera
+        DetectMotion(PiCamera(), self._presenceCallback)
 
     def _presenceCallback(self, presence: bool, picture_path: str):
         print(f'presence: {presence}')
@@ -24,6 +25,3 @@ class Camera():
         infot = self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
         # s = Sound()
         # s.alarm()
-
-    def __del__(self):
-        print('Del of Camera')

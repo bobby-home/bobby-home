@@ -21,6 +21,8 @@ services:
     rabbit_worker:
         build: ./app
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django worker --loglevel=info"
+        volumes:
+            - ./app/:/usr/src/app/
         env_file:
             - .env
         networks:

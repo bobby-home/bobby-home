@@ -42,38 +42,33 @@ class AlarmSchedule(models.Model):
         uid = uuid.uuid4()
 
         if self._state.adding is True:
-            schedule_turn_on_alarm = CrontabSchedule(
+            schedule_turn_on_alarm = CrontabSchedule.objects.create(
                 minute=self.minute_start,
                 hour=self.hour_start,
                 day_of_week=cron_days,
                 # @TODO: define timezone of the HOUSE.
                 timezone=europe_tmz
             )
-            schedule_turn_on_alarm.save()
 
-            self.turn_on_task = PeriodicTask(
+            self.turn_on_task = PeriodicTask.objects.create(
                 name=f'Turn on alarm {uid}',
                 task='alarm.set_alarm_on',
                 crontab=schedule_turn_on_alarm
             )
-            self.turn_on_task.save()
 
-            schedule_turn_off_alarm = CrontabSchedule(
+            schedule_turn_off_alarm = CrontabSchedule.objects.create(
                 minute=self.minute_end,
                 hour=self.hour_end,
                 day_of_week=cron_days,
                 # @TODO: define timezone of the HOUSE.
                 timezone=europe_tmz
             )
-            schedule_turn_off_alarm.save()
 
-            self.turn_off_task = PeriodicTask(
+            self.turn_off_task = PeriodicTask.objects.create(
                 name=f'Turn off alarm {uid}',
                 task='alarm.set_alarm_off',
                 crontab=schedule_turn_off_alarm
             )
-
-            self.turn_off_task.save()
 
         else:
             on_crontab = self.turn_on_task.crontab

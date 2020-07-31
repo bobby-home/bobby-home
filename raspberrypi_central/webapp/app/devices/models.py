@@ -3,21 +3,13 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
 from enum import Enum
+from house.models import Location
+
 
 class SeverityChoice(models.TextChoices):
     LOW = 'low'
     MODERATE = 'moderate'
     HIGH = 'high'
-
-class Location(models.Model):
-    structure = models.CharField(max_length=60)
-    sub_structure = models.CharField(max_length=60)
-
-    def __str__(self):
-        return '{0}_{1}'.format(self.structure, self.sub_structure)
-    
-    class Meta:
-        unique_together = ['structure', 'sub_structure']
 
 
 class DeviceType(models.Model):
@@ -36,8 +28,8 @@ class Device(models.Model):
     name = models.CharField(max_length=100, unique=True, blank=True)
 
     # When we're installing the system, location may not be known at the begining.
-    location = models.ForeignKey('Location', blank=True, on_delete=models.PROTECT)
-    device_type = models.ForeignKey('DeviceType', on_delete=models.PROTECT)
+    location = models.ForeignKey(Location, blank=True, on_delete=models.PROTECT)
+    device_type = models.ForeignKey(DeviceType, on_delete=models.PROTECT)
 
     def __str__(self):
         return '{0}_{1}'.format(self.name, self.device_type)

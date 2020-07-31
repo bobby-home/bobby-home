@@ -42,7 +42,7 @@ def on_motion_camera(client, userdata, msg):
 
 def on_motion_picture(client, userdata, msg):
     random = uuid.uuid4()
-    file_path = Path(f'./pictures/{random}.jpg').resolve()
+    file_path = Path(f'./data/pictures/{random}.jpg').resolve()
 
     with open(file_path, 'wb+') as file:
         file.write(msg.payload)
@@ -57,7 +57,9 @@ def on_motion_picture(client, userdata, msg):
 
 def on_status_alarm(client, userdata, msg):
     alarm_status = AlarmStatus.objects.get(pk=1)
-    client.publish('/something/else', payload=str(alarm_status), qos=1)
+    status = alarm_status.running
+
+    client.publish('/something/else', payload=str(status), qos=1)
 
 mqtt_client.subscribe('motion/#', qos=1)
 mqtt_client.message_callback_add('motion/camera', on_motion_camera)

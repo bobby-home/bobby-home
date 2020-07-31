@@ -1,5 +1,5 @@
-from mqtt.mqtt_camera import MqttCamera
-from camera.camera_manager import CameraManager as CM
+from mqtt.mqtt_status_camera import MqttStatusCamera
+from camera.camera_manager import CameraManager
 from camera.camera_factory import camera_factory
 from camera.camera import Camera
 import paho.mqtt.client as mqtt
@@ -28,7 +28,7 @@ MQTT_ALARM_CAMERA_TOPIC = os.environ['MQTT_ALARM_CAMERA_TOPIC']
 
 camera_factory = partial(camera_factory, mqtt_client)
 
-manager = CM(camera_factory)
-mqtt_camera_manager = MqttCamera(mqtt_client, manager, MQTT_ALARM_CAMERA_TOPIC)
+manager = CameraManager(camera_factory)
+mqtt_camera_manager = MqttStatusCamera(mqtt_client, manager, MQTT_ALARM_CAMERA_TOPIC)
 
 mqtt_client.loop_forever()

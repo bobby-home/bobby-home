@@ -1,8 +1,8 @@
+import uuid 
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from django.db import models
 import pytz
 from . import tasks
-
 
 class AlarmSchedule(models.Model):
     hour_start = models.IntegerField()
@@ -38,36 +38,57 @@ class AlarmSchedule(models.Model):
                 days.append(str(day_int))
     
         cron_days = ','.join(days)
-        print(cron_days)
         europe_tmz = pytz.timezone('Europe/Paris')
+        uid = uuid.uuid4()
 
-        schedule_turn_on_alarm, _ = CrontabSchedule.objects.get_or_create(
-            minute=self.minute_start,
-            hour=self.hour_start,
-            day_of_week=cron_days,
-            # @TODO: define timezone of the HOUSE.
-            timezone=europe_tmz
-        )
+        if self._state.adding is True:
+            schedule_turn_on_alarm = CrontabSchedule(
+                minute=self.minute_start,
+                hour=self.hour_start,
+                day_of_week=cron_days,
+                # @TODO: define timezone of the HOUSE.
+                timezone=europe_tmz
+            )
+            schedule_turn_on_alarm.save()
 
-        self.turn_on_task = PeriodicTask.objects.update_or_create(
-            name=f'Turn on the alarm for schedule {self.pk}',
-            task='alarm.set_alarm_on',
-            defaults={'crontab': schedule_turn_on_alarm}
-        )
+            self.turn_on_task = PeriodicTask(
+                name=f'Turn on alarm {uid}',
+                task='alarm.set_alarm_on',
+                crontab=schedule_turn_on_alarm
+            )
+            self.turn_on_task.save()
 
-        schedule_turn_off_alarm, _ = CrontabSchedule.objects.get_or_create(
-            minute=self.minute_end,
-            hour=self.hour_end,
-            day_of_week=cron_days,
-            # @TODO: define timezone of the HOUSE.
-            timezone=europe_tmz
-        )
+            schedule_turn_off_alarm = CrontabSchedule(
+                minute=self.minute_end,
+                hour=self.hour_end,
+                day_of_week=cron_days,
+                # @TODO: define timezone of the HOUSE.
+                timezone=europe_tmz
+            )
+            schedule_turn_off_alarm.save()
 
-        self.turn_off_task = PeriodicTask.objects.update_or_create(
-            name=f'Turn off the alarm for schedule {self.pk}',
-            crontab=schedule_turn_off_alarm,
-            defaults={'crontab': schedule_turn_on_alarm}
-        )
+            self.turn_off_task = PeriodicTask(
+                name=f'Turn off alarm {uid}',
+                task='alarm.set_alarm_off',
+                crontab=schedule_turn_off_alarm
+            )
+
+            self.turn_off_task.save()
+
+        else:
+            on_crontab = self.turn_on_task.crontab
+            off_crontab = self.turn_off_task.crontab
+
+            on_crontab.minute = self.minute_start
+            on_crontab.hour = self.hour_start
+            on_crontab.day_of_week = cron_days
+
+            off_crontab.minute = self.minute_end
+            off_crontab.hour = self.hour_end
+            off_crontab.day_of_week = cron_days
+
+            on_crontab.save()
+            off_crontab.save()
 
         super().save(*args, **kwargs)
 

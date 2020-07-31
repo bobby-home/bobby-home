@@ -8,6 +8,11 @@
     <main class="l-container">
         <div class="box">
             <div class="box__body">
+                <form action="" method="post">
+                    {{ csrf_input }}
+                    {{ form }}
+                    <input type="submit" value="Submit">
+                </form>
                 <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Modi aliquam animi odio, reprehenderit corporis repellat! Quibusdam, fuga nam enim earum facilis veniam minima natus quasi accusamus recusandae debitis hic cupiditate?</p>
             </div>
         </div>

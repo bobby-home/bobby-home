@@ -3,6 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
 import os
+from alarm import models
 
 class AlarmMessaging():
 
@@ -60,3 +61,13 @@ def camera_motion_picture(file_path):
     bot = updater.bot
 
     bot.send_photo(chat_id="749348319", photo=open(file_path, 'rb'))
+
+@shared_task(name="alarm.set_alarm_off")
+def set_alarm_off():
+    s = models.AlarmStatus(running=False)
+    s.save()
+
+@shared_task(name="alarm.set_alarm_on")
+def set_alarm_on():
+    s = models.AlarmStatus(running=True)
+    s.save()

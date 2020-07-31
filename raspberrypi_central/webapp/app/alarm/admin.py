@@ -2,3 +2,4 @@ from django.contrib import admin
 from . import models
 
 admin.site.register(models.AlarmStatus)
+admin.site.register(models.AlarmSchedule)

@@ -26,18 +26,25 @@ class AlarmSchedule(models.Model):
     def save(self, *args, **kwargs):
         days = []
 
-        possible_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        def model_boolean_fields_to_cron_days():
+            possible_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-        """
-        Celery "day_of_the_week" inputs: "A (list of) integers from 0-6, where Sunday = 0 and Saturday = 6, that represent the days of a week that execution should occur."
-        https://docs.celeryproject.org/en/latest/reference/celery.schedules.html#celery.schedules.crontab.day_of_week
-        So we are mapping values to int.
-        """
-        for day_int, day_str in enumerate(possible_days, start=0):
-            if getattr(self, day_str):
-                days.append(str(day_int))
-    
-        cron_days = ','.join(days)
+            """
+            Celery "day_of_the_week" inputs: "A (list of) integers from 0-6, where Sunday = 0 and Saturday = 6, that represent the days of a week that execution should occur."
+            https://docs.celeryproject.org/en/latest/reference/celery.schedules.html#celery.schedules.crontab.day_of_week
+            So we are mapping values to int.
+            """
+            for day_int, day_str in enumerate(possible_days, start=0):
+                if getattr(self, day_str):
+                    days.append(str(day_int))
+        
+            # Celery crontab want a list as str, ex: "monday,tuesday,..."
+            cron_days = ','.join(days)
+
+            return cron_days
+
+        cron_days = model_boolean_fields_to_cron_days()
+
         europe_tmz = pytz.timezone('Europe/Paris')
         uid = uuid.uuid4()
 

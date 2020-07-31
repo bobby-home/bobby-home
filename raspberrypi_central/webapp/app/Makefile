@@ -26,6 +26,11 @@ tests:
 manage:
 	$(manage) $(command)
 
+.PHONY: createapp
+createapp:
+	$(manage) startapp $(name)
+	sudo chown -R ${USER}:${USER} $(name)
+
 .PHONY: db-login
 db-login:
 	$(de) $(db_image) psql -U hello_django -d hello_django_dev

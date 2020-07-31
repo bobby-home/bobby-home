@@ -6,6 +6,7 @@ from rest_framework import status
 from . import serializers
 from . import models
 from . import tasks
+from . import forms
 
 from django.shortcuts import render
 
@@ -13,7 +14,9 @@ from django.shortcuts import render
 def index(request):
     status = models.AlarmStatus.objects.all()
 
-    context = {'status': status}
+    form = forms.AlarmScheduleForm()
+
+    context = {'status': status, 'form': form}
     return render(request, 'alarm/schedule.html', context)
 
 class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):

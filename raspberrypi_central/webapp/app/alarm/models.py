@@ -2,6 +2,22 @@ from django.db import models
 from . import tasks
 
 
+class AlarmSchedule(models.Model):
+    hour_start = models.IntegerField()
+    minute_start = models.IntegerField()
+
+    hour_end = models.IntegerField()
+    minute_end = models.IntegerField()
+
+    monday    = models.BooleanField()
+    tuesday   = models.BooleanField()
+    wednesday = models.BooleanField()
+    thursday  = models.BooleanField()
+    friday    = models.BooleanField()
+    saturday  = models.BooleanField()
+    sunday    = models.BooleanField()
+
+
 class AlarmStatus(models.Model):
     running = models.BooleanField()
 

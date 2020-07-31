@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'devices',
     'alarm',
     'alerts',
+    'house',
 
     # third parties
     'rest_framework',

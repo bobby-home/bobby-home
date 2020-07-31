@@ -20,7 +20,9 @@ class AlarmView(View):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
+
         if form.is_valid():
+            new_schedule = form.save()
             # <process form cleaned data>
             return HttpResponseRedirect('/success/')
 

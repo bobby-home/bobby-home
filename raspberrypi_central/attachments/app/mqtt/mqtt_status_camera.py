@@ -1,9 +1,10 @@
 import paho.mqtt.client as mqtt
 import ssl
 from camera.camera_manager import CameraManager
+import json
 
 
-class MqttCamera():
+class MqttStatusCamera():
     """
     This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
@@ -11,10 +12,15 @@ class MqttCamera():
     def __init__(self, mqtt_client, camera_manager: CameraManager, MQTT_ALARM_CAMERA_TOPIC: str):
         self._camera_manager = camera_manager
 
-        mqtt_client.publish('ask/status/alarm')
-
-        mqtt_client.subscribe(MQTT_ALARM_CAMERA_TOPIC, qos=1)
+        mqtt_client.subscribe(MQTT_ALARM_CAMERA_TOPIC)
         mqtt_client.message_callback_add(MQTT_ALARM_CAMERA_TOPIC, self._switch_on_or_off_alarm)
+
+        payload = {
+            # @TODO
+            'device_id': 'some device id',
+        }
+
+        mqtt_client.publish('ask/status/alarm', payload=True)
 
     def _switch_on_or_off_alarm(self, client, userdata, msg):
         message = msg.payload.decode()
@@ -27,6 +33,9 @@ class MqttCamera():
         elif message == 'False':
             print('turning off the alarm')
             self._camera_manager.running = False
+        else:
+            t = type(message)
+            raise ValueError(f'Value ({t}) "{message}" incorrect')
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

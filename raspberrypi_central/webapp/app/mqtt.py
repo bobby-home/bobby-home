@@ -2,6 +2,9 @@ from celery import Celery
 import paho.mqtt.client as mqtt
 import os
 import json
+from pathlib import Path
+import uuid
+
 import os
 import django
 
@@ -37,13 +40,30 @@ def on_motion_camera(client, userdata, msg):
 
     celery_client.send_task('security.camera_motion_detected', kwargs=data)
 
+def on_motion_picture(client, userdata, msg):
+    random = uuid.uuid4()
+    file_path = Path(f'./data/pictures/{random}.jpg').resolve()
+
+    with open(file_path, 'wb+') as file:
+        file.write(msg.payload)
+
+    data = {
+        # 'device_id': payload['device_id'],
+        'file_path': str(file_path)
+    }
+
+    celery_client.send_task('security.camera_motion_picture', kwargs=data)
+
+
 def on_status_alarm(client, userdata, msg):
     alarm_status = AlarmStatus.objects.get(pk=1)
-    client.publish('/something/else', payload=str(alarm_status), qos=1)
+    status = alarm_status.running
 
+    client.publish('/something/else', payload=str(status), qos=1)
 
 mqtt_client.subscribe('motion/#', qos=1)
 mqtt_client.message_callback_add('motion/camera', on_motion_camera)
+mqtt_client.message_callback_add('motion/picture', on_motion_picture)
 
 mqtt_client.subscribe('ask/#', qos=1)
 mqtt_client.message_callback_add('ask/status/alarm', on_status_alarm)

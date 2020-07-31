@@ -8,12 +8,11 @@ class CameraManager:
     def __init__(self, camera_factory):
         self._is_running = False
         self._process = None
-        self.camera_factory = camera_factory
+        self.instance = camera_factory()
 
     def _start_process(self):
         if (self._process is None):
-            instance = self.camera_factory()
-            self._process = Process(target=instance.start)
+            self._process = Process(target=self.instance.start)
             self._process.start()
     
     def _stop_process(self):

@@ -45,6 +45,7 @@ class AlarmSchedule(models.Model):
 
         cron_days = model_boolean_fields_to_cron_days()
 
+        # @TODO: see issue #31 concerning internationalization
         europe_tmz = pytz.timezone('Europe/Paris')
         uid = uuid.uuid4()
 
@@ -53,7 +54,6 @@ class AlarmSchedule(models.Model):
                 minute=self.minute_start,
                 hour=self.hour_start,
                 day_of_week=cron_days,
-                # @TODO: define timezone of the HOUSE.
                 timezone=europe_tmz
             )
 
@@ -67,7 +67,6 @@ class AlarmSchedule(models.Model):
                 minute=self.minute_end,
                 hour=self.hour_end,
                 day_of_week=cron_days,
-                # @TODO: define timezone of the HOUSE.
                 timezone=europe_tmz
             )
 

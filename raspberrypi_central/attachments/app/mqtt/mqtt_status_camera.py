@@ -12,9 +12,6 @@ class MqttStatusCamera():
     def __init__(self, mqtt_client, camera_manager: CameraManager, MQTT_ALARM_CAMERA_TOPIC: str):
         self._camera_manager = camera_manager
 
-        camera_manager.running = True
-        camera_manager.running = False
-
         mqtt_client.subscribe(MQTT_ALARM_CAMERA_TOPIC)
         mqtt_client.message_callback_add(MQTT_ALARM_CAMERA_TOPIC, self._switch_on_or_off_alarm)
 

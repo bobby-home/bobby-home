@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     # third parties
     'rest_framework',
     'corsheaders',
-    'debug_toolbar',
+    # 'debug_toolbar',
     'django_celery_beat',
 
     # django apps

@@ -1,6 +1,7 @@
 import uuid 
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from django.db import models
+from house.models import House
 import pytz
 from . import tasks
 
@@ -45,8 +46,7 @@ class AlarmSchedule(models.Model):
 
         cron_days = model_boolean_fields_to_cron_days()
 
-        # @TODO: see issue #31 concerning internationalization
-        europe_tmz = pytz.timezone('Europe/Paris')
+        house_timezone = House.objects.get_system_house().timezone
         uid = uuid.uuid4()
 
         if self._state.adding is True:
@@ -54,7 +54,7 @@ class AlarmSchedule(models.Model):
                 minute=self.minute_start,
                 hour=self.hour_start,
                 day_of_week=cron_days,
-                timezone=europe_tmz
+                timezone=house_timezone
             )
 
             self.turn_on_task = PeriodicTask.objects.create(
@@ -67,7 +67,7 @@ class AlarmSchedule(models.Model):
                 minute=self.minute_end,
                 hour=self.hour_end,
                 day_of_week=cron_days,
-                timezone=europe_tmz
+                timezone=house_timezone
             )
 
             self.turn_off_task = PeriodicTask.objects.create(

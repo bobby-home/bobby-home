@@ -11,3 +11,4 @@ paho-mqtt==1.5.0
 celery==4.4.*
 django-celery-beat==2.0.0
 python-telegram-bot==12.8
+pytz==2020.1

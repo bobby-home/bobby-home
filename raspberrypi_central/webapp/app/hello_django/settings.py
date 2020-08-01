@@ -44,11 +44,12 @@ INSTALLED_APPS = [
     'devices',
     'alarm',
     'alerts',
+    'house',
 
     # third parties
     'rest_framework',
     'corsheaders',
-    'debug_toolbar',
+    # 'debug_toolbar',
     'django_celery_beat',
 
     # django apps
@@ -98,7 +99,7 @@ TEMPLATES = [
             # add basic django tags and django view environment.
             'environment': 'hello_django.jinja2.environment',
             'extensions': [
-                'jdj_tags.webpack_assets.WebpackAssets',
+                'jdj_tags.tag_assets.Assets',
             ]
         }
     },

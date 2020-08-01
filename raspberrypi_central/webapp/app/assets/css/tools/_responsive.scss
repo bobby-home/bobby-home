@@ -1,0 +1,67 @@
+$small: "576px";
+$medium: "768px";
+$large: "992px";
+$extra-large: "1280px";
+
+/**
+ * Use a mixin "media",
+ * so if one day I have to update it, I do it only here.
+ */
+@mixin media ($size) {
+  @media (min-width: $size) {
+    @content;
+  }
+}
+
+@mixin emix-breakpoint ($dimension) {
+  @if ($dimension == S) {
+    @media print, screen and (min-width: $small) {
+      @content;
+    }
+  }
+  @else if ($dimension == M) {
+    @media print, screen and (min-width: $medium) {
+      @content;
+    }
+  }
+  @else if ($dimension == L) {
+    @media print, screen and (min-width: $large) {
+      @content;
+    }
+  }
+  @else if ($dimension == XL) {
+    @media print, screen and (min-width: $extra-large) {
+      @content;
+    }
+  }
+  @else {
+    @media print, screen and (min-width: $dimension) {
+      @content;
+    }
+  }
+}
+
+@mixin emix-responsive($map) {
+  @include emix-breakpoint(S) {
+    width: map-get($map, S);
+  }
+
+  @include emix-breakpoint(M) {
+    width: map-get($map, M);
+  }
+
+  @include emix-breakpoint(L) {
+    width: map-get($map, L);
+  }
+
+  @include emix-breakpoint(XL) {
+    width: map-get($map, XL);
+  }
+}
+
+/**
+ * Besoin : système modulable, je dois toujours changer la size
+ * en fonction des tailles, S M L, je veux un raccourci !
+ * On pourrait passer à une mixin une map :
+ * $sizes: (S: 100%, L: 25% M: 33.33%);
+ */

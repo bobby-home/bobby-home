@@ -21,15 +21,20 @@ services:
     rabbit_worker:
         build: ./app
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django worker --loglevel=info"
+        volumes:
+            - ./app/:/usr/src/app/
         env_file:
             - .env
         networks:
+            webapp_backend:
             rabbitmq:
             backend_mqtt:
                 ipv4_address: "172.19.0.100"
 
     celery_beat:
         build: ./app
+        volumes:
+            - ./app/:/usr/src/app/
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
         env_file:
             - .env

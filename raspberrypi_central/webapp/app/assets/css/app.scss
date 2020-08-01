@@ -1,0 +1,58 @@
+@import "./helpers/colors";
+@import "helpers/space";
+
+/**
+ * Tools
+ */
+
+@import "tools/reset";
+@import "tools/layout";
+@import "tools/responsive";
+@import "tools/flexbox";
+@import "tools/width";
+@import "tools/typography";
+@import "tools/box";
+@import "tools/button";
+
+/**
+ * Modules
+ */
+
+ @import "modules/topbar";
+
+/**
+ * Variables
+ */
+:root {
+  --gap: 20px;
+  --space: 8px;
+
+  --border: #D5E3EC;
+  --border-light: #D5E3EC7F;
+  --contrast: #4869EE;
+
+  --accent-color: #{color('mx-purple', 'base')};
+
+  --background: hsl(240, 33%, 95%);
+  --background-light: #FFF;
+
+  --shadow: #D8E1E8;
+  --space-section: 150px;
+  --red: #FB4635;
+  --green: #41CF7C;
+  --yellow: #FEB32B;
+}
+
+/**
+ * Generic
+ */
+
+body {
+  background: var(--background);
+  // scroll-margin: 100px 0 0 0; // What is this?
+}
+
+::selection {
+  background: var(--contrast);
+  color: #fff;
+}

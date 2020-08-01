@@ -1,0 +1,125 @@
+@import "../helpers/space";
+
+html {
+  /* border-box box model allows us to add padding and border to our elements
+  without increasing their size. */
+  box-sizing: border-box;
+}
+
+/**
+ * We inherit box-sizing from our <html> selector.
+ * Apparently this is a bit better than applying it directly here.
+ */
+*,
+*::after,
+*::before {
+  box-sizing: inherit;
+}
+
+/**
+ * Containers
+ */
+
+:root {
+  --container-padding: 20px;
+  --container-width: calc(100vw - var(--container-padding) * 2);
+}
+
+.l-container {
+  width: 100%;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+
+  /**
+   * Comming from Foundation framework.
+   * Thanks to this, I don't have to create many breakpoints to
+   * size my container.
+   */
+  max-width: 75rem;
+  margin: 0 auto;
+}
+
+/**
+ * Stacks
+ */
+%l-stack,
+.l-stack,
+.l-stack-large,
+.l-stack-separated {
+  --gap: 2;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: flex-start;
+  grid-gap: calc(var(--gap) * var(--space));
+}
+.l-stack-large {
+  --gap: 4;
+}
+.l-stack-separated {
+  --gap: 4;
+  --gap-separated: var(--gap);
+  grid-gap: calc(var(--gap) * var(--space) * 2);
+}
+
+/**
+ * Spaces
+ */
+
+@for $i from 0 to 4 {
+  .l-m#{$i} {
+    margin: space($i);
+  }
+
+  .l-p#{$i} {
+    padding: space($i);
+  }
+
+  .l-mt#{$i} {
+    margin-top: space($i);
+  }
+
+  .l-pt#{$i} {
+    padding-top: space($i);
+  }
+
+  .l-mb#{$i} {
+    margin-bottom: space($i);
+  }
+
+  .l-pb#{$i} {
+    padding-bottom: space($i);
+  }
+
+  .l-ml#{$i} {
+    margin-left: space($i);
+  }
+
+  .l-pl#{$i} {
+    padding-left: space($i);
+  }
+
+  .l-mr#{$i} {
+    margin-right: space($i);
+  }
+
+  .l-pr#{$i} {
+    padding-right: space($i);
+  }
+
+  .l-plr#{$i} {
+    padding: 0 (space($i));
+  }
+
+  .l-mlr#{$i} {
+    margin: 0 (space($i));
+  }
+
+  .l-ptb#{$i} {
+    padding: (space($i)) 0;
+  }
+
+  .l-mtb#{$i} {
+    margin: (space($i)) 0;
+  }
+
+}

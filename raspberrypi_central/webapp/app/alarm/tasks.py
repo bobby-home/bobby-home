@@ -3,6 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
 import os
+from alarm import models
 
 class AlarmMessaging():
 
@@ -53,3 +54,20 @@ def send_telegram_message(msg: str, picture_path = None):
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(device_id: str):
     send_telegram_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])
+
+@shared_task(name="security.camera_motion_picture")
+def camera_motion_picture(file_path):
+    updater = Updater(TOKEN, use_context=True)
+    bot = updater.bot
+
+    bot.send_photo(chat_id="749348319", photo=open(file_path, 'rb'))
+
+@shared_task(name="alarm.set_alarm_off")
+def set_alarm_off():
+    s = models.AlarmStatus(running=False)
+    s.save()
+
+@shared_task(name="alarm.set_alarm_on")
+def set_alarm_on():
+    s = models.AlarmStatus(running=True)
+    s.save()

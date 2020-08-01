@@ -5,18 +5,24 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "dev": "webpack-dev-server"
+    "build": "rm -rf public/assets && npx rollup -c rollup.config.js && touch public/assets/time",
+    "dev": "rm -rf public/assets/time && npx vite"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "glob": "^7.1.6",
-    "sass-loader": "^8.0.2",
-    "style-loader": "^1.1.3",
-    "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "rollup": "^2.23.0",
+    "@babel/core": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "@rollup/plugin-babel": "^5.0.4",
+    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^8.1.0",
+    "rollup-plugin-postcss": "^3.1.2",
+    "rollup-plugin-root-import": "^1.0.0",
+    "sass": "^1.26.5",
+    "@koa/cors": "^3.1.0",
+    "vite": "^1.0.0-rc.3",
+    "@prefresh/vite": "^0.9.0"
   }
 }

@@ -3,7 +3,11 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
 import os
-from alarm import models
+
+from alarm import models as alarm_models
+from house import models as house_models
+
+from alarm.messaging import Messaging
 
 class AlarmMessaging():
 
@@ -27,6 +31,7 @@ class AlarmMessaging():
     def set_status(self, status: bool):
         self.client.publish(self.mqtt_alarm_camera_topic, status, qos=1)
 
+
 @shared_task
 def alarm_messaging(status: bool):
     alarm_messaging = AlarmMessaging(
@@ -39,35 +44,30 @@ def alarm_messaging(status: bool):
     alarm_messaging.set_status(status)
 
 
-TOKEN=os.environ['TELEGRAM_BOT_TOKEN']
-
 @shared_task
-def send_telegram_message(msg: str, picture_path = None):
-    updater = Updater(TOKEN, use_context=True)
-    bot = updater.bot
+def send_message(msg: str):
+    messaging = Messaging()
+    messaging.send_message(msg)
 
-    bot.send_message(chat_id="749348319", text=msg)
 
-    if picture_path:
-        bot.send_photo(chat_id="749348319", photo=open(picture_path, 'rb'))
+@shared_task(name="security.camera_motion_picture")
+def camera_motion_picture(picture_path):
+    messaging = Messaging()
+    messaging.send_message(picture_path=file_path)
+
 
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(device_id: str):
-    send_telegram_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])
+    send_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])
 
-@shared_task(name="security.camera_motion_picture")
-def camera_motion_picture(file_path):
-    updater = Updater(TOKEN, use_context=True)
-    bot = updater.bot
-
-    bot.send_photo(chat_id="749348319", photo=open(file_path, 'rb'))
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off():
-    s = models.AlarmStatus(running=False)
+    s = alarm_models.AlarmStatus(running=False)
     s.save()
+
 
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on():
-    s = models.AlarmStatus(running=True)
+    s = alarm_models.AlarmStatus(running=True)
     s.save()

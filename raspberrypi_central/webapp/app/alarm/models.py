@@ -1,9 +1,10 @@
 import uuid 
-from django_celery_beat.models import ClockedSchedule, PeriodicTask
+from django_celery_beat.models import ClockedSchedule, CrontabSchedule, PeriodicTask
 from django.db import models
 from house.models import House
 import pytz
 from . import tasks
+
 
 class AlarmScheduleDateRange(models.Model):
     datetime_start = models.DateTimeField()
@@ -36,6 +37,8 @@ class AlarmScheduleDateRange(models.Model):
                 one_off=True
             )
 
+            # @TODO: turn off with another task:
+            # 1) off the alarm via mqtt 2) THEN delete this!
             clocked_turn_off = ClockedSchedule.objects.create(clocked_time=self.datetime_end)
             self.turn_off_task = PeriodicTask.objects.create(
                 name=f'Turn off alarm for holidays {uid}',
@@ -55,7 +58,13 @@ class AlarmScheduleDateRange(models.Model):
 
         super().save(*args, **kwargs)
 
+    def delete(self):
+        schedules = AlarmSchedule.objects.filter(is_disabled_by_system=True)
 
+        for schedule in schedules:
+            schedule.enable()
+
+        super(AlarmScheduleDateRange, self).delete()
 
 def create_celery_schedules(uid: str, timezone: str, cron_days: str, hour_start, minute_start, hour_end, minute_end):
 
@@ -111,6 +120,16 @@ class AlarmSchedule(models.Model):
         self.is_disabled_by_system = True
         self.turn_on_task.enabled = False
         self.turn_off_task.enabled = False
+
+        self.turn_on_task.save()
+        self.turn_off_task.save()
+
+        super().save(*args, **kwargs)
+
+    def enable(self, *args, **kwargs):
+        self.is_disabled_by_system = False
+        self.turn_on_task.enabled = True
+        self.turn_off_task.enabled = True
 
         self.turn_on_task.save()
         self.turn_off_task.save()

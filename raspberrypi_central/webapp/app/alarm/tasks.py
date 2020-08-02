@@ -33,18 +33,6 @@ class AlarmMessaging():
 
 
 @shared_task
-def alarm_messaging(status: bool):
-    alarm_messaging = AlarmMessaging(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT'],
-        os.environ['MQTT_ALARM_CAMERA_TOPIC'])
-
-    alarm_messaging.set_status(status)
-
-
-@shared_task
 def send_message(msg: str):
     messaging = Messaging()
     messaging.send_message(msg)
@@ -71,3 +59,16 @@ def set_alarm_off():
 def set_alarm_on():
     s = alarm_models.AlarmStatus(running=True)
     s.save()
+
+
+@shared_task
+def alarm_messaging(status: bool):
+    alarm_messaging = AlarmMessaging(
+        os.environ['MQTT_USER'],
+        os.environ['MQTT_PASSWORD'],
+        os.environ['MQTT_HOSTNAME'],
+        os.environ['MQTT_PORT'],
+        os.environ['MQTT_ALARM_CAMERA_TOPIC'])
+
+    alarm_messaging.set_status(status)
+    send_message.apply_async(args=[f'Votre alarme a changée de status: {status}'])

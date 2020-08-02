@@ -21,7 +21,7 @@ class House(models.Model):
 
 class TelegramBotManager(models.Manager):
     def house_token(self):
-        return self.objects.all().first()
+        return self.all().first().token
 
 class TelegramBot(models.Model):
     objects = TelegramBotManager()

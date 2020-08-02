@@ -23,8 +23,8 @@ class Messaging:
         """
         for chat_id in chat_ids:
             if message:
-                bot.send_message(chat_id=chat_id, text=msg)
+                bot.send_message(chat_id=chat_id.chat_id, text=message)
 
             if picture_path:
-                bot.send_photo(chat_id=chat_id, photo=open(picture_path, 'rb'))
+                bot.send_photo(chat_id=chat_id.chat_id, photo=open(picture_path, 'rb'))
 

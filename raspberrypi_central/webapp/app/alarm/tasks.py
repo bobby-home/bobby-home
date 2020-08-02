@@ -62,7 +62,7 @@ def set_alarm_on():
 
 
 @shared_task
-def alarm_messaging(status: bool):
+def alarm_status_changed(status: bool):
     alarm_messaging = AlarmMessaging(
         os.environ['MQTT_USER'],
         os.environ['MQTT_PASSWORD'],

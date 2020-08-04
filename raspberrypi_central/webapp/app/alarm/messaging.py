@@ -1,6 +1,6 @@
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from house.models import TelegramBot, TelegramBotChatId
-from notification.models import FreeOperatorUserNotification
+from notification.models import FreeCarrierUserConf
 from urllib import request, parse
 import requests
 
@@ -34,7 +34,7 @@ class FreeOperatorMessaging:
 
     def send_message(self, message):
 
-        credentials = FreeOperatorUserNotification.objects.all()
+        credentials = FreeCarrierUserConf.objects.all()
 
         responses = []
 

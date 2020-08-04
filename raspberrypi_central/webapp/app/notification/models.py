@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 
-class FreeOperatorUserNotification(models.Model):
+class FreeCarrierUserConf(models.Model):
     free_user = models.CharField(max_length=80)
     free_password = models.CharField(max_length=100)
 

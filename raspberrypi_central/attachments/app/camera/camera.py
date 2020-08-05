@@ -11,8 +11,7 @@ class Camera():
         self.mqtt_client = get_mqtt_client(client_name='rpi4-alarm-motion-DETECT')
 
     def start(self):
-        from picamera import PiCamera
-        DetectMotion(PiCamera(), self._presenceCallback)
+        DetectMotion(self._presenceCallback)
 
     def _presenceCallback(self, presence: bool, picture_path: str):
         payload = {
@@ -22,10 +21,10 @@ class Camera():
 
         self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
 
-        with open(picture_path, 'rb') as image:
-            filecontent = image.read()
-            byteArr = bytes(filecontent)
+        # with open(picture_path, 'rb') as image:
+        #     filecontent = image.read()
+        #     byteArr = bytes(filecontent)
 
-        self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
+        # self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
         # s = Sound()
         # s.alarm()

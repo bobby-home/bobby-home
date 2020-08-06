@@ -1,11 +1,10 @@
 from typing import Callable
 import datetime
 import json
-import time
 import re
+import datetime
 
 import io
-import time
 
 from fractions import Fraction
 
@@ -21,7 +20,7 @@ class DetectMotion():
     def __init__(self, presenceCallback: Callable[[bool, str], None]):
         print('Starting detect motion')
         # State
-        self.lastUploaded = datetime.datetime.now()
+        self._last_time_people_detected = datetime.datetime.now()
 
         self._presenceCallback = presenceCallback
         self._run()
@@ -112,6 +111,9 @@ class DetectMotion():
 
                     print(f'We found {label} with score of {score}')
                     if label == 'person':
+                        self._last_time_people_detected = datetime.datetime.now()
+
+                    if (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5:
                         self._presenceCallback(True, None)
 
                 stream.seek(0)

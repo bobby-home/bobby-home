@@ -87,14 +87,10 @@ class DetectMotion():
             'threshold': 0.4
         }
 
-        print(f'Starting object detection {args}')
-
         labels = self._load_labels(args['labels'])
         interpreter = Interpreter(args['model'])
         interpreter.allocate_tensors()
         _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
-
-        print('Starting the picamera')
 
         with picamera.PiCamera(resolution=(CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1) as camera:
             stream = io.BytesIO()
@@ -110,9 +106,7 @@ class DetectMotion():
                     score = obj['score']
 
                     if label == 'person':
-                        print(f'We found {label} with score of {score} _last_time_people_detected = {self._last_time_people_detected}')
                         if self._last_time_people_detected is None:
-                            print(f'First Time, notify=True')
                             self._presenceCallback(True, None)
 
                         self._last_time_people_detected = datetime.datetime.now()

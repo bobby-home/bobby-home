@@ -8,6 +8,14 @@ db_image=database
 
 manage := $(de) $(web_image) python manage.py
 
+.PHONY: rabbit-services
+rabbit-services:
+	$(dc) up rabbit rabbit_worker
+
+.PHONY: web-services
+web-services:
+	$(dc) up celery_beat web database mqtt python_process_mqtt
+
 
 .PHONY: migrations
 migrations:

@@ -105,14 +105,13 @@ class DetectMotion():
                 image = Image.open(stream).convert('RGB').resize((input_width, input_height), Image.ANTIALIAS)
 
                 results = self._detect_objects(interpreter, image, args['threshold'])
-                print(f'results={results}')
 
                 for obj in results:
                     label = labels[obj['class_id']]
                     score = obj['score']
 
                     print(f'We found {label} with score of {score}')
-                    if person == 'person':
+                    if label == 'person':
                         self._presenceCallback(True, None)
 
                 stream.seek(0)

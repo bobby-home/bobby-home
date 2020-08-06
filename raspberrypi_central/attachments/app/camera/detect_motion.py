@@ -84,7 +84,7 @@ class DetectMotion():
         args = {
             'model': 'tensorflow-object-detection/data/detect.tflite',
             'labels': 'tensorflow-object-detection/data/coco_labels.txt',
-            'threshold': 0.4
+            'threshold': 0.5
         }
 
         labels = self._load_labels(args['labels'])
@@ -93,6 +93,7 @@ class DetectMotion():
         _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
 
         with picamera.PiCamera(resolution=(CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1) as camera:
+            # Create the in-memory stream
             stream = io.BytesIO()
 
             for _ in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
@@ -106,16 +107,19 @@ class DetectMotion():
                     score = obj['score']
 
                     if label == 'person':
+                        print(f'we found {label} score={score}')
                         if self._last_time_people_detected is None:
-                            self._presenceCallback(True, None)
+                            print('WE NOTIFY')
+                            self._presenceCallback(True, stream.getvalue())
 
                         self._last_time_people_detected = datetime.datetime.now()
 
                     
-                    time_lapsed = (self._last_time_people_detected is not None) and (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
-                    if time_lapsed:
-                        self._last_time_people_detected = None
+                time_lapsed = (self._last_time_people_detected is not None) and (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
+                if time_lapsed:
+                    self._last_time_people_detected = None
 
+                # "Rewind" the stream to the beginning so we can read its content
                 stream.seek(0)
                 stream.truncate()
 

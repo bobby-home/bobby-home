@@ -13,7 +13,7 @@ class Camera():
     def start(self):
         DetectMotion(self._presenceCallback)
 
-    def _presenceCallback(self, presence: bool, picture_path: str):
+    def _presenceCallback(self, presence: bool, byteArr):
         payload = {
             # @TODO
             'device_id': 'some device id',
@@ -21,10 +21,6 @@ class Camera():
 
         self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
 
-        # with open(picture_path, 'rb') as image:
-        #     filecontent = image.read()
-        #     byteArr = bytes(filecontent)
-
-        # self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
+        self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
         # s = Sound()
         # s.alarm()

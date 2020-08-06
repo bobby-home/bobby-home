@@ -20,7 +20,7 @@ class DetectMotion():
     def __init__(self, presenceCallback: Callable[[bool, str], None]):
         print('Starting detect motion')
         # State
-        self._last_time_people_detected = datetime.datetime.now()
+        self._last_time_people_detected = None
 
         self._presenceCallback = presenceCallback
         self._run()
@@ -109,12 +109,18 @@ class DetectMotion():
                     label = labels[obj['class_id']]
                     score = obj['score']
 
-                    print(f'We found {label} with score of {score}')
                     if label == 'person':
+                        print(f'We found {label} with score of {score} _last_time_people_detected = {self._last_time_people_detected}')
+                        if self._last_time_people_detected is None:
+                            print(f'First Time, notify=True')
+                            self._presenceCallback(True, None)
+
                         self._last_time_people_detected = datetime.datetime.now()
 
-                    if (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5:
-                        self._presenceCallback(True, None)
+                    
+                    time_lapsed = (self._last_time_people_detected is not None) and (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
+                    if time_lapsed:
+                        self._last_time_people_detected = None
 
                 stream.seek(0)
                 stream.truncate()

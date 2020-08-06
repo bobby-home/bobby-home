@@ -72,7 +72,7 @@ class DetectMotion():
                     'score': scores[i]
                 }
             
-            results.append(result)
+                results.append(result)
 
         return results
 

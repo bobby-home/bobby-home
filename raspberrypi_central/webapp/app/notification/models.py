@@ -25,4 +25,4 @@ class UserTelegramBotChatId(models.Model):
     )
 
     def __str__(self):
-        return self.chat_id
+        return f'Configuration for {self.user.__str__()}'

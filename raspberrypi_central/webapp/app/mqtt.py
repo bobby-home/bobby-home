@@ -49,7 +49,7 @@ def on_motion_picture(client, userdata, msg):
 
     data = {
         # 'device_id': payload['device_id'],
-        'file_path': str(file_path)
+        'picture_path': str(file_path)
     }
 
     celery_client.send_task('security.camera_motion_picture', kwargs=data)

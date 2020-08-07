@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 import pytz
 
@@ -9,6 +10,7 @@ class HouseManager(models.Manager):
     def get_system_house(self):
         return self.get(pk=1)
 
+
 class House(models.Model):
     objects = HouseManager()
 
@@ -16,6 +18,20 @@ class House(models.Model):
 
     timezone = models.CharField(max_length=32, choices=TIMEZONES, 
     default='UTC')
+
+
+class TelegramBotManager(models.Manager):
+    def house_token(self):
+        return self.all().first().token
+
+class TelegramBot(models.Model):
+    objects = TelegramBotManager()
+
+    # max_length is larger than the Telegram bot api key to avoid issues if it gets larger.
+    token = models.CharField(max_length=80)
+
+    def __str__(self):
+        return self.token
 
 
 class Location(models.Model):

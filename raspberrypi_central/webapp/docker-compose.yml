@@ -80,7 +80,7 @@ services:
             - "8883:8883"
         networks:
             backend_mqtt:
-                ipv4_address: "172.19.0.2"
+                ipv4_address: "172.19.0.51"
 
     python_process_mqtt:
         build: ./app

@@ -46,7 +46,7 @@ docker-compose exec database psql -U hello_django -d hello_django_dev
 \dt
 ```
 
-Delete the database.
+Delete the database ([source](https://stackoverflow.com/questions/7073773/postgresql-drop-postgresql-database-through-command-line)).
 ```
 docker-compose exec database dropdb -U hello_django hello_django_dev
 ```
@@ -58,8 +58,6 @@ docker-compose exec web pipenv run python manage.py startapp <application_name>
 # as docker is sudo... We have to change the owner
 sudo chown -R $USER:$USER ./app/<application_name>
 ```
-
-tK_OG3TF9wKRipWPMaOkArlJ1F_ahMXYCgl2dm_IGSYYhAo_37yHpVVvznBpMrcbp5dRPB1pmbug7mL0o299BQ
 
 # MQTT Broker
 I'm using the MQTT protocol to connect my different devices. I've made the choice to use Mosquitto MQTT Broker running on my raspberryPI,

@@ -46,6 +46,11 @@ docker-compose exec database psql -U hello_django -d hello_django_dev
 \dt
 ```
 
+Delete the database.
+```
+docker-compose exec database dropdb -U hello_django hello_django_dev
+```
+
 Create new django application.
 ```
 docker-compose exec web pipenv run python manage.py startapp <application_name>

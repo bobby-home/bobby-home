@@ -2,11 +2,10 @@ version: "3.8"
 services:
     py:
         build: ./app
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python alarm.py"
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python alarm.py"
         env_file:
             - .env
         networks: 
-            - webapp_backend
             - backend_mqtt
             - motion
 
@@ -24,9 +23,6 @@ services:
 networks:
     motion:
         name: motion
-    webapp_backend:
-        external:
-            name: webapp_webapp_backend
     backend_mqtt:
         external:
             name: backend_mqtt

@@ -115,6 +115,6 @@ class CameraMotionDetected(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     # @TODO: when "device_id" feature will be developed, remove the blank=True, null=True
-    device = models.ForeignKey(Device, on_delete=models.PROTECT, blank=True, null=True)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT)
 
     picture_path = models.CharField(max_length=100, blank=True, null=True)

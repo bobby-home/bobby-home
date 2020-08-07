@@ -4,6 +4,7 @@ import os
 import json
 from pathlib import Path
 import uuid
+from django.core.files.storage import FileSystemStorage
 
 import os
 import django
@@ -42,17 +43,17 @@ def on_motion_camera(client, userdata, msg):
 
 def on_motion_picture(client, userdata, msg):
     random = uuid.uuid4()
-    file_path = Path(f'./data/pictures/{random}.jpg').resolve()
+    file_name = f'{random}.jpg'
 
-    with open(file_path, 'wb+') as file:
+    with FileSystemStorage.open(file_name, 'wb+') as file:
         file.write(msg.payload)
 
-    data = {
-        # 'device_id': payload['device_id'],
-        'picture_path': str(file_path)
-    }
+        data = {
+            # 'device_id': payload['device_id'],
+            'picture_path': str(file.name)
+        }
 
-    celery_client.send_task('security.camera_motion_picture', kwargs=data)
+        celery_client.send_task('security.camera_motion_picture', kwargs=data)
 
 
 def on_status_alarm(client, userdata, msg):

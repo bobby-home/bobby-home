@@ -41,7 +41,7 @@ def send_message(msg: str):
 @shared_task(name="security.camera_motion_picture")
 def camera_motion_picture(picture_path):
     messaging = Messaging()
-    messaging.send_message(picture_path=file_path)
+    messaging.send_message(picture_path=picture_path)
 
 
 @shared_task(name="security.camera_motion_detected")

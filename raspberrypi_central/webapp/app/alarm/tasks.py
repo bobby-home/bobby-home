@@ -46,6 +46,7 @@ def camera_motion_picture(picture_path):
 
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(device_id: str):
+    alarm_models.CameraMotionDetected.objects.create()
     send_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])
 
 

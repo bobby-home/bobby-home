@@ -1,6 +1,6 @@
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from house.models import TelegramBot, TelegramBotChatId
-from notification.models import FreeCarrierUserConf
+from house.models import TelegramBot
+from notification.models import UserFreeCarrier, UserTelegramBotChatId
 from urllib import request, parse
 import requests
 
@@ -14,7 +14,7 @@ class TelegramMessaging:
         updater = Updater(TOKEN, use_context=True)
         bot = updater.bot
 
-        chat_ids = TelegramBotChatId.objects.all()
+        chat_ids = UserTelegramBotChatId.objects.all()
 
         """
         Telegram API doesn't have methods for sending bulk messages yet.
@@ -34,7 +34,7 @@ class FreeOperatorMessaging:
 
     def send_message(self, message):
 
-        credentials = FreeCarrierUserConf.objects.all()
+        credentials = UserFreeCarrier.objects.all()
 
         responses = []
 

@@ -33,18 +33,6 @@ class TelegramBot(models.Model):
     def __str__(self):
         return self.token
 
-class TelegramBotChatId(models.Model):
-    # max_length is larger than the Telegram chat_id to avoid issues if it gets larger.
-    chat_id = models.CharField(max_length=60)
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-    )
-
-    def __str__(self):
-        return self.chat_id
-
 
 class Location(models.Model):
     structure = models.CharField(max_length=60)

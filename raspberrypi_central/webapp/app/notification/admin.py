@@ -1,4 +1,5 @@
 from django.contrib import admin
 from notification import models
 
-admin.site.register(models.FreeCarrierUserConf)
+admin.site.register(models.UserFreeCarrier)
+admin.site.register(models.UserTelegramBotChatId)

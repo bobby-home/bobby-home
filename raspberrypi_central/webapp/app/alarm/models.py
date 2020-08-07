@@ -4,6 +4,7 @@ from django.db import models
 from house.models import House
 import pytz
 from . import tasks
+from devices.models import Device
 
 class AlarmSchedule(models.Model):
     hour_start = models.IntegerField()
@@ -114,4 +115,6 @@ class CameraMotionDetected(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     # @TODO: when "device_id" feature will be developed, remove the blank=True, null=True
-    device = models.ForeignKey(Device, blank=True, null=True)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT, blank=True, null=True)
+
+    picture_path = models.CharField(max_length=100, blank=True, null=True)

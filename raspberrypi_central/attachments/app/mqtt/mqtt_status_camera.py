@@ -15,11 +15,6 @@ class MqttStatusCamera():
         mqtt_client.subscribe(MQTT_ALARM_CAMERA_TOPIC)
         mqtt_client.message_callback_add(MQTT_ALARM_CAMERA_TOPIC, self._switch_on_or_off_alarm)
 
-        payload = {
-            # @TODO
-            'device_id': 'some device id',
-        }
-
         mqtt_client.publish('ask/status/alarm', payload=True)
 
     def _switch_on_or_off_alarm(self, client, userdata, msg):

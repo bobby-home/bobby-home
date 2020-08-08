@@ -1,3 +1,9 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
+django.setup()
+
 from celery import Celery
 import paho.mqtt.client as mqtt
 import os
@@ -5,13 +11,7 @@ import json
 from pathlib import Path
 import uuid
 from django.core.files.storage import FileSystemStorage
-from tasks import camera_motion_picture, camera_motion_detected
-
-import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
-django.setup()
+from alarm.tasks import camera_motion_picture, camera_motion_detected
 
 from alarm.models import AlarmStatus
 

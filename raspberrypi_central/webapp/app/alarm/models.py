@@ -94,8 +94,13 @@ class AlarmSchedule(models.Model):
 
         super().save(*args, **kwargs)
 
+class AlarmStatusManager(models.Manager):
+    def get_status(self):
+        return self.all().first().running
 
 class AlarmStatus(models.Model):
+    objects = AlarmStatusManager()
+
     running = models.BooleanField()
 
     # only one row can be created, otherwise: IntegrityError is raised.

@@ -47,7 +47,7 @@ docker-compose exec database psql -U hello_django -d hello_django_dev
 ```
 
 ## To read for the database
-:warning: Some initialization things are only run if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup. In this case, you will see this message at the beginning.
+:warning: Some initialization things are only run if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup. In this case, you will see this message at the beginning. Source: [psql docker image documentation](https://hub.docker.com/_/postgres).
 
 ```
 PostgreSQL Database directory appears to contain a database; Skipping initialization

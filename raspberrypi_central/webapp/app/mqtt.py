@@ -11,7 +11,9 @@ import json
 from pathlib import Path
 import uuid
 from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import default_storage
 from alarm.tasks import camera_motion_picture, camera_motion_detected
+from django.core.files.base import ContentFile
 
 from alarm.models import AlarmStatus
 
@@ -46,20 +48,22 @@ def on_motion_picture(client, userdata, msg):
     random = uuid.uuid4()
     file_name = f'{random}.jpg'
 
-    with FileSystemStorage.open(file_name, 'wb+') as file:
-        file.write(msg.payload)
+    # Remember: image is bytearray
+    image = msg.payload
 
-        data = {
-            # 'device_id': payload['device_id'],
-            'picture_path': str(file.name)
-        }
+    fs = FileSystemStorage()
+    filename = default_storage.save(file_name, ContentFile(image))
+    picture_path = default_storage.path(filename)
 
-        camera_motion_picture.apply_async(kwargs=data)
+    data = {
+        'picture_path': picture_path
+    }
+
+    camera_motion_picture.apply_async(kwargs=data)
 
 
 def on_status_alarm(client, userdata, msg):
-    alarm_status = AlarmStatus.objects.get(pk=1)
-    status = alarm_status.running
+    status = AlarmStatus.objects.get_status()
 
     client.publish('/something/else', payload=str(status), qos=1)
 

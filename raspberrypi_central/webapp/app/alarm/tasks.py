@@ -6,8 +6,10 @@ import os
 
 from alarm import models as alarm_models
 from house import models as house_models
+from devices import models as device_models
 
 from alarm.messaging import Messaging
+
 
 class AlarmMessaging():
 
@@ -38,15 +40,22 @@ def send_message(msg: str):
     messaging.send_message(msg)
 
 
-@shared_task(name="security.camera_motion_picture")
-def camera_motion_picture(picture_path):
+@shared_task(name="security.camera_motion_picture", bind=True)
+def camera_motion_picture(self, picture_path):
+    picture = alarm_models.CameraMotionDetectedPicture(picture_path=picture_path)
+    picture.save()
+
     messaging = Messaging()
     messaging.send_message(picture_path=picture_path)
 
 
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(device_id: str):
-    send_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id}'])
+    device = device_models.Device.objects.get(device_id=device_id)
+    alarm_models.CameraMotionDetected.objects.create(device=device)
+
+    location = device.location
+    send_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'])
 
 
 @shared_task(name="alarm.set_alarm_off")

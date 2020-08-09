@@ -4,6 +4,7 @@ from django.db import models
 from house.models import House
 import pytz
 from . import tasks
+from devices.models import Device
 
 class AlarmSchedule(models.Model):
     hour_start = models.IntegerField()
@@ -93,8 +94,13 @@ class AlarmSchedule(models.Model):
 
         super().save(*args, **kwargs)
 
+class AlarmStatusManager(models.Manager):
+    def get_status(self):
+        return self.all().first().running
 
 class AlarmStatus(models.Model):
+    objects = AlarmStatusManager()
+
     running = models.BooleanField()
 
     # only one row can be created, otherwise: IntegrityError is raised.
@@ -109,3 +115,13 @@ class AlarmStatus(models.Model):
 
     def __str__(self):
         return f'Status is {self.running}'
+
+
+class CameraMotionDetected(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT)
+
+
+class CameraMotionDetectedPicture(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    picture_path = models.CharField(max_length=100, blank=True, null=True)

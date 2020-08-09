@@ -7,8 +7,10 @@ from functools import partial
 import os
 import json
 from mqtt.mqtt_client import get_mqtt_client
+import os
 
-mqtt_client = get_mqtt_client('rpi4-alarm-motion')
+mqtt_client = get_mqtt_client(f"{os.environ['DEVICE_ID']}-rpi4-alarm-motion")
+mqtt_client.loop_start()
 
 MQTT_ALARM_CAMERA_TOPIC = os.environ['MQTT_ALARM_CAMERA_TOPIC']
 

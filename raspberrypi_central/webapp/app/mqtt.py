@@ -1,15 +1,19 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
+django.setup()
+
 from celery import Celery
 import paho.mqtt.client as mqtt
 import os
 import json
 from pathlib import Path
 import uuid
-
-import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
-django.setup()
+from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import default_storage
+from alarm.tasks import camera_motion_picture, camera_motion_detected
+from django.core.files.base import ContentFile
 
 from alarm.models import AlarmStatus
 
@@ -38,26 +42,28 @@ def on_motion_camera(client, userdata, msg):
         'device_id': payload['device_id']
     }
 
-    celery_client.send_task('security.camera_motion_detected', kwargs=data)
+    camera_motion_detected.apply_async(kwargs=data)
 
 def on_motion_picture(client, userdata, msg):
     random = uuid.uuid4()
-    file_path = Path(f'./data/pictures/{random}.jpg').resolve()
+    file_name = f'{random}.jpg'
 
-    with open(file_path, 'wb+') as file:
-        file.write(msg.payload)
+    # Remember: image is bytearray
+    image = msg.payload
+
+    fs = FileSystemStorage()
+    filename = default_storage.save(file_name, ContentFile(image))
+    picture_path = default_storage.path(filename)
 
     data = {
-        # 'device_id': payload['device_id'],
-        'picture_path': str(file_path)
+        'picture_path': picture_path
     }
 
-    celery_client.send_task('security.camera_motion_picture', kwargs=data)
+    camera_motion_picture.apply_async(kwargs=data)
 
 
 def on_status_alarm(client, userdata, msg):
-    alarm_status = AlarmStatus.objects.get(pk=1)
-    status = alarm_status.running
+    status = AlarmStatus.objects.get_status()
 
     client.publish('/something/else', payload=str(status), qos=1)
 

@@ -10,6 +10,7 @@ from devices import models as device_models
 
 from alarm.messaging import Messaging
 
+
 class AlarmMessaging():
 
     def __init__(self, mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, mqtt_alarm_camera_topic):
@@ -39,8 +40,11 @@ def send_message(msg: str):
     messaging.send_message(msg)
 
 
-@shared_task(name="security.camera_motion_picture")
-def camera_motion_picture(picture_path):
+@shared_task(name="security.camera_motion_picture", bind=True)
+def camera_motion_picture(self, picture_path):
+    picture = alarm_models.CameraMotionDetectedPicture(picture_path=picture_path)
+    picture.save()
+
     messaging = Messaging()
     messaging.send_message(picture_path=picture_path)
 

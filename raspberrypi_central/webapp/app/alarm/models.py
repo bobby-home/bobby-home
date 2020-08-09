@@ -116,10 +116,12 @@ class AlarmStatus(models.Model):
     def __str__(self):
         return f'Status is {self.running}'
 
+
 class CameraMotionDetected(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # @TODO: when "device_id" feature will be developed, remove the blank=True, null=True
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
 
+
+class CameraMotionDetectedPicture(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
     picture_path = models.CharField(max_length=100, blank=True, null=True)

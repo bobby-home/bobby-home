@@ -51,7 +51,11 @@ def camera_motion_detected(device_id: str):
     alarm_models.CameraMotionDetected.objects.create(device=device)
 
     location = device.location
-    send_message.apply_async(args=[f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'])
+
+    kwargs = {
+        'message': f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
+    }
+    send_message.apply_async(kwargs=kwargs)
 
 
 @shared_task(name="alarm.set_alarm_off")
@@ -76,4 +80,8 @@ def alarm_status_changed(status: bool):
         os.environ['MQTT_ALARM_CAMERA_TOPIC'])
 
     alarm_messaging.set_status(status)
-    send_message.apply_async(args=[f'Votre alarme a changée de status: {status}'])
+
+    kwargs = {
+        'message': f'Votre alarme a changée de status: {status}'
+    }
+    send_message.apply_async(kwargs=kwargs)

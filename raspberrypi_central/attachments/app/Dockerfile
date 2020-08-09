@@ -19,6 +19,7 @@ ENV READTHEDOCS True
 
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt
+RUN pip install https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_armv7l.whl
 
 
 # ADD ca.crt /usr/local/share/ca-certificates/ca.cert

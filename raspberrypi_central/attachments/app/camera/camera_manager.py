@@ -12,11 +12,13 @@ class CameraManager:
 
     def _start_process(self):
         if (self._process is None):
+            print('Launch object detection thread')
             self._process = Process(target=self.instance.start)
             self._process.start()
     
     def _stop_process(self):
         if (self._process):
+            print('Stop object detection thread')
             self._process.terminate()
             self._process = None
 
@@ -26,8 +28,6 @@ class CameraManager:
     
     @running.setter
     def running(self, running):
-        print('running: ', running)
-
         self._is_running = running
         if running is True:
             self._start_process()

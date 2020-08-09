@@ -41,7 +41,6 @@ def camera_motion_picture(self, picture_path):
     kwargs = {
         'picture_path': picture_path
     }
-
     send_message.apply_async(kwargs=kwargs)
 
 

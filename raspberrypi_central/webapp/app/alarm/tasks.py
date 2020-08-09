@@ -7,8 +7,7 @@ import os
 from alarm import models as alarm_models
 from house import models as house_models
 from devices import models as device_models
-
-from alarm.messaging import Messaging
+from notification.tasks import send_message
 
 
 class AlarmMessaging():
@@ -34,19 +33,16 @@ class AlarmMessaging():
         self.client.publish(self.mqtt_alarm_camera_topic, status, qos=1)
 
 
-@shared_task
-def send_message(msg: str):
-    messaging = Messaging()
-    messaging.send_message(msg)
-
-
 @shared_task(name="security.camera_motion_picture", bind=True)
 def camera_motion_picture(self, picture_path):
     picture = alarm_models.CameraMotionDetectedPicture(picture_path=picture_path)
     picture.save()
 
-    messaging = Messaging()
-    messaging.send_message(picture_path=picture_path)
+    kwargs = {
+        'picture_path': picture_path
+    }
+
+    send_message.apply_async(kwargs=kwargs)
 
 
 @shared_task(name="security.camera_motion_detected")

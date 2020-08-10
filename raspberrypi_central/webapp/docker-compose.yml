@@ -57,6 +57,10 @@ services:
                 ipv4_address: "172.19.0.50"
         env_file:
           - .env
+        logging:
+            driver: loki
+            options:
+                loki-url: "http://localhost:3100/api/prom/push"
 
     database:
         image: postgres:12.3-alpine
@@ -96,6 +100,22 @@ services:
         env_file:
             - .env
 
+    loki:
+        image: grafana/loki:1.5.0
+        ports:
+            - "3100:3100"
+        command: -config.file=/etc/loki/local-config.yaml
+
+    promtail:
+        image: grafana/promtail:1.5.0
+        volumes:
+            - /var/log:/var/log
+        command: -config.file=/etc/promtail/docker-config.yaml
+
+    grafana:
+        image: grafana/grafana:7.1.3
+        ports:
+            - "3000:3000"
 networks:
     rabbitmq:
     webapp_backend:

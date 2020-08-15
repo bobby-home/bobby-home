@@ -90,8 +90,8 @@ So, If some devices are connected before the execution of this script
 (i.e this script crashed)
 They still receive the status.
 """
-# on_status_alarm(mqtt_client, None, None)
-# on_status_sound(mqtt_client, None, None)
+on_status_alarm(mqtt_client, None, None)
+on_status_sound(mqtt_client, None, None)
 
 
 mqtt_client.loop_forever()

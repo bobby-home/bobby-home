@@ -1,5 +1,5 @@
 from mqtt.mqtt_status_manage_thread import MqttStatusManageThread
-from .thread_manager import ThreadManager
+from thread.thread_manager import ThreadManager
 from camera.camera_factory import camera_factory
 from camera.play_sound import PlaySound
 from camera.camera import Camera

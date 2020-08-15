@@ -1,14 +1,9 @@
 from django.shortcuts import render
 from django.views import View
 
-from api_keys.permissions import HasAPIAccess
-from rest_framework import viewsets, generics, mixins, status
-from rest_framework.response import Response
-from rest_framework import status
-from . import serializers
-from . import models
 from . import tasks
 from alarm.forms import AlarmScheduleForm
+
 
 class AlarmView(View):
     form_class = AlarmScheduleForm

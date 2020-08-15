@@ -8,6 +8,7 @@ django.setup()
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from alarm.models import AlarmStatus
+from notification.models import UserTelegramBotChatId
 
 
 class AlarmStatusRepository:
@@ -31,18 +32,24 @@ class AlarmStatusBot:
         self._register_commands(telegram_updater)
     
     def _alarm_status(self, update, context):
-        status = self.repository.status
-
-        if status is True:
-            text = "Votre alarme est activée, voulez-vous la désactiver ?"
-            keyboard = [InlineKeyboardButton("Désactiver", callback_data="off")]
-        elif status is False:
-            text = "Votre alarme est désactivée, voulez-vous l'activer ?"
-            keyboard = [InlineKeyboardButton("Activer", callback_data="on")]
+        chat_id = update.message.chat.id
+        try:
+            UserTelegramBotChatId.objects.get(chat_id=chat_id)
+        except UserTelegramBotChatId.DoesNotExist:
+            update.message.reply_text('Forbidden')
         else:
-            text = "Nous avons des difficultés technique pour joindre votre alarme. Contactez Maxime !"
-        
-        update.message.reply_text(text, reply_markup=InlineKeyboardMarkup([keyboard]))
+            status = self.repository.status
+
+            if status is True:
+                text = "Votre alarme est activée, voulez-vous la désactiver ?"
+                keyboard = [InlineKeyboardButton("Désactiver", callback_data="off")]
+            elif status is False:
+                text = "Votre alarme est désactivée, voulez-vous l'activer ?"
+                keyboard = [InlineKeyboardButton("Activer", callback_data="on")]
+            else:
+                text = "Nous avons des difficultés technique pour joindre votre alarme. Contactez Maxime !"
+            
+            update.message.reply_text(text, reply_markup=InlineKeyboardMarkup([keyboard]))
 
     def _set_alarm_status(self, update, context):
         query = update.callback_query

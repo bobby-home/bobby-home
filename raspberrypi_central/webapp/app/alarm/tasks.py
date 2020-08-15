@@ -113,7 +113,7 @@ def alarm_status_changed(status: bool):
         os.environ['MQTT_PASSWORD'],
         os.environ['MQTT_HOSTNAME'],
         os.environ['MQTT_PORT'],
-        os.environ['MQTT_ALARM_CAMERA_TOPIC'])
+        'motion/camera')
 
     alarm_messaging.set_status(status)
 

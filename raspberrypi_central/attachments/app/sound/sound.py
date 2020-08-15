@@ -3,9 +3,6 @@ from subprocess import call
 
 class Sound():
     def __init__(self):
-        # set volume to max. It's raspberry dependent.
-        # call('amixer set PCM 150% >> /dev/null', shell=True)
-
         pygame.mixer.init()
         pygame.mixer.music.set_volume(150.0)
 

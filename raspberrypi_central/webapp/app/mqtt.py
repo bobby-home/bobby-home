@@ -65,14 +65,24 @@ def on_motion_picture(client, userdata, msg):
 def on_status_alarm(client, userdata, msg):
     status = AlarmStatus.objects.get_status()
 
-    client.publish('/something/else', payload=str(status), qos=1)
+    client.publish('status/alarm', payload=str(status), qos=1)
+
+def on_status_sound(client, userdata, msg):
+    client.publish('status/sound', payload=str(False), qos=1)
+
+def on_motion_camera_no_more(client, userdata, msg):
+    client.publish('status/sound', payload=str(False), qos=1)
+
 
 mqtt_client.subscribe('motion/#', qos=1)
 mqtt_client.message_callback_add('motion/camera', on_motion_camera)
 mqtt_client.message_callback_add('motion/picture', on_motion_picture)
+mqtt_client.message_callback_add('motion/camera/no_more', on_motion_camera_no_more)
+
 
 mqtt_client.subscribe('ask/#', qos=1)
 mqtt_client.message_callback_add('ask/status/alarm', on_status_alarm)
+mqtt_client.message_callback_add('ask/status/sound', on_status_sound)
 
 """
 Send the status when executing the script.
@@ -80,6 +90,8 @@ So, If some devices are connected before the execution of this script
 (i.e this script crashed)
 They still receive the status.
 """
-on_status_alarm(mqtt_client, None, None)
+# on_status_alarm(mqtt_client, None, None)
+# on_status_sound(mqtt_client, None, None)
+
 
 mqtt_client.loop_forever()

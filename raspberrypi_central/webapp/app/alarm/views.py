@@ -27,22 +27,3 @@ class AlarmView(View):
             return HttpResponseRedirect('/success/')
 
         return render(request, self.template_name, {'form': form})
-
-class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
-    permission_classes = (HasAPIAccess,)
-
-    queryset = models.AlarmStatus.objects.all()
-    serializer_class = serializers.AlarmStatusSerializer
-
-    def create(self, request):
-        serializer = serializers.AlarmStatusSerializer(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-        request_status = request.data.get('running')
-
-        if (request_status == True):
-            models.AlarmStatus.objects.update_or_create(pk=1, defaults={'running': True})
-        elif (request_status == False):
-            models.AlarmStatus.objects.update_or_create(pk=1, defaults={'running': False})
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)

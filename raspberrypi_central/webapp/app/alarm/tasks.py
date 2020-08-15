@@ -1,21 +1,14 @@
-from __future__ import absolute_import, unicode_literals
+import os
+
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
-import os
 
 from alarm import models as alarm_models
 from house import models as house_models
 from devices import models as device_models
 from notification.tasks import send_message
 
-def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str):
-    client = mqtt.Client(client_id='rpi4-mqtt-listen-django', clean_session=False)
-    client.username_pw_set(mqtt_user, mqtt_pswd)
-
-    client.connect(mqtt_hostname, int(mqtt_port), keepalive=120)
-
-    return client
 
 def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, client_name = None):
 
@@ -34,25 +27,17 @@ def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_
 
 class AlarmMessaging():
 
-    def __init__(self, mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, mqtt_alarm_camera_topic):
-        self.mqtt_user = mqtt_user
-        self.mqtt_pswd = mqtt_pswd
-        self.mqtt_hostname = mqtt_hostname
-        self.mqtt_port = mqtt_port
-        self.mqtt_alarm_camera_topic = mqtt_alarm_camera_topic
+    def __init__(self, mqtt_client):
+        self._mqtt_client = mqtt_client
 
-        self.client = self._mqtt_connect()
+    def set_alarm_status(self, status: bool):
+        self._mqtt_client.publish('status/alarm', status, qos=1)
 
-    def _mqtt_connect(self):
-        client = mqtt.Client()
-        client.username_pw_set(self.mqtt_user, self.mqtt_pswd)
+        if status is False:
+            self.set_sound_status(False)
 
-        client.connect(self.mqtt_hostname, int(self.mqtt_port), keepalive=120)
-
-        return client
-    
-    def set_status(self, status: bool):
-        self.client.publish(self.mqtt_alarm_camera_topic, status, qos=1)
+    def set_sound_status(self, status: bool):
+        self._mqtt_client.publish('status/sound', status, qos=1)
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
@@ -76,7 +61,8 @@ def play_sound(motion_came_from_device_id: str):
         os.environ['MQTT_PORT']
     )
 
-    mqtt_client.publish('status/sound', str(True), qos=1)
+    alarm_messaging = AlarmMessaging(mqtt_client)
+    alarm_messaging.set_sound_status(status)
 
 
 @shared_task(name="security.camera_motion_detected")
@@ -108,14 +94,15 @@ def set_alarm_on():
 
 @shared_task
 def alarm_status_changed(status: bool):
-    alarm_messaging = AlarmMessaging(
+    mqtt_client = create_mqtt_client(
         os.environ['MQTT_USER'],
         os.environ['MQTT_PASSWORD'],
         os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT'],
-        'motion/camera')
+        os.environ['MQTT_PORT']
+    )
 
-    alarm_messaging.set_status(status)
+    alarm_messaging = AlarmMessaging(mqtt_client)
+    alarm_messaging.set_alarm_status(status)
 
     kwargs = {
         'message': f'Votre alarme a changée de status: {status}'

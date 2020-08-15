@@ -24,6 +24,9 @@ class TelegramMessaging:
 class FreeCarrierMessaging:
 
     def send_message(self, credential, message, *args):
+        if message is None:
+            return
+
         data = {
             'user': credential.free_user,
             'pass': credential.free_password,

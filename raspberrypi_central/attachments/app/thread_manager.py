@@ -1,14 +1,13 @@
-# Prototype for mx tech house
 from multiprocessing import Process
 import time
 
 
-class CameraManager:
+class ThreadManager:
 
-    def __init__(self, camera_factory):
+    def __init__(self, instance_factory):
         self._is_running = False
         self._process = None
-        self.instance = camera_factory()
+        self.instance = instance_factory()
 
     def _start_process(self):
         if (self._process is None):

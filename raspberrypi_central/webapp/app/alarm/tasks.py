@@ -62,7 +62,7 @@ def play_sound(motion_came_from_device_id: str):
     )
 
     alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_sound_status(status)
+    alarm_messaging.set_sound_status(True)
 
 
 @shared_task(name="security.camera_motion_detected")

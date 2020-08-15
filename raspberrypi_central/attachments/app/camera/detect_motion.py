@@ -17,12 +17,12 @@ from tflite_runtime.interpreter import Interpreter
 
 class DetectMotion():
 
-    def __init__(self, presenceCallback: Callable[[bool, str], None]):
-        print('Starting detect motion')
+    def __init__(self, presenceCallback: Callable[[bool, str], None], noMorePresenceCallback: Callable):
         # State
         self._last_time_people_detected = None
 
         self._presenceCallback = presenceCallback
+        self._noMorePresenceCallback = noMorePresenceCallback
         self._run()
 
     def _load_labels(self, path):
@@ -110,7 +110,7 @@ class DetectMotion():
                         print(f'we found {label} score={score}')
                         if self._last_time_people_detected is None:
                             print('WE NOTIFY')
-                            self._presenceCallback(True, stream.getvalue())
+                            self._presenceCallback(stream.getvalue())
 
                         self._last_time_people_detected = datetime.datetime.now()
 
@@ -118,6 +118,7 @@ class DetectMotion():
                 time_lapsed = (self._last_time_people_detected is not None) and (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
                 if time_lapsed:
                     self._last_time_people_detected = None
+                    self._noMorePresenceCallback()
 
                 # "Rewind" the stream to the beginning so we can read its content
                 stream.seek(0)

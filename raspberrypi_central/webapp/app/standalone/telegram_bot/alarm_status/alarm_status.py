@@ -1,25 +1,28 @@
+import os, sys
+import django
+
+sys.path.append('/usr/src/app')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
+django.setup()
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from urllib.parse import urljoin
-import requests
-import os
+from alarm.models import AlarmStatus
 
 
 class AlarmStatusRepository:
-    def __init__(self, api_url: str, get_status_endpoint: str):
-        self.url = urljoin(api_url, get_status_endpoint)
+    def __init__(self):
+        pass
 
     def set_status(self, status: bool):
-        r = requests.post(self.url, data={'running': status})
-        r.raise_for_status()
+        s = AlarmStatus(running=status)
+        s.save()
 
     @property
-    def is_on(self):
-        r = requests.get(self.url)
-        r.raise_for_status()
-        data = r.json()
+    def status(self):
+        status = AlarmStatus.objects.get_status()
 
-        return data[0]['running']
+        return status
 
 
 class AlarmStatusBot:
@@ -28,7 +31,7 @@ class AlarmStatusBot:
         self._register_commands(telegram_updater)
     
     def _alarm_status(self, update, context):
-        status = self.repository.is_on
+        status = self.repository.status
 
         if status is True:
             text = "Votre alarme est activée, voulez-vous la désactiver ?"
@@ -61,5 +64,5 @@ class AlarmStatusBot:
 
 
 def alarm_status_bot_factory(telegram_updater: Updater) -> AlarmStatusBot:
-    repository = AlarmStatusRepository(os.environ['API_URL'], os.environ['API_GET_STATUS_ENDPOINT'])
+    repository = AlarmStatusRepository()
     return AlarmStatusBot(repository, telegram_updater)

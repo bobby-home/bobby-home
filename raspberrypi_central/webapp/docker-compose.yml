@@ -96,6 +96,20 @@ services:
         env_file:
             - .env
 
+    telegram_bot:
+        build: ./app
+        env_file:
+            - .env
+        command: python standalone/telegram_bot/bot.py
+        volumes:
+            - ./app/:/usr/src/app/
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
+        env_file:
+            - .env
+
 networks:
     rabbitmq:
     webapp_backend:

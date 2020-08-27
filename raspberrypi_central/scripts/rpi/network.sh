@@ -6,7 +6,12 @@ echo "My IP in the LAN is: $SELF_LAN_IP"
 
 exclude_my_self="--exclude $SELF_LAN_IP"
 
-for raspberry_pi_ip in `sudo nmap -sn 192.168.1.0/24 | awk 'f==2{print s; f=s=""}/^(Nmap scan|MAC Address)/{sub(/^.*(for|:..) /,"");f++;s=(s?s OFS :"")$0}END{if(f==2)print s}' | grep 'Raspberry' | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'`
+gateway_ip=$(ip route show 0.0.0.0/0 | cut -d\  -f3)
+
+# ip/mask, ex: 192.168.1.0/24
+network_ip_cidr=$(ipcalc $gateway_ip | grep 'Network' | awk '{print $2}')
+
+for raspberry_pi_ip in `sudo nmap -sn $network_ip_cidr | awk 'f==2{print s; f=s=""}/^(Nmap scan|MAC Address)/{sub(/^.*(for|:..) /,"");f++;s=(s?s OFS :"")$0}END{if(f==2)print s}' | grep 'Raspberry' | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'`
 do
     echo "I've found another RPI on the network: $raspberry_pi_ip."
 

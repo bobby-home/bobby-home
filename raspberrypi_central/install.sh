@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt install -y nmap git vim libffi-dev libssl-dev python python-pip python3-pip pipenv
+sudo apt install -y ipcalc nmap git vim libffi-dev libssl-dev python python-pip python3-pip pipenv
 
 # Docker
 sudo apt-get remove python-configparser

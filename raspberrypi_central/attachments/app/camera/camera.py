@@ -1,18 +1,32 @@
-from .motion import DetectMotion
+from camera.detect_motion import DetectMotion
 from pathlib import Path 
-from telegram_bot.send_presence_message import send_message
-from sound.sound import Sound
-import os
+import paho.mqtt.client as mqtt
+import json
+
 
 class Camera():
-    def __init__(self):
-        pass
+
+    def __init__(self, get_mqtt_client, device_id):
+        self._device_id = device_id
+        self.get_mqtt_client = get_mqtt_client
 
     def start(self):
-        DetectMotion(self._presenceCallback)
-    
-    def _presenceCallback(self, presence: bool, picture_path: str) -> None:
-        print(f'presence: {presence}')
-        send_message('Une présence étrangère a été détectée chez vous.', picture_path)
-        # s = Sound()
-        # s.alarm()
+        self.mqtt_client = self.get_mqtt_client(client_name=f'{self._device_id}-rpi4-alarm-motion-DETECT')
+        self.mqtt_client.loop_start()
+        DetectMotion(self._presenceCallback, self._noMorePresenceCallBack)
+
+    def _presenceCallback(self, byteArr):
+        payload = {
+            'device_id': self._device_id,
+        }
+
+        self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
+
+        self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
+
+    def _noMorePresenceCallBack(self):
+        payload = {
+            'device_id': self._device_id,
+        }
+
+        self.mqtt_client.publish('motion/camera/no_more', payload=json.dumps(payload), qos=1)

@@ -46,6 +46,25 @@ docker-compose exec database psql -U hello_django -d hello_django_dev
 \dt
 ```
 
+## To read for the database
+:warning: Some initialization things are only run if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup. In this case, you will see this message at the beginning. Source: [psql docker image documentation](https://hub.docker.com/_/postgres).
+
+```
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+```
+For instance, this is the case for the database creation if you specifies the env variable `POSTGRES_DB`.
+If you want to reset the database during development phase because you messsed up:
+
+```
+docker container rm <container>
+docker volume rm <container>
+```
+Then, you can up the service with docker-compose, it will automatically create a fresh volume for you and you're good to go, the database is beeing initialized:
+```
+Creating volume "webapp_psql-data" with local driver
+...
+```
+
 Create new django application.
 ```
 docker-compose exec web pipenv run python manage.py startapp <application_name>
@@ -53,8 +72,6 @@ docker-compose exec web pipenv run python manage.py startapp <application_name>
 # as docker is sudo... We have to change the owner
 sudo chown -R $USER:$USER ./app/<application_name>
 ```
-
-tK_OG3TF9wKRipWPMaOkArlJ1F_ahMXYCgl2dm_IGSYYhAo_37yHpVVvznBpMrcbp5dRPB1pmbug7mL0o299BQ
 
 # MQTT Broker
 I'm using the MQTT protocol to connect my different devices. I've made the choice to use Mosquitto MQTT Broker running on my raspberryPI,

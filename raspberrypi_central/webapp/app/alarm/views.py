@@ -1,38 +1,24 @@
 from django.shortcuts import render
-from api_keys.permissions import HasAPIAccess
-from rest_framework import viewsets, generics, mixins, status
-from rest_framework.response import Response
-from . import serializers
-from . import models
+from django.views import View
 
-from django.shortcuts import render
+from . import tasks
+from alarm.forms import AlarmScheduleForm
 
 
-def index(request):
-    status = models.AlarmStatus.objects.all()
+class AlarmView(View):
+    form_class = AlarmScheduleForm
+    template_name = 'alarm/schedule.html'
 
-    context = {'status': status}
-    return render(request, 'home.html', context)
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
 
-class AlarmStatusViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
-    permission_classes = (HasAPIAccess,)
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
 
-    queryset = models.AlarmStatus.objects.all()
-    serializer_class = serializers.AlarmStatusSerializer
+        if form.is_valid():
+            new_schedule = form.save()
+            # <process form cleaned data>
+            return HttpResponseRedirect('/success/')
 
-    def create(self, request):
-        serializer = serializers.AlarmStatusSerializer(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-        status = request.data.get('status')
-        if (status == 'on'):
-            models.AlarmStatus.objects.update_or_create(is_active=True)
-        elif (status == 'off'):
-            models.AlarmStatus.objects.update_or_create(is_active=False)
-
-        return Response('WIP!')
-
-    def list(self, request):
-        alarm_status = models.AlarmStatus.objects.all()
-        print(alarm_status)
-        return Response('hello')
+        return render(request, self.template_name, {'form': form})

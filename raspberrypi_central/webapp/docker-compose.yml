@@ -1,22 +1,67 @@
 version: "3.7"
+
 services:
+    rabbit:
+        hostname: rabbit
+        image: rabbitmq:3.8-management-alpine
+        environment:
+            - RABBITMQ_DEFAULT_USER=admin
+            - RABBITMQ_DEFAULT_PASS=mypass
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        networks:
+            rabbitmq:
+            backend_mqtt:
+                ipv4_address: "172.19.0.101"
+
+        # healthcheck:
+        #     test: ["CMD", "wget", "-qO-", "http://localhost:15672"]
+        #     interval: 30s
+        #     timeout: 10s
+        #     retries: 5
+    rabbit_worker:
+        build: ./app
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django worker --loglevel=info"
+        volumes:
+            - ./app/:/usr/src/app/
+        env_file:
+            - .env
+        networks:
+            webapp_backend:
+            rabbitmq:
+            backend_mqtt:
+                ipv4_address: "172.19.0.100"
+
+    celery_beat:
+        build: ./app
+        volumes:
+            - ./app/:/usr/src/app/
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
+        env_file:
+            - .env
+        networks:
+            rabbitmq:
+            backend_mqtt:
+            webapp_backend:
+
     web:
         build: ./app
-        command: pipenv run python manage.py runserver 0.0.0.0:8000
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python manage.py runserver 0.0.0.0:8000"
         volumes:
           - ./app/:/usr/src/app/
         ports:
           - 8000:8000
         networks:
+            rabbitmq:
             webapp_backend:
             backend_mqtt:
-                ipv4_address: "172.19.0.3"
+                ipv4_address: "172.19.0.50"
         env_file:
-          - ./.env.dev
-        depends_on:
-            - database
+            - .env
+
     database:
-        image: postgres:12.0-alpine
+        image: postgres:12.3-alpine
         volumes:
             - psql-data:/var/lib/postgresql/data
         environment:
@@ -27,6 +72,7 @@ services:
           - webapp_backend
         ports:
             - '5432:5432'
+
     mqtt:
         image: eclipse-mosquitto
         volumes:
@@ -36,13 +82,42 @@ services:
             - "8883:8883"
         networks:
             backend_mqtt:
-                ipv4_address: "172.19.0.2"
+                ipv4_address: "172.19.0.51"
 
+    python_process_mqtt:
+        build: ./app
+        env_file:
+            - .env
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python mqtt.py"
+        volumes:
+            - ./app/:/usr/src/app/
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
+        env_file:
+            - .env
+
+    telegram_bot:
+        build: ./app
+        env_file:
+            - .env
+        command: python standalone/telegram_bot/bot.py
+        volumes:
+            - ./app/:/usr/src/app/
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
+        env_file:
+            - .env
 
 networks:
+    rabbitmq:
     webapp_backend:
     backend_mqtt:
         external: true
 
 volumes:
     psql-data:
+        driver: local

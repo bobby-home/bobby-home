@@ -34,6 +34,8 @@ if os.environ.get("DJANGO_ALLOWED_HOSTS"):
 # Override default value to use my custom User model.
 AUTH_USER_MODEL = 'account.Account'
 
+CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
+
 # Application definition
 INSTALLED_APPS = [
     'account',
@@ -42,11 +44,14 @@ INSTALLED_APPS = [
     'devices',
     'alarm',
     'alerts',
+    'house',
+    'notification',
 
     # third parties
     'rest_framework',
     'corsheaders',
-    'debug_toolbar',
+    # 'debug_toolbar',
+    'django_celery_beat',
 
     # django apps
     'django.contrib.admin',
@@ -95,7 +100,7 @@ TEMPLATES = [
             # add basic django tags and django view environment.
             'environment': 'hello_django.jinja2.environment',
             'extensions': [
-                'jdj_tags.webpack_assets.WebpackAssets',
+                'jdj_tags.tag_assets.Assets',
             ]
         }
     },

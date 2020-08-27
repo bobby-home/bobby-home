@@ -17,8 +17,8 @@ RUN apt-get update \
 
 # install dependencies
 RUN pip install --upgrade pip
-COPY ./Pipfile /usr/src/app/Pipfile
-RUN pipenv install
+COPY requirements.txt /tmp/
+RUN pip install --requirement /tmp/requirements.txt
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh

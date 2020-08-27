@@ -1,26 +1,36 @@
-version: "3"
+version: "3.8"
+
+
+x-logging: &loki-logging
+    driver: loki
+    options:
+        loki-url: "http://localhost:3100/api/prom/push"
+
 services:
     py:
         build: ./app
-        command: python alarm.py
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python alarm.py"
         env_file:
             - .env
+        logging: *loki-logging
         networks: 
-            - webapp_backend
             - backend_mqtt
+            - motion
+
         # Give access to the rpi camera device.
         privileged: true
         environment:
                 - LD_LIBRARY_PATH=/opt/vc/lib
         volumes:
-                - /opt/vc:/opt/vc
+            - ./app/:/usr/src/app/
+            - /opt/vc:/opt/vc
+
         devices:
                 - "/dev/vchiq:/dev/vchiq"
 
 networks:
-    webapp_backend:
-        external:
-            name: webapp_webapp_backend
+    motion:
+        name: motion
     backend_mqtt:
         external:
             name: backend_mqtt

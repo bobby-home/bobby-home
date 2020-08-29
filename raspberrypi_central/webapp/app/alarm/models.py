@@ -6,6 +6,19 @@ import pytz
 from . import tasks
 from devices.models import Device
 
+
+class CameraRectangleROI(models.Model):
+    # ? We might rework the max_digits & decimal_places here
+    # I didn't really know what to put here. Seems good but may not be optimized.
+
+    x = models.DecimalField(max_digits=8, decimal_places=4)
+    y = models.DecimalField(max_digits=8, decimal_places=4)
+    w = models.DecimalField(max_digits=8, decimal_places=4)
+    h = models.DecimalField(max_digits=8, decimal_places=4)
+
+    device = models.ForeignKey(Device, on_delete=models.PROTECT)
+
+
 class AlarmSchedule(models.Model):
     hour_start = models.IntegerField()
     minute_start = models.IntegerField()

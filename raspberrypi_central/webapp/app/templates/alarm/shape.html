@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style type="text/css">
+        #container { position: relative; }
+        #imageView { border: 1px solid #000; }
+        #imageTemp { position: absolute; top: 1px; left: 1px; }
+    </style>
+</head>
+<body>
+    <p>
+        <label>Drawing tool:
+            <select id="dtool">
+                <option value="rect">Rectangle</option>
+                <option value="pencil">Pencil</option>
+            </select>
+        </label>
+    </p>
+    <div id="container">
+        <canvas id="imageView" width="400" height="300">
+        <p>Unfortunately, your browser is currently unsupported by our web
+        application.  We are sorry for the inconvenience. Please use one of the
+        supported browsers listed below, or draw the image you want using an
+        offline tool.</p>
+        <p>Supported browsers: <a href="http://www.opera.com">Opera</a>, <a
+            href="http://www.mozilla.com">Firefox</a>, <a
+            href="http://www.apple.com/safari">Safari</a>
+        </canvas>
+  </div>
+  <!-- <button id="save" type="button">
+    save
+  </button> -->
+  <input
+    type="file"
+    id="load"
+    name="avatar"
+    accept="image/png"
+  >
+{% assets 'entrypoints/draw-shape.js' %}    
+</body>
+</html>
+
+

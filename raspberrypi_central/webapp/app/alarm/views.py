@@ -5,6 +5,11 @@ from . import tasks
 from alarm.forms import AlarmScheduleForm
 
 
+class AlarmShapeView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'alarm/shape.html')
+
+
 class AlarmView(View):
     form_class = AlarmScheduleForm
     template_name = 'alarm/schedule.html'

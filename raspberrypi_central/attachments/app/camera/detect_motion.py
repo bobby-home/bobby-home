@@ -14,6 +14,13 @@ from camera.videostream import VideoStream
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
 
+def image_to_byte_array(image: Image):
+    imgByteArr = io.BytesIO()
+    image.save(imgByteArr, format='jpeg')
+    imgByteArr = imgByteArr.getvalue()
+
+    return imgByteArr
+
 
 class DetectMotion():
 
@@ -101,7 +108,7 @@ class DetectMotion():
                 print(f'we found {label} score={score}')
                 if self._last_time_people_detected is None:
                     print('WE NOTIFY')
-                    self._presenceCallback(stream.tobytes())
+                    self._presenceCallback(image_to_byte_array(image))
 
                 self._last_time_people_detected = datetime.datetime.now()
 

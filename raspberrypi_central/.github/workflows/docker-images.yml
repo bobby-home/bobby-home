@@ -2,12 +2,14 @@ name: Build our images
 
 on: push
 
+defaults:
+  run:
+    working-directory: raspberrypi_central/attachments/build-image
+
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: raspberrypi_central/attachments/build-image
     steps:
       - name: checkout code
         uses: actions/checkout@v2

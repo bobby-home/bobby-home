@@ -6,6 +6,7 @@ import pytz
 from . import tasks
 from devices.models import Device
 
+
 class AlarmSchedule(models.Model):
     hour_start = models.IntegerField()
     minute_start = models.IntegerField()

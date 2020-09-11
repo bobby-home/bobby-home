@@ -52,5 +52,11 @@ RUN dpkgArch="$(dpkg --print-architecture)"; \
 
 RUN cd ~/opencv/build && make -j8
 
-RUN ln -s /root/opencv/build/lib/python3/cv2.cpython-37$pythonArch.so \
-  /usr/local/lib/python3.7/site-packages/cv2.so
+RUN dpkgArch="$(dpkg --print-architecture)"; \
+    case "${dpkgArch##*-}" in \
+        armv7) pythonArch='arm-linux-gnueabihf' ;; \
+        amd64) pythonArch='x86_64-linux-gnu' ;; \
+        *) echo >&2; echo >&2 "error: current architecture ($dpkgArch) is not supported." ;; \
+    esac; \
+    ln -s /root/opencv/build/lib/python3/cv2.cpython-37$pythonArch.so \
+    /usr/local/lib/python3.7/site-packages/cv2.so

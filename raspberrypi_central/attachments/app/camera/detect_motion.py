@@ -118,6 +118,6 @@ class DetectMotion():
         CAMERA_WIDTH = 640
         CAMERA_HEIGHT = 480
 
-        # initialize the video stream and allow the cammera sensor to warmup
+        # TODO: see issue #78
         VideoStream(self._processFrame, resolution=(
             CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)

@@ -1,4 +1,3 @@
-from threading import Thread
 import cv2
 
 
@@ -17,10 +16,8 @@ class WebcamVideoStream:
         _ = self.stream.read()
         self._update()
 
-
     def _update(self):
         # keep looping infinitely until the thread is stopped
         while True:
             (_, frame) = self.stream.read()
             self.processFrame(frame)
-

@@ -1,18 +1,12 @@
 from typing import Callable
 import datetime
-import json
 import re
-import datetime
-import time
 import io
-
-from fractions import Fraction
-
 import numpy as np
-from camera.videostream import VideoStream
-
 from PIL import Image
+from camera.videostream import VideoStream
 from tflite_runtime.interpreter import Interpreter
+
 
 def image_to_byte_array(image: Image):
     imgByteArr = io.BytesIO()
@@ -55,7 +49,7 @@ class DetectMotion():
                     labels[int(pair[0])] = pair[1].strip()
                 else:
                     labels[row_number] = pair[0].strip()
-        
+
         return labels
 
     def _set_input_tensor(self, interpreter, image):
@@ -89,16 +83,17 @@ class DetectMotion():
                     'class_id': classes[i],
                     'score': scores[i]
                 }
-            
+
                 results.append(result)
 
         return results
 
-
     def _processFrame(self, stream):
-        image = Image.fromarray(stream).convert('RGB').resize((self.input_width, self.input_height), Image.ANTIALIAS)
+        image = Image.fromarray(stream).convert('RGB').resize(
+            (self.input_width, self.input_height), Image.ANTIALIAS)
 
-        results = self._detect_objects(self.interpreter, image, self.args['threshold'])
+        results = self._detect_objects(
+            self.interpreter, image, self.args['threshold'])
 
         for obj in results:
             label = self.labels[obj['class_id']]
@@ -112,8 +107,9 @@ class DetectMotion():
 
                 self._last_time_people_detected = datetime.datetime.now()
 
+        time_lapsed = (self._last_time_people_detected is not None) and (
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
 
-        time_lapsed = (self._last_time_people_detected is not None) and (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
         if time_lapsed:
             self._last_time_people_detected = None
             self._noMorePresenceCallback()
@@ -123,4 +119,5 @@ class DetectMotion():
         CAMERA_HEIGHT = 480
 
         # initialize the video stream and allow the cammera sensor to warmup
-        vs = VideoStream(self._processFrame, resolution=(CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)
+        VideoStream(self._processFrame, resolution=(
+            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)

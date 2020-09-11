@@ -12,6 +12,12 @@ class ThreadManager:
         if (self._process is None):
             print('Launch object detection thread')
             self._process = Process(target=self.instance.start)
+            """
+            Here we call the `start` method on the object.
+            But when we `_stop_process` we don't call any methods.
+            So if the Process has to release something before we end it, we can't.
+            TODO: Please see issue #79
+            """
             self._process.start()
 
     def _stop_process(self):

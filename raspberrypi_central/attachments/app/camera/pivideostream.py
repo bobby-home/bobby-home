@@ -34,8 +34,9 @@ class PiVideoStream:
             self.processFrame(frame)
             self.rawCapture.truncate(0)
 
-# if self.stopped:
-# 	self.stream.close()
-# 	self.rawCapture.close()
-# 	self.camera.close()
-# 	return
+            # TODO issue #79: release resources when turning off the camera.
+            # if self.stopped:
+            # 	self.stream.close()
+            # 	self.rawCapture.close()
+            # 	self.camera.close()
+            # 	return

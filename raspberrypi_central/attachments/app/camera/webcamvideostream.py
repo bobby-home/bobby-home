@@ -21,3 +21,4 @@ class WebcamVideoStream:
         while True:
             (_, frame) = self.stream.read()
             self.processFrame(frame)
+            # TODO issue #79: self.stream.release() to release resources when turning off the camera.

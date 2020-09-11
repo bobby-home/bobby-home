@@ -1,18 +1,19 @@
 from typing import Callable
 import datetime
-import json
 import re
-import datetime
-
 import io
-
-from fractions import Fraction
-
 import numpy as np
-import picamera
-
 from PIL import Image
+from camera.videostream import VideoStream
 from tflite_runtime.interpreter import Interpreter
+
+
+def image_to_byte_array(image: Image):
+    imgByteArr = io.BytesIO()
+    image.save(imgByteArr, format='jpeg')
+    imgByteArr = imgByteArr.getvalue()
+
+    return imgByteArr
 
 
 class DetectMotion():
@@ -20,6 +21,17 @@ class DetectMotion():
     def __init__(self, presenceCallback: Callable[[bool, str], None], noMorePresenceCallback: Callable):
         # State
         self._last_time_people_detected = None
+
+        self.args = {
+            'model': 'tensorflow-object-detection/data/detect.tflite',
+            'labels': 'tensorflow-object-detection/data/coco_labels.txt',
+            'threshold': 0.5
+        }
+
+        self.labels = self._load_labels(self.args['labels'])
+        self.interpreter = Interpreter(self.args['model'])
+        self.interpreter.allocate_tensors()
+        _, self.input_height, self.input_width, _ = self.interpreter.get_input_details()[0]['shape']
 
         self._presenceCallback = presenceCallback
         self._noMorePresenceCallback = noMorePresenceCallback
@@ -37,7 +49,7 @@ class DetectMotion():
                     labels[int(pair[0])] = pair[1].strip()
                 else:
                     labels[row_number] = pair[0].strip()
-        
+
         return labels
 
     def _set_input_tensor(self, interpreter, image):
@@ -71,56 +83,41 @@ class DetectMotion():
                     'class_id': classes[i],
                     'score': scores[i]
                 }
-            
+
                 results.append(result)
 
         return results
 
+    def _processFrame(self, stream):
+        image = Image.fromarray(stream).convert('RGB').resize(
+            (self.input_width, self.input_height), Image.ANTIALIAS)
+
+        results = self._detect_objects(
+            self.interpreter, image, self.args['threshold'])
+
+        for obj in results:
+            label = self.labels[obj['class_id']]
+            score = obj['score']
+
+            if label == 'person':
+                print(f'we found {label} score={score}')
+                if self._last_time_people_detected is None:
+                    print('WE NOTIFY')
+                    self._presenceCallback(image_to_byte_array(image))
+
+                self._last_time_people_detected = datetime.datetime.now()
+
+        time_lapsed = (self._last_time_people_detected is not None) and (
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
+
+        if time_lapsed:
+            self._last_time_people_detected = None
+            self._noMorePresenceCallback()
 
     def _run(self):
         CAMERA_WIDTH = 640
         CAMERA_HEIGHT = 480
 
-        args = {
-            'model': 'tensorflow-object-detection/data/detect.tflite',
-            'labels': 'tensorflow-object-detection/data/coco_labels.txt',
-            'threshold': 0.5
-        }
-
-        labels = self._load_labels(args['labels'])
-        interpreter = Interpreter(args['model'])
-        interpreter.allocate_tensors()
-        _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
-
-        with picamera.PiCamera(resolution=(CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1) as camera:
-            # Create the in-memory stream
-            stream = io.BytesIO()
-
-            for _ in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
-                stream.seek(0)
-                image = Image.open(stream).convert('RGB').resize((input_width, input_height), Image.ANTIALIAS)
-
-                results = self._detect_objects(interpreter, image, args['threshold'])
-
-                for obj in results:
-                    label = labels[obj['class_id']]
-                    score = obj['score']
-
-                    if label == 'person':
-                        print(f'we found {label} score={score}')
-                        if self._last_time_people_detected is None:
-                            print('WE NOTIFY')
-                            self._presenceCallback(stream.getvalue())
-
-                        self._last_time_people_detected = datetime.datetime.now()
-
-                    
-                time_lapsed = (self._last_time_people_detected is not None) and (datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
-                if time_lapsed:
-                    self._last_time_people_detected = None
-                    self._noMorePresenceCallback()
-
-                # "Rewind" the stream to the beginning so we can read its content
-                stream.seek(0)
-                stream.truncate()
-
+        # initialize the video stream and allow the cammera sensor to warmup
+        VideoStream(self._processFrame, resolution=(
+            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)

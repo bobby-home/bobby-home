@@ -1,6 +1,4 @@
 from camera.detect_motion import DetectMotion
-from pathlib import Path 
-import paho.mqtt.client as mqtt
 import json
 
 

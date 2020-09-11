@@ -1,6 +1,6 @@
 name: Build our images
 
-on: [workflow_dispatch, push]
+on: [push]
 
 defaults:
   run:

@@ -1,5 +1,4 @@
 from multiprocessing import Process
-import time
 
 
 class ThreadManager:
@@ -14,7 +13,7 @@ class ThreadManager:
             print('Launch object detection thread')
             self._process = Process(target=self.instance.start)
             self._process.start()
-    
+
     def _stop_process(self):
         if (self._process):
             print('Stop object detection thread')
@@ -24,7 +23,7 @@ class ThreadManager:
     @property
     def running(self):
         return self._is_running
-    
+
     @running.setter
     def running(self, running):
         self._is_running = running

@@ -12,7 +12,6 @@ services:
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python alarm.py"
         env_file:
             - .env
-        logging: *loki-logging
         networks: 
             - backend_mqtt
             - motion

@@ -1,23 +1,22 @@
 import os
 
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
 
 from alarm import models as alarm_models
-from house import models as house_models
 from devices import models as device_models
 from notification.tasks import send_message
 
 
-def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, client_name = None):
+# TODO: use MQTT class here!
+def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, client_name=None):
 
     if client_name is None:
         clean_session = True
     else:
         False
 
-    client = mqtt.Client(client_id=client_name, clean_session=client_name)
+    client = mqtt.Client(client_id=client_name, clean_session=clean_session)
     client.username_pw_set(mqtt_user, mqtt_pswd)
 
     client.connect(mqtt_hostname, int(mqtt_port), keepalive=120)

@@ -58,5 +58,5 @@ RUN dpkgArch="$(dpkg --print-architecture)"; \
         amd64) pythonArch='x86_64-linux-gnu' ;; \
         *) echo >&2; echo >&2 "error: current architecture ($dpkgArch) is not supported." ;; \
     esac; \
-    ln -s "/root/opencv/build/lib/python3/cv2.cpython-37$pythonArch.so" \
+    ln -s "/root/opencv/build/lib/python3/cv2.cpython-37m-$pythonArch.so" \
     /usr/local/lib/python3.7/site-packages/cv2.so

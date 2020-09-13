@@ -1,4 +1,4 @@
-FROM mxmaxime/rpi4-opencv:latest
+FROM mxmaxime/rpi4-opencv:0.0.2
 
 # set work directory
 WORKDIR /usr/src/app

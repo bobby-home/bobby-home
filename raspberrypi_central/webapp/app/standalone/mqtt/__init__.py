@@ -45,7 +45,7 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
     def callback(self, message: MqttMessage):
         payload = json.loads(message.payload)
         message.payload = payload
-        super.callback(self, message)
+        self.callback(self, message)
 
 
 @dataclass

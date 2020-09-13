@@ -45,7 +45,7 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
     def callback(self, message: MqttMessage):
         payload = json.loads(message.payload)
         message.payload = payload
-        self.callback(self, message)
+        super().callback(message)
 
 
 @dataclass
@@ -105,14 +105,11 @@ class MQTT():
             )
             return
 
-        self._subscribe_all()
-
     def add_subscribe(self, subscriptions: List[Subscription]):
         for subscription in subscriptions:
 
             def _mqtt_addCallback(subscription: MqttTopicSubscription):
                 subscription_callback = partial(self._mqtt_on_message_wrapper, subscription)
-                print(f'topic: {subscription.topic}')
                 self._client.message_callback_add(subscription.topic, subscription_callback)
 
             self._client.subscribe(subscription.topic, subscription.qos)
@@ -137,13 +134,17 @@ class MQTT():
 
     def _mqtt_on_message_wrapper(self, subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
         timestamp = dt_utils.utcnow()
+
         payload = msg.payload
 
         if subscription.encoding is not None:
             try:
                 payload = msg.payload.decode(subscription.encoding)
             except (AttributeError, UnicodeDecodeError):
-                # TODO: throw custom Exception
+                """
+                If we cannot decode a payload we don't call the callback
+                because this can lead to errors.
+                """
                 _LOGGER.warning(
                     "Can't decode payload %s on %s with encoding %s (for %s)",
                     msg.payload,
@@ -151,6 +152,7 @@ class MQTT():
                     subscription.encoding,
                     subscription.callback,
                 )
+                return
 
         subscription.callback(MqttMessage(
             msg.topic,

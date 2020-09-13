@@ -38,13 +38,13 @@ def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
     client.publish('status/sound', str(False), qos=1)
 
 
-def on_status_alarm(client, message: MqttMessage):
+def on_status_alarm(client: MQTT, message: MqttMessage):
     status = AlarmStatus.objects.get_status()
 
     client.publish('status/alarm', message=str(status), qos=1)
 
 
-def on_status_sound(client, message: MqttMessage):
+def on_status_sound(client: MQTT, message: MqttMessage):
     client.publish('status/sound', message=str(False), qos=1)
 
 

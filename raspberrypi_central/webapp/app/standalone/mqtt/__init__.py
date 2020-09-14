@@ -51,6 +51,13 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
 
 @dataclass
 class MqttTopicFilterSubscription(Subscription):
+    """
+    Sometimes, we don't want to attach a callback to a subscribe.
+    The goal is to set the qos for a "scope".
+    For example, I may want the qos to be equals to 2 for the topic "motion/#"
+    and then add callbacks for motion/camera, motion/picture, ...
+    -> this is done by adding MqttTopicSubscription in the "topics" list.
+    """
     topic: str
     topics: List[MqttTopicSubscription]
     qos: int = 1
@@ -113,6 +120,19 @@ class MQTT():
                 subscription_callback = partial(self._mqtt_on_message_wrapper, subscription)
                 self._client.message_callback_add(subscription.topic, subscription_callback)
 
+            """
+            Subscribe strategy:
+            - use paho mqtt .subscribe() with .add_callback
+            Why? Avoid the huge function that receives all messages for all messages and dispatch it.
+            -> paho mqtt can do it for us, so we don't have to keep in memory all the topic/handler do dispatch topic -> handler.
+
+            From the documentation:
+            "This function allows you to define callbacks that handle incoming messages for specific subscription filters,
+            including with wildcards. This lets you, for example, subscribe to sensors/#
+            and have one callback to handle sensors/temperature and another to handle sensors/humidity."
+
+            We also use it for single topic/handler, for example: "/something/else" -> subscribe -> addCallbackHandler.
+            """
             self._client.subscribe(subscription.topic, subscription.qos)
 
             if isinstance(subscription, MqttTopicFilterSubscription):
@@ -120,18 +140,6 @@ class MQTT():
                     _mqtt_addCallback(sub)
             else:
                 _mqtt_addCallback(sub)
-            """
-            Sometimes, we don't want to attach a callback to a subscribe.
-            The goal is to set the qos for a "scope".
-            For example, I may want the qos to be equals to 2 for the topic "motion/#"
-            and then add callbacks for motion/camera, motion/picture, ...
-            """
-
-            """
-            This function allows you to define callbacks that handle incoming messages for specific subscription filters,
-            including with wildcards. This lets you, for example, subscribe to sensors/#
-            and have one callback to handle sensors/temperature and another to handle sensors/humidity.
-            """
 
     def _mqtt_on_message_wrapper(self, subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
         timestamp = dt_utils.utcnow()

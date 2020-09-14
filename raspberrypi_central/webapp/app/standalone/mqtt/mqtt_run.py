@@ -8,18 +8,16 @@ django.setup()
 from standalone.mqtt import MqttConfig, MQTT
 from alarm.mqtt import register
 
-if __name__ == '__main__':
-    mqttConfig = MqttConfig(
-        client_id='hello-world',
-        user=os.environ['MQTT_USER'],
-        password=os.environ['MQTT_PASSWORD'],
-        hostname=os.environ['MQTT_HOSTNAME'],
-        port=os.environ['MQTT_PORT']
-    )
+mqttConfig = MqttConfig(
+    client_id='hello-world',
+    user=os.environ['MQTT_USER'],
+    password=os.environ['MQTT_PASSWORD'],
+    hostname=os.environ['MQTT_HOSTNAME'],
+    port=os.environ['MQTT_PORT']
+)
 
-    mqtt = MQTT(mqttConfig)
-    print('HEY')
+mqtt = MQTT(mqttConfig)
 
-    register(mqtt)
+register(mqtt)
 
-    mqtt._client.loop_forever()
+mqtt._client.loop_forever()

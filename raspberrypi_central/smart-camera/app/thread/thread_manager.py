@@ -1,9 +1,10 @@
 from multiprocessing import Process
+from typing import Callable
 
 
 class ThreadManager:
 
-    def __init__(self, to_run):
+    def __init__(self, to_run: Callable[[None], None]):
         self._is_running = False
         self._process = None
         self._to_run = to_run

@@ -88,8 +88,7 @@ services:
         build: ./app
         env_file:
             - .env
-            # bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 --
-        command: python standalone/mqtt/mqtt_run.py
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python standalone/mqtt/mqtt_run.py"
         volumes:
             - ./app/:/usr/src/app/
         networks:

@@ -4,7 +4,6 @@ import re
 import io
 import numpy as np
 from PIL import Image
-from camera.videostream import VideoStream
 from tflite_runtime.interpreter import Interpreter
 
 
@@ -18,8 +17,7 @@ def image_to_byte_array(image: Image):
 
 class DetectMotion():
 
-    def __init__(self, presenceCallback: Callable[[bool, str], None], noMorePresenceCallback: Callable):
-        # State
+    def __init__(self):
         self._last_time_people_detected = None
 
         self.args = {
@@ -32,10 +30,6 @@ class DetectMotion():
         self.interpreter = Interpreter(self.args['model'])
         self.interpreter.allocate_tensors()
         _, self.input_height, self.input_width, _ = self.interpreter.get_input_details()[0]['shape']
-
-        self._presenceCallback = presenceCallback
-        self._noMorePresenceCallback = noMorePresenceCallback
-        self._run()
 
     def _load_labels(self, path):
         """Loads the labels file. Supports files with or without index numbers."""
@@ -88,7 +82,7 @@ class DetectMotion():
 
         return results
 
-    def _processFrame(self, stream):
+    def process_frame(self, stream):
         image = Image.fromarray(stream).convert('RGB').resize(
             (self.input_width, self.input_height), Image.ANTIALIAS)
 
@@ -101,23 +95,6 @@ class DetectMotion():
 
             if label == 'person':
                 print(f'we found {label} score={score}')
-                if self._last_time_people_detected is None:
-                    print('WE NOTIFY')
-                    self._presenceCallback(image_to_byte_array(image))
+                return True, image_to_byte_array(image)
 
-                self._last_time_people_detected = datetime.datetime.now()
-
-        time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
-
-        if time_lapsed:
-            self._last_time_people_detected = None
-            self._noMorePresenceCallback()
-
-    def _run(self):
-        CAMERA_WIDTH = 640
-        CAMERA_HEIGHT = 480
-
-        # TODO: see issue #78
-        VideoStream(self._processFrame, resolution=(
-            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)
+        return False, None

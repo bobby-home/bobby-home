@@ -6,25 +6,35 @@ from camera.camera import Camera
 import paho.mqtt.client as mqtt
 from functools import partial
 import os
-import json
 from mqtt.mqtt_client import get_mqtt_client
+from camera.videostream import VideoStream
 
 
 mqtt_client = get_mqtt_client(f"{os.environ['DEVICE_ID']}-rpi4-alarm-motion")
 
 MQTT_ALARM_CAMERA_TOPIC = 'status/alarm'
 
-camera_factory = partial(camera_factory, get_mqtt_client)
 
-manager = ThreadManager(camera_factory)
+def run():
+    camera = camera_factory(get_mqtt_client)
+
+    CAMERA_WIDTH = 640
+    CAMERA_HEIGHT = 480
+
+    # TODO: see issue #78
+    VideoStream(camera.processFrame, resolution=(
+        CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)
+
+
+manager = ThreadManager(run)
 MqttStatusManageThread(mqtt_client, manager, MQTT_ALARM_CAMERA_TOPIC)
 
 
-def play_sound_factory():
-    return PlaySound()
+def run_sound():
+    PlaySound()
 
 
-sound_manager = ThreadManager(play_sound_factory)
+sound_manager = ThreadManager(run_sound)
 MqttStatusManageThread(mqtt_client, sound_manager, 'status/sound')
 
 mqtt_client.loop_forever()

@@ -3,8 +3,8 @@ from sound.sound import Sound
 
 class PlaySound():
     def __init__(self):
-        pass
+        self._start()
 
-    def start(self):
+    def _start(self):
         s = Sound()
         s.alarm()

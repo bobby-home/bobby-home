@@ -1,5 +1,6 @@
 from camera.detect_motion import DetectMotion
 import json
+import datetime
 
 
 class Camera():
@@ -7,29 +8,39 @@ class Camera():
     def __init__(self, detect_motion: DetectMotion, get_mqtt_client, device_id):
         self._device_id = device_id
         self.get_mqtt_client = get_mqtt_client
-        self._start()
+        self._last_time_people_detected = None
 
         self.detect_motion = detect_motion
+        self._start()
 
     def _start(self):
         self.mqtt_client = self.get_mqtt_client(client_name=f'{self._device_id}-rpi4-alarm-motion-DETECT')
         self.mqtt_client.loop_start()
 
-    def processFrame(self, frame):
-        result, byteArr = self.detect_motion.process_frame(frame)
-
-        if result is True:
-            payload = {
-                'device_id': self._device_id,
-            }
-
-            self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
-
-            self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
-
-    def _noMorePresenceCallBack(self):
+    def _noMorePresence(self):
         payload = {
             'device_id': self._device_id,
         }
 
         self.mqtt_client.publish('motion/camera/no_more', payload=json.dumps(payload), qos=1)
+
+    def processFrame(self, frame):
+        result, byteArr = self.detect_motion.process_frame(frame)
+
+        if result is True:
+            if self._last_time_people_detected is None:
+                payload = {
+                    'device_id': self._device_id,
+                }
+
+                self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
+                self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
+
+            self._last_time_people_detected = datetime.datetime.now()
+
+        time_lapsed = (self._last_time_people_detected is not None) and (
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
+
+        if time_lapsed:
+            self._last_time_people_detected = None
+            self._noMorePresence()

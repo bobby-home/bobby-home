@@ -6,22 +6,7 @@ import paho.mqtt.client as mqtt
 from alarm import models as alarm_models
 from devices import models as device_models
 from notification.tasks import send_message
-
-
-# TODO: use MQTT class here!
-def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, client_name=None):
-
-    if client_name is None:
-        clean_session = True
-    else:
-        False
-
-    client = mqtt.Client(client_id=client_name, clean_session=clean_session)
-    client.username_pw_set(mqtt_user, mqtt_pswd)
-
-    client.connect(mqtt_hostname, int(mqtt_port), keepalive=120)
-
-    return client
+from standalone.mqtt import mqtt_factory
 
 
 class AlarmMessaging():
@@ -53,12 +38,7 @@ def camera_motion_picture(self, picture_path):
 @shared_task(name="security.play_sound")
 def play_sound(motion_came_from_device_id: str):
     # device = device_models.Device.objects.get(device_id=device_id)
-    mqtt_client = create_mqtt_client(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT']
-    )
+    mqtt_client = mqtt_factory()
 
     alarm_messaging = AlarmMessaging(mqtt_client)
     alarm_messaging.set_sound_status(True)
@@ -95,12 +75,7 @@ def set_alarm_on():
 
 @shared_task
 def alarm_status_changed(status: bool):
-    mqtt_client = create_mqtt_client(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT']
-    )
+    mqtt_client = mqtt_factory()
 
     alarm_messaging = AlarmMessaging(mqtt_client)
     alarm_messaging.set_alarm_status(status)

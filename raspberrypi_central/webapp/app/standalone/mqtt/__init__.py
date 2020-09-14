@@ -1,3 +1,4 @@
+import os
 import datetime
 from functools import partial
 from typing import Callable, List, Optional, Union
@@ -62,9 +63,9 @@ class MqttConfig:
 
     client_id: str
 
-    user: str
-    password: str
     keepalive: int = 120
+    user: str = None
+    password: str = None
 
 
 class MQTT():
@@ -165,3 +166,15 @@ class MQTT():
 
     def publish(self, topic, message, qos=None, retain=False):
         self._client.publish(topic, message, qos=qos, retain=retain)
+
+
+def mqtt_factory(client_id: str = None) -> MQTT:
+    mqttConfig = MqttConfig(
+        client_id='hello-world',
+        user=os.environ['MQTT_USER'],
+        password=os.environ['MQTT_PASSWORD'],
+        hostname=os.environ['MQTT_HOSTNAME'],
+        port=os.environ['MQTT_PORT']
+    )
+
+    return MQTT(mqttConfig)

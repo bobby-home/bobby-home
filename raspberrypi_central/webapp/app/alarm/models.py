@@ -95,27 +95,31 @@ class AlarmSchedule(models.Model):
 
         super().save(*args, **kwargs)
 
+
 class AlarmStatusManager(models.Manager):
     def get_status(self):
-        return self.all().first().running
+        return self.all().first()
+
 
 class AlarmStatus(models.Model):
     objects = AlarmStatusManager()
 
     running = models.BooleanField()
+    device = models.ForeignKey(Device, on_delete=models.PROTECT)
 
     # only one row can be created, otherwise: IntegrityError is raised.
     # from https://books.agiliq.com/projects/django-orm-cookbook/en/latest/singleton.html
+    # TODO: we will remove this for issue #86
     def save(self, *args, **kwargs):
         if self.__class__.objects.count():
             self.pk = self.__class__.objects.first().pk
-        
+
         tasks.alarm_status_changed.delay(self.running)
 
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'Status is {self.running}'
+        return f'Status is {self.running} for {self.device}'
 
 
 class CameraMotionDetected(models.Model):

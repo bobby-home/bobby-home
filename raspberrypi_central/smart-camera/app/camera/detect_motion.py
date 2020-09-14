@@ -1,4 +1,3 @@
-from typing import Callable
 import re
 import io
 import numpy as np

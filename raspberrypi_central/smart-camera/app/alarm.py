@@ -1,11 +1,8 @@
+import os
 from mqtt.mqtt_status_manage_thread import MqttStatusManageThread
 from thread.thread_manager import ThreadManager
 from camera.camera_factory import camera_factory
 from camera.play_sound import PlaySound
-from camera.camera import Camera
-import paho.mqtt.client as mqtt
-from functools import partial
-import os
 from mqtt.mqtt_client import get_mqtt_client
 from camera.videostream import VideoStream
 

@@ -55,6 +55,7 @@ def register(mqtt: MQTT):
             qos=1,
             topics=[
                 MqttTopicSubscriptionJson('motion/camera', on_motion_camera),
+                # encoding is set to None because this topic receives a picture as bytes -> decode utf-8 on it will raise an Exception.
                 MqttTopicSubscription('motion/picture', on_motion_picture, encoding=None),
                 MqttTopicSubscription('motion/camera/no_more', partial(on_motion_camera_no_more, mqtt)),
             ],

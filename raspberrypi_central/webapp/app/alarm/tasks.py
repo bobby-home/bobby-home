@@ -75,6 +75,8 @@ def camera_motion_detected(device_id: str):
         'message': f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
     }
 
+    # TODO: check if this is a correct way to create & run multiple jobs.
+    # ! They are not related, they have to run in total parallel.
     send_message.apply_async(kwargs=kwargs)
     play_sound.apply_async(kwargs={'motion_came_from_device_id': device_id})
 
@@ -106,4 +108,5 @@ def alarm_status_changed(status: bool):
     kwargs = {
         'message': f'Votre alarme a changée de status: {status}'
     }
+
     send_message.apply_async(kwargs=kwargs)

@@ -5,6 +5,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
 from alarm.models import AlarmStatus
+from .messaging import AlarmMessaging
 
 
 def on_motion_camera(message: MqttMessage):
@@ -38,14 +39,20 @@ def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
     client.publish('status/sound', str(False), qos=1)
 
 
-def on_status_alarm(client: MQTT, message: MqttMessage):
-    status = AlarmStatus.objects.get_status()
-
-    client.publish('status/alarm', message=str(status), qos=1)
-
-
 def on_status_sound(client: MQTT, message: MqttMessage):
     client.publish('status/sound', message=str(False), qos=1)
+
+
+def on_connected_camera(client: MQTT, message: MqttMessage):
+    print(f'on connected camera: {message}')
+
+    splited_topic = message.topic.split('/')
+    # service_name = splited_topic[1]
+    device_id = splited_topic[2]
+
+    device_status = AlarmStatus.objects.get(device__device_id=device_id)
+
+    AlarmMessaging(client).publish_alarm_status(device_status.device.device_id, device_status.running)
 
 
 def register(mqtt: MQTT):
@@ -61,11 +68,12 @@ def register(mqtt: MQTT):
             ],
         ),
         MqttTopicFilterSubscription(
-            topic='ask/#',
+            topic='connected/camera/+',
             qos=1,
             topics=[
-                MqttTopicSubscription('ask/status/alarm', partial(on_status_alarm, mqtt)),
-                MqttTopicSubscription('ask/status/sound', partial(on_status_sound, mqtt)),
+                MqttTopicSubscription('connected/camera/+', partial(on_connected_camera, mqtt)),
+                # MqttTopicSubscription('ask/status/alarm', partial(on_status_alarm, mqtt)),
+                # MqttTopicSubscription('ask/status/sound', partial(on_status_sound, mqtt)),
             ]
         )
     ])

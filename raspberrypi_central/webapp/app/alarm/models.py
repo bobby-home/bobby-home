@@ -114,7 +114,7 @@ class AlarmStatus(models.Model):
         if self.__class__.objects.count():
             self.pk = self.__class__.objects.first().pk
 
-        tasks.alarm_status_changed.delay(self.running)
+        tasks.alarm_status_changed.delay(self.device_id, self.running)
 
         super().save(*args, **kwargs)
 

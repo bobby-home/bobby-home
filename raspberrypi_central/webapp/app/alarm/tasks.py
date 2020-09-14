@@ -1,27 +1,9 @@
-import os
-
 from celery import shared_task
-import paho.mqtt.client as mqtt
-
 from alarm import models as alarm_models
 from devices import models as device_models
 from notification.tasks import send_message
 from standalone.mqtt import mqtt_factory
-
-
-class AlarmMessaging():
-
-    def __init__(self, mqtt_client):
-        self._mqtt_client = mqtt_client
-
-    def set_alarm_status(self, status: bool):
-        self._mqtt_client.publish('status/alarm', status, qos=1)
-
-        if status is False:
-            self.set_sound_status(False)
-
-    def set_sound_status(self, status: bool):
-        self._mqtt_client.publish('status/sound', status, qos=1)
+from .messaging import AlarmMessaging
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
@@ -41,7 +23,7 @@ def play_sound(motion_came_from_device_id: str):
     mqtt_client = mqtt_factory()
 
     alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_sound_status(True)
+    alarm_messaging.publish_sound_status(True)
 
 
 @shared_task(name="security.camera_motion_detected")
@@ -74,14 +56,14 @@ def set_alarm_on():
 
 
 @shared_task
-def alarm_status_changed(status: bool):
+def alarm_status_changed(device_id: str, status: bool):
     mqtt_client = mqtt_factory()
 
     alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_alarm_status(status)
+    alarm_messaging.publish_alarm_status(device_id, status)
 
     kwargs = {
-        'message': f'Votre alarme a changée de status: {status}'
+        'message': f'Votre alarme {device_id} a changée de status: {status}'
     }
 
     send_message.apply_async(kwargs=kwargs)

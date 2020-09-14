@@ -35,7 +35,7 @@ RUN dpkgArch="$(dpkg --print-architecture)"; \
     case "${dpkgArch##*-}" in \
         armv7) pythonArch='arm-linux-gnueabihf'; extra="-D ENABLE_NEON=ON; -D ENABLE_VFPV3=ON" ;; \
         amd64) pythonArch='x86_64-linux-gnu' ;; \
-        *) echo >&2; echo >&2 "error: current architecture ($dpkgArch) is not supported." ;; \
+        # *) echo >&2; echo >&2 "error: current architecture ($dpkgArch) is not supported." ;; \
     esac; \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \

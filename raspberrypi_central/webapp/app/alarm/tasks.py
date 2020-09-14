@@ -1,28 +1,12 @@
 import os
 
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
 import paho.mqtt.client as mqtt
 
 from alarm import models as alarm_models
-from house import models as house_models
 from devices import models as device_models
 from notification.tasks import send_message
-
-
-def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, client_name = None):
-
-    if client_name is None:
-        clean_session = True
-    else:
-        False
-
-    client = mqtt.Client(client_id=client_name, clean_session=client_name)
-    client.username_pw_set(mqtt_user, mqtt_pswd)
-
-    client.connect(mqtt_hostname, int(mqtt_port), keepalive=120)
-
-    return client
+from standalone.mqtt import mqtt_factory
 
 
 class AlarmMessaging():
@@ -54,12 +38,7 @@ def camera_motion_picture(self, picture_path):
 @shared_task(name="security.play_sound")
 def play_sound(motion_came_from_device_id: str):
     # device = device_models.Device.objects.get(device_id=device_id)
-    mqtt_client = create_mqtt_client(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT']
-    )
+    mqtt_client = mqtt_factory()
 
     alarm_messaging = AlarmMessaging(mqtt_client)
     alarm_messaging.set_sound_status(True)
@@ -76,6 +55,8 @@ def camera_motion_detected(device_id: str):
         'message': f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
     }
 
+    # TODO: check if this is a correct way to create & run multiple jobs.
+    # ! They are not related, they have to run in total parallel.
     send_message.apply_async(kwargs=kwargs)
     play_sound.apply_async(kwargs={'motion_came_from_device_id': device_id})
 
@@ -94,12 +75,7 @@ def set_alarm_on():
 
 @shared_task
 def alarm_status_changed(status: bool):
-    mqtt_client = create_mqtt_client(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT']
-    )
+    mqtt_client = mqtt_factory()
 
     alarm_messaging = AlarmMessaging(mqtt_client)
     alarm_messaging.set_alarm_status(status)
@@ -107,4 +83,5 @@ def alarm_status_changed(status: bool):
     kwargs = {
         'message': f'Votre alarme a changée de status: {status}'
     }
+
     send_message.apply_async(kwargs=kwargs)

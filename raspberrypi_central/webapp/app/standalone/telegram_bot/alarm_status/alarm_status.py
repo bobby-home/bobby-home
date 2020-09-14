@@ -1,3 +1,4 @@
+# TODO: move this logic in a function.
 import os, sys
 import django
 

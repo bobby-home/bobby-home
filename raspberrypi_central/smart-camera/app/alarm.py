@@ -19,8 +19,10 @@ camera_factory = partial(camera_factory, get_mqtt_client)
 manager = ThreadManager(camera_factory)
 MqttStatusManageThread(mqtt_client, manager, MQTT_ALARM_CAMERA_TOPIC)
 
+
 def play_sound_factory():
     return PlaySound()
+
 
 sound_manager = ThreadManager(play_sound_factory)
 MqttStatusManageThread(mqtt_client, sound_manager, 'status/sound')

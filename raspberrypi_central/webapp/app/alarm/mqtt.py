@@ -5,7 +5,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
 from alarm.models import AlarmStatus
-from .messaging import AlarmMessaging
+from .messaging import alarm_messaging_factory, SpeakerMessaging
 
 
 def on_motion_camera(message: MqttMessage):
@@ -36,11 +36,21 @@ def on_motion_picture(message: MqttMessage):
 
 
 def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
-    client.publish('status/sound', str(False), qos=1)
+    pass
+    # SpeakerMessaging(client).publish_speaker_status()
 
 
-def on_status_sound(client: MQTT, message: MqttMessage):
-    client.publish('status/sound', message=str(False), qos=1)
+def split_on_connected_event(message: MqttMessage):
+    splited_topic = message.topic.split('/')
+    # service_name = splited_topic[1]
+    device_id = splited_topic[2]
+
+    return {'device_id': device_id}
+
+
+def on_connected_speaker(client: MQTT, message: MqttMessage):
+    data = split_on_connected_event(message)
+    SpeakerMessaging(client).publish_speaker_status(data['device_id'], False)
 
 
 def on_connected_camera(client: MQTT, message: MqttMessage):
@@ -52,7 +62,7 @@ def on_connected_camera(client: MQTT, message: MqttMessage):
 
     device_status = AlarmStatus.objects.get(device__device_id=device_id)
 
-    AlarmMessaging(client).publish_alarm_status(device_status.device.device_id, device_status.running)
+    alarm_messaging_factory(client).publish_alarm_status(device_status.device.device_id, device_status.running)
 
 
 def register(mqtt: MQTT):
@@ -72,6 +82,7 @@ def register(mqtt: MQTT):
             qos=1,
             topics=[
                 MqttTopicSubscription('connected/camera/+', partial(on_connected_camera, mqtt)),
+                MqttTopicSubscription('connected/speaker/+', partial(on_connected_speaker, mqtt)),
                 # MqttTopicSubscription('ask/status/alarm', partial(on_status_alarm, mqtt)),
                 # MqttTopicSubscription('ask/status/sound', partial(on_status_sound, mqtt)),
             ]

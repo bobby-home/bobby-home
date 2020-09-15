@@ -3,7 +3,7 @@ from alarm import models as alarm_models
 from devices import models as device_models
 from notification.tasks import send_message
 from standalone.mqtt import mqtt_factory
-from .messaging import AlarmMessaging
+from .messaging import alarm_messaging_factory
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
@@ -22,7 +22,7 @@ def play_sound(motion_came_from_device_id: str):
     # device = device_models.Device.objects.get(device_id=device_id)
     mqtt_client = mqtt_factory()
 
-    alarm_messaging = AlarmMessaging(mqtt_client)
+    alarm_messaging = alarm_messaging_factory(mqtt_client)
     alarm_messaging.publish_sound_status(True)
 
 
@@ -59,7 +59,7 @@ def set_alarm_on():
 def alarm_status_changed(device_id: str, status: bool):
     mqtt_client = mqtt_factory()
 
-    alarm_messaging = AlarmMessaging(mqtt_client)
+    alarm_messaging = alarm_messaging_factory(mqtt_client)
     alarm_messaging.publish_alarm_status(device_id, status)
 
     kwargs = {

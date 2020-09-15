@@ -2,7 +2,6 @@ import uuid
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from django.db import models
 from house.models import House
-import pytz
 from . import tasks
 from devices.models import Device
 

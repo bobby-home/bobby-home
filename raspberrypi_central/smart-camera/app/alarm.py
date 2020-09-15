@@ -26,11 +26,11 @@ manager = ThreadManager(run)
 MqttStatusManageThread(device_id, 'camera', mqtt_client, manager)
 
 
-# def run_sound():
-#     PlaySound()
+def run_sound():
+    PlaySound()
 
 
-# sound_manager = ThreadManager(run_sound)
-# MqttStatusManageThread(device_id, mqtt_client, sound_manager, 'status/sound')
+sound_manager = ThreadManager(run_sound)
+MqttStatusManageThread(device_id, 'speaker', mqtt_client, sound_manager)
 
 mqtt_client.loop_forever()

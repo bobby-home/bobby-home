@@ -5,7 +5,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
 from alarm.models import AlarmStatus
-from .messaging import alarm_messaging_factory, SpeakerMessaging
+from .messaging import alarm_messaging_factory, speaker_messaging_factory
 
 
 def split_camera_topic(topic: str):
@@ -51,13 +51,13 @@ def on_motion_picture(message: MqttMessage):
 def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
 
-    speaker = SpeakerMessaging(client)
+    speaker = speaker_messaging_factory(client)
     speaker.publish_speaker_status(topic['device_id'], False)
 
 
 def on_connected_speaker(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
-    SpeakerMessaging(client).publish_speaker_status(topic['device_id'], False)
+    speaker_messaging_factory(client).publish_speaker_status(topic['device_id'], False)
 
 
 def on_connected_camera(client: MQTT, message: MqttMessage):

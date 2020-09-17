@@ -44,9 +44,14 @@ class MqttTopicSubscription(Subscription):
 @dataclass
 class MqttTopicSubscriptionJson(MqttTopicSubscription):
     def callback(self, message: MqttMessage):
-        payload = json.loads(message.payload)
-        message.payload = payload
-        super().callback(message)
+        try:
+            payload = json.loads(message.payload)
+            message.payload = payload
+            super().callback(message)
+        except json.JSONDecodeError:
+            _LOGGER.error(
+                f"Unable to decode json payload {message.payload} {message}"
+            )
 
 
 @dataclass
@@ -106,7 +111,6 @@ class MQTT():
         import paho.mqtt.client as mqtt
 
         if result_code != mqtt.CONNACK_ACCEPTED:
-            # TODO: throw custom Exception
             _LOGGER.error(
                 "Unable to connect to the MQTT broker: %s",
                 mqtt.connack_string(result_code),

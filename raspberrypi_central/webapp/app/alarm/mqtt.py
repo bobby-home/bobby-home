@@ -8,17 +8,29 @@ from alarm.models import AlarmStatus
 from .messaging import alarm_messaging_factory, SpeakerMessaging
 
 
+def split_camera_topic(topic: str):
+    data = topic.split('/')
+
+    return {
+        'type': data[0],
+        'service': data[1],
+        'device_id': data[2]
+    }
+
+
 def on_motion_camera(message: MqttMessage):
-    payload = message.payload
+    topic = split_camera_topic(message.topic)
 
     data = {
-        'device_id': payload['device_id']
+        'device_id': topic['device_id']
     }
 
     camera_motion_detected.apply_async(kwargs=data)
 
 
 def on_motion_picture(message: MqttMessage):
+    topic = split_camera_topic(message.topic)
+
     random = uuid.uuid4()
     file_name = f'{random}.jpg'
 
@@ -29,6 +41,7 @@ def on_motion_picture(message: MqttMessage):
     picture_path = default_storage.path(filename)
 
     data = {
+        'device_id': topic['device_id'],
         'picture_path': picture_path
     }
 
@@ -40,28 +53,18 @@ def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
     # SpeakerMessaging(client).publish_speaker_status()
 
 
-def split_on_connected_event(message: MqttMessage):
-    splited_topic = message.topic.split('/')
-    # service_name = splited_topic[1]
-    device_id = splited_topic[2]
-
-    return {'device_id': device_id}
-
-
 def on_connected_speaker(client: MQTT, message: MqttMessage):
-    data = split_on_connected_event(message)
-    SpeakerMessaging(client).publish_speaker_status(data['device_id'], False)
+    topic = split_camera_topic(message.topic)
+    SpeakerMessaging(client).publish_speaker_status(topic['device_id'], False)
 
 
 def on_connected_camera(client: MQTT, message: MqttMessage):
+    topic = split_camera_topic(message.topic)
     print(f'on connected camera: {message}')
 
-    splited_topic = message.topic.split('/')
-    # service_name = splited_topic[1]
-    device_id = splited_topic[2]
+    device_id = topic['device_id']
 
     device_status = AlarmStatus.objects.get(device__device_id=device_id)
-
     alarm_messaging_factory(client).publish_alarm_status(device_status.device.device_id, device_status.running)
 
 
@@ -71,10 +74,10 @@ def register(mqtt: MQTT):
             topic='motion/#',
             qos=1,
             topics=[
-                MqttTopicSubscriptionJson('motion/camera', on_motion_camera),
+                MqttTopicSubscription('motion/camera/+', on_motion_camera),
                 # encoding is set to None because this topic receives a picture as bytes -> decode utf-8 on it will raise an Exception.
-                MqttTopicSubscription('motion/picture', on_motion_picture, encoding=None),
-                MqttTopicSubscription('motion/camera/no_more', partial(on_motion_camera_no_more, mqtt)),
+                MqttTopicSubscription('motion/picture/+', on_motion_picture, encoding=None),
+                MqttTopicSubscription('motion/no_more/+', partial(on_motion_camera_no_more, mqtt)),
             ],
         ),
         MqttTopicFilterSubscription(

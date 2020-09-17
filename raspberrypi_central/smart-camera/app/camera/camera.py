@@ -22,19 +22,15 @@ class Camera():
             'device_id': self._device_id,
         }
 
-        self.mqtt_client.publish('motion/camera/no_more', payload=json.dumps(payload), qos=1)
+        self.mqtt_client.publish(f'motion/no_more/{self._device_id}', payload=json.dumps(payload), qos=1)
 
     def processFrame(self, frame):
         result, byteArr = self.detect_motion.process_frame(frame)
 
         if result is True:
             if self._last_time_people_detected is None:
-                payload = {
-                    'device_id': self._device_id,
-                }
-
-                self.mqtt_client.publish('motion/camera', payload=json.dumps(payload), qos=1)
-                self.mqtt_client.publish('motion/picture', payload=byteArr, qos=1)
+                self.mqtt_client.publish(f'motion/camera/{self._device_id}', payload=True, qos=1)
+                self.mqtt_client.publish(f'motion/picture/{self._device_id}', payload=byteArr, qos=1)
 
             self._last_time_people_detected = datetime.datetime.now()
 

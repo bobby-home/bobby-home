@@ -7,13 +7,15 @@ from .messaging import alarm_messaging_factory
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
-def camera_motion_picture(self, picture_path):
+def camera_motion_picture(self, device_id: str, picture_path: str):
+    # TODO #91 link camera motion to device_id
     picture = alarm_models.CameraMotionDetectedPicture(picture_path=picture_path)
     picture.save()
 
     kwargs = {
         'picture_path': picture_path
     }
+
     send_message.apply_async(kwargs=kwargs)
 
 

@@ -180,9 +180,9 @@ class MQTT():
         self._client.publish(topic, message, qos=qos, retain=retain)
 
 
-def mqtt_factory(client_id: str = None) -> MQTT:
+def mqtt_factory(client_id: str = 'hello-world') -> MQTT:
     mqttConfig = MqttConfig(
-        client_id='hello-world',
+        client_id=client_id,
         user=os.environ['MQTT_USER'],
         password=os.environ['MQTT_PASSWORD'],
         hostname=os.environ['MQTT_HOSTNAME'],

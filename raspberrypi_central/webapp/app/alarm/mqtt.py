@@ -1,5 +1,5 @@
 import uuid
-from standalone.mqtt import MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage, MqttTopicSubscriptionJson, MQTT
+from standalone.mqtt import MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage, MQTT
 from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -49,8 +49,10 @@ def on_motion_picture(message: MqttMessage):
 
 
 def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
-    pass
-    # SpeakerMessaging(client).publish_speaker_status()
+    topic = split_camera_topic(message.topic)
+
+    speaker = SpeakerMessaging(client)
+    speaker.publish_speaker_status(topic['device_id'], False)
 
 
 def on_connected_speaker(client: MQTT, message: MqttMessage):
@@ -60,7 +62,6 @@ def on_connected_speaker(client: MQTT, message: MqttMessage):
 
 def on_connected_camera(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
-    print(f'on connected camera: {message}')
 
     device_id = topic['device_id']
 
@@ -86,8 +87,6 @@ def register(mqtt: MQTT):
             topics=[
                 MqttTopicSubscription('connected/camera/+', partial(on_connected_camera, mqtt)),
                 MqttTopicSubscription('connected/speaker/+', partial(on_connected_speaker, mqtt)),
-                # MqttTopicSubscription('ask/status/alarm', partial(on_status_alarm, mqtt)),
-                # MqttTopicSubscription('ask/status/sound', partial(on_status_sound, mqtt)),
             ]
         )
     ])

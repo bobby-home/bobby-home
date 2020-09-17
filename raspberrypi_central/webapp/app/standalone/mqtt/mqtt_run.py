@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 import django
 
 sys.path.append('/usr/src/app')

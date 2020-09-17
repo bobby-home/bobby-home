@@ -3,7 +3,7 @@ from alarm import models as alarm_models
 from devices import models as device_models
 from notification.tasks import send_message
 from standalone.mqtt import mqtt_factory
-from .messaging import alarm_messaging_factory
+from .messaging import alarm_messaging_factory, SpeakerMessaging
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
@@ -20,12 +20,12 @@ def camera_motion_picture(self, device_id: str, picture_path: str):
 
 
 @shared_task(name="security.play_sound")
-def play_sound(motion_came_from_device_id: str):
+def play_sound(device_id: str):
     # device = device_models.Device.objects.get(device_id=device_id)
     mqtt_client = mqtt_factory()
 
-    alarm_messaging = alarm_messaging_factory(mqtt_client)
-    alarm_messaging.publish_sound_status(True)
+    speaker = SpeakerMessaging(mqtt_client)
+    speaker.publish_speaker_status(device_id, True)
 
 
 @shared_task(name="security.camera_motion_detected")
@@ -42,7 +42,7 @@ def camera_motion_detected(device_id: str):
     # TODO: check if this is a correct way to create & run multiple jobs.
     # ! They are not related, they have to run in total parallel.
     send_message.apply_async(kwargs=kwargs)
-    play_sound.apply_async(kwargs={'motion_came_from_device_id': device_id})
+    play_sound.apply_async(kwargs={'device_id': device_id})
 
 
 @shared_task(name="alarm.set_alarm_off")

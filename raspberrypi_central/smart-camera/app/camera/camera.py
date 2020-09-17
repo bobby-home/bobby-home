@@ -18,10 +18,6 @@ class Camera():
         self.mqtt_client.loop_start()
 
     def _noMorePresence(self):
-        payload = {
-            'device_id': self._device_id,
-        }
-
         self.mqtt_client.publish(f'motion/no_more/{self._device_id}', payload=json.dumps(payload), qos=1)
 
     def processFrame(self, frame):

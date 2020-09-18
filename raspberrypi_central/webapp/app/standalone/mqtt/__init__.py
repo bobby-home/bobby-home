@@ -6,6 +6,7 @@ import logging
 import json
 from dataclasses import dataclass
 import utils.date as dt_utils
+import struct
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,6 +56,21 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
 
 
 @dataclass
+class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
+    def callback(self, message: MqttMessage):
+        try:
+            decoded = struct.unpack('?', 'lol')
+        except (struct.error, TypeError):
+            print('error')
+            return
+
+        payload = decoded[0]
+        print(payload)
+        message.payload = payload
+        super().callback(message)
+
+
+@dataclass
 class MqttTopicFilterSubscription(Subscription):
     """
     Sometimes, we don't want to attach a callback to a subscribe.
@@ -73,7 +89,8 @@ class MqttConfig:
     hostname: str
     port: int
 
-    client_id: str
+    client_id: str = None
+    clean_session: bool = False
 
     keepalive: int = 120
     user: str = None
@@ -92,7 +109,7 @@ class MQTT():
         # pylint: disable=import-outside-toplevel
         import paho.mqtt.client as mqtt
 
-        client = mqtt.Client(client_id=config.client_id, clean_session=False)
+        client = mqtt.Client(client_id=config.client_id, clean_session=config.clean_session)
 
         if config.user is not None and config.password is not None:
             client.username_pw_set(config.user, config.password)
@@ -152,7 +169,8 @@ class MQTT():
 
         if subscription.encoding is not None:
             try:
-                payload = msg.payload.decode(subscription.encoding)
+                pass
+                # payload = msg.payload.decode(subscription.encoding)
             except (AttributeError, UnicodeDecodeError):
                 """
                 If we cannot decode a payload we don't call the callback
@@ -180,9 +198,13 @@ class MQTT():
         self._client.publish(topic, message, qos=qos, retain=retain)
 
 
-def mqtt_factory(client_id: str = 'hello-world') -> MQTT:
+def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
+    if client_id is not None:
+        clean_session = True
+
     mqttConfig = MqttConfig(
         client_id=client_id,
+        clean_session=clean_session,
         user=os.environ['MQTT_USER'],
         password=os.environ['MQTT_PASSWORD'],
         hostname=os.environ['MQTT_HOSTNAME'],

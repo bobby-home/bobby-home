@@ -35,11 +35,24 @@ class Subscription:
 @dataclass
 class MqttTopicSubscription(Subscription):
     _callback: MessageCallbackType
-    encoding: str = "utf-8"
     qos: int = 1
 
     def callback(self, message: MqttMessage):
         self._callback(message)
+
+
+@dataclass
+class MqttTopicFilterSubscription(Subscription):
+    """
+    Sometimes, we don't want to attach a callback to a subscribe.
+    The goal is to set the qos for a "scope".
+    For example, I may want the qos to be equals to 2 for the topic "motion/#"
+    and then add callbacks for motion/camera, motion/picture, ...
+    -> this is done by adding MqttTopicSubscription in the "topics" list.
+    """
+    topic: str
+    topics: List[MqttTopicSubscription]
+    qos: int = 1
 
 
 @dataclass
@@ -71,17 +84,23 @@ class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
 
 
 @dataclass
-class MqttTopicFilterSubscription(Subscription):
-    """
-    Sometimes, we don't want to attach a callback to a subscribe.
-    The goal is to set the qos for a "scope".
-    For example, I may want the qos to be equals to 2 for the topic "motion/#"
-    and then add callbacks for motion/camera, motion/picture, ...
-    -> this is done by adding MqttTopicSubscription in the "topics" list.
-    """
-    topic: str
-    topics: List[MqttTopicSubscription]
-    qos: int = 1
+class MqttTopicSubscriptionEncoding(MqttTopicFilterSubscription):
+    encoding: str = "utf-8"
+
+    def callback(self, message: MqttMessage):
+        try:
+            payload = message.payload.decode(self.encoding)
+        except (AttributeError, UnicodeDecodeError):
+            _LOGGER.error(
+                "Can't decode payload %s on %s with encoding %s (for %s)",
+                message.payload,
+                message.topic,
+                self.encoding,
+            )
+            return
+
+        message.payload = payload
+        super().callback(message)
 
 
 @dataclass
@@ -165,29 +184,9 @@ class MQTT():
     def _mqtt_on_message_wrapper(self, subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
         timestamp = dt_utils.utcnow()
 
-        payload = msg.payload
-
-        if subscription.encoding is not None:
-            try:
-                pass
-                # payload = msg.payload.decode(subscription.encoding)
-            except (AttributeError, UnicodeDecodeError):
-                """
-                If we cannot decode a payload we don't call the callback
-                because this can lead to errors.
-                """
-                _LOGGER.warning(
-                    "Can't decode payload %s on %s with encoding %s (for %s)",
-                    msg.payload,
-                    msg.topic,
-                    subscription.encoding,
-                    subscription.callback,
-                )
-                return
-
         subscription.callback(MqttMessage(
             msg.topic,
-            payload,
+            msg.payload,
             msg.qos,
             msg.retain,
             subscription.topic,

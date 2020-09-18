@@ -20,5 +20,6 @@ class WebcamVideoStream:
         # keep looping infinitely until the thread is stopped
         while True:
             (_, frame) = self.stream.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             self.processFrame(frame)
             # TODO issue #79: self.stream.release() to release resources when turning off the camera.

@@ -78,7 +78,6 @@ class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
             return
 
         payload = decoded[0]
-        print(payload)
         message.payload = payload
         super().callback(message)
 

@@ -1,11 +1,14 @@
 import uuid
-from standalone.mqtt import MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage, MQTT
+import logging
+from standalone.mqtt import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage, MQTT
 from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
 from alarm.models import AlarmStatus
 from .messaging import alarm_messaging_factory, speaker_messaging_factory
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def split_camera_topic(topic: str):
@@ -18,14 +21,21 @@ def split_camera_topic(topic: str):
     }
 
 
-def on_motion_camera(message: MqttMessage):
+def on_motion_camera(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
 
-    data = {
-        'device_id': topic['device_id']
-    }
+    print(f'on motion {message}')
 
-    camera_motion_detected.apply_async(kwargs=data)
+    if message.payload is True:
+        print('on motion camera true!')
+        data = {
+            'device_id': topic['device_id']
+        }
+        camera_motion_detected.apply_async(kwargs=data)
+    else:
+        print('on motion camera false!')
+        speaker = speaker_messaging_factory(client)
+        speaker.publish_speaker_status(topic['device_id'], False)
 
 
 def on_motion_picture(message: MqttMessage):
@@ -48,13 +58,6 @@ def on_motion_picture(message: MqttMessage):
     camera_motion_picture.apply_async(kwargs=data)
 
 
-def on_motion_camera_no_more(client: MQTT, message: MqttMessage):
-    topic = split_camera_topic(message.topic)
-
-    speaker = speaker_messaging_factory(client)
-    speaker.publish_speaker_status(topic['device_id'], False)
-
-
 def on_connected_speaker(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
     speaker_messaging_factory(client).publish_speaker_status(topic['device_id'], False)
@@ -75,10 +78,9 @@ def register(mqtt: MQTT):
             topic='motion/#',
             qos=1,
             topics=[
-                MqttTopicSubscription('motion/camera/+', on_motion_camera),
+                MqttTopicSubscriptionBoolean('motion/camera/+', partial(on_motion_camera, mqtt)),
                 # encoding is set to None because this topic receives a picture as bytes -> decode utf-8 on it will raise an Exception.
-                MqttTopicSubscription('motion/picture/+', on_motion_picture, encoding=None),
-                MqttTopicSubscription('motion/no_more/+', partial(on_motion_camera_no_more, mqtt)),
+                MqttTopicSubscription('motion/picture/+', on_motion_picture),
             ],
         ),
         MqttTopicFilterSubscription(

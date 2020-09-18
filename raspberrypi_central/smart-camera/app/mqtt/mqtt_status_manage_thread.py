@@ -1,3 +1,4 @@
+import struct
 from thread.thread_manager import ThreadManager
 
 
@@ -18,17 +19,13 @@ class MqttStatusManageThread():
         mqtt_client.will_set(f'connected/{service_name}/{device_id}', payload=False, qos=1, retain=True)
 
     def _switch_on_or_off(self, client, userdata, msg):
-        message = msg.payload.decode()
+        message = msg.payload
+        (status) = struct.unpack('?', message)
 
-        print(f"I've received a message: {message}")
-
-        if message == 'True':
+        if status:
             self._thread_manager.running = True
-        elif message == 'False':
-            self._thread_manager.running = False
         else:
-            t = type(message)
-            raise ValueError(f'Value ({t}) "{message}" incorrect')
+            self._thread_manager.running = False
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

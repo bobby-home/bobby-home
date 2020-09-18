@@ -72,7 +72,7 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
 class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
     def callback(self, message: MqttMessage):
         try:
-            decoded = struct.unpack('?', 'lol')
+            decoded = struct.unpack('?', message.payload)
         except (struct.error, TypeError):
             print('error')
             return

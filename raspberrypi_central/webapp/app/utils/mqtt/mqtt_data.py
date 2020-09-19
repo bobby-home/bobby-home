@@ -92,7 +92,7 @@ class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
 
 
 @dataclass
-class MqttTopicSubscriptionEncoding(MqttTopicFilterSubscription):
+class MqttTopicSubscriptionEncoding(MqttTopicSubscription):
     encoding: str = "utf-8"
 
     def callback(self, message: MqttMessage):

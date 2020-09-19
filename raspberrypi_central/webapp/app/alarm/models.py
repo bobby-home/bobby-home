@@ -97,6 +97,7 @@ class AlarmSchedule(models.Model):
 
 class AlarmStatusManager(models.Manager):
     def get_status(self):
+        # TODO: we will remove this for issue #86
         return self.all().first()
 
 

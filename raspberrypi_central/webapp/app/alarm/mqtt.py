@@ -1,12 +1,14 @@
 import uuid
 import logging
-from standalone.mqtt import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage, MQTT
+from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage
+from utils.mqtt import MQTT
 from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
 from alarm.models import AlarmStatus
 from .messaging import alarm_messaging_factory, speaker_messaging_factory
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,8 +25,6 @@ def split_camera_topic(topic: str):
 
 def on_motion_camera(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
-
-    print(f'on motion {message}')
 
     if message.payload is True:
         print('on motion camera true!')

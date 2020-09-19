@@ -58,16 +58,23 @@ def on_motion_picture(message: MqttMessage):
 
 def on_connected_speaker(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
-    speaker_messaging_factory(client).publish_speaker_status(topic['device_id'], False)
+    device_id = topic['device_id']
+
+    if message.payload is True:
+        speaker_messaging_factory(client).publish_speaker_status(topic['device_id'], False)
+    else:
+        _LOGGER.error(f'We lost the mqtt connection with {device_id}')
 
 
 def on_connected_camera(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
-
     device_id = topic['device_id']
 
-    device_status = AlarmStatus.objects.get(device__device_id=device_id)
-    alarm_messaging_factory(client).publish_alarm_status(device_status.device.device_id, device_status.running)
+    if message.payload is True:
+        device_status = AlarmStatus.objects.get(device__device_id=device_id)
+        alarm_messaging_factory(client).publish_alarm_status(device_status.device.device_id, device_status.running)
+    else:
+        _LOGGER.error(f'We lost the mqtt connection with {device_id}')
 
 
 def register(mqtt: MQTT):

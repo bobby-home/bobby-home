@@ -27,13 +27,11 @@ def on_motion_camera(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
 
     if message.payload is True:
-        print('on motion camera true!')
         data = {
             'device_id': topic['device_id']
         }
         camera_motion_detected.apply_async(kwargs=data)
     else:
-        print('on motion camera false!')
         speaker = speaker_messaging_factory(client)
         speaker.publish_speaker_status(topic['device_id'], False)
 

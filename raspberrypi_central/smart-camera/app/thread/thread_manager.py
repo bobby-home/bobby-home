@@ -22,7 +22,6 @@ class ThreadManager:
 
     def _stop_process(self):
         if (self._process):
-            print('Stop object detection thread')
             self._process.terminate()
             self._process = None
 

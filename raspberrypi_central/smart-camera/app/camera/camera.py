@@ -37,11 +37,11 @@ class Camera():
 
         if result is True:
             if self._last_time_people_detected is None:
+                self._initialize = False
                 self.mqtt_client.publish(f'motion/camera/{self._device_id}', struct.pack('?', 1), qos=1, retain=True)
                 self.mqtt_client.publish(f'motion/picture/{self._device_id}', payload=byteArr, qos=1)
 
             self._last_time_people_detected = datetime.datetime.now()
-
-        if self._needToPublishNoMotion():
+        elif self._needToPublishNoMotion():
             print('PUBLISH NO MOTION')
             self.mqtt_client.publish(f'motion/camera/{self._device_id}', payload=struct.pack('?', 0), qos=1, retain=True)

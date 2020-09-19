@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/usr/src/app')
+
 from utils.django.standalone_init import init
 init()
 

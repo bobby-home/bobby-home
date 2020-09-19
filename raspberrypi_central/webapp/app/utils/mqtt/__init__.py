@@ -3,7 +3,7 @@ from functools import partial
 from typing import List
 import logging
 import utils.date as dt_utils
-from utils.mqtt.mqtt_data import MqttConfig, MqttTopicFilterSubscription, MqttMessage
+from utils.mqtt.mqtt_data import MqttConfig, Subscription, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
 
 
 _LOGGER = logging.getLogger(__name__)

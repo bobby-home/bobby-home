@@ -2,7 +2,7 @@ from celery import shared_task
 from alarm import models as alarm_models
 from devices import models as device_models
 from notification.tasks import send_message
-from standalone.mqtt import mqtt_factory
+from utils.mqtt import mqtt_factory
 from .messaging import alarm_messaging_factory, speaker_messaging_factory
 
 

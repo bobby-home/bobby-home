@@ -18,8 +18,8 @@ class MqttStatusManageThread():
         mqtt_client.subscribe(mqtt_topic)
         mqtt_client.message_callback_add(mqtt_topic, self._switch_on_or_off)
 
-        mqtt_client.publish(f'connected/{service_name}/{device_id}', payload=True, qos=1, retain=True)
-        mqtt_client.will_set(f'connected/{service_name}/{device_id}', payload=False, qos=1, retain=True)
+        mqtt_client.publish(f'connected/{service_name}/{device_id}', payload=struct.pack('?', True), qos=1, retain=True)
+        mqtt_client.will_set(f'connected/{service_name}/{device_id}', payload=struct.pack('?', False), qos=1, retain=True)
 
     def _switch_on_or_off(self, client, userdata, msg):
         message = msg.payload

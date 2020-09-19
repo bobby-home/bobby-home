@@ -87,8 +87,8 @@ def register(mqtt: MQTT):
             topic='connected/camera/+',
             qos=1,
             topics=[
-                MqttTopicSubscription('connected/camera/+', partial(on_connected_camera, mqtt)),
-                MqttTopicSubscription('connected/speaker/+', partial(on_connected_speaker, mqtt)),
+                MqttTopicSubscriptionBoolean('connected/camera/+', partial(on_connected_camera, mqtt)),
+                MqttTopicSubscriptionBoolean('connected/speaker/+', partial(on_connected_speaker, mqtt)),
             ]
         )
     ])

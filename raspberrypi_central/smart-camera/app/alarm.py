@@ -1,10 +1,11 @@
 import os
-from mqtt.mqtt_status_manage_thread import MqttStatusManageThread
+from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
 from thread.thread_manager import ThreadManager
 from camera.camera_factory import camera_factory
 from camera.play_sound import PlaySound
 from mqtt.mqtt_client import get_mqtt_client
 from camera.videostream import VideoStream
+
 
 device_id = os.environ['DEVICE_ID']
 
@@ -23,7 +24,7 @@ def run():
 
 
 manager = ThreadManager(run)
-MqttStatusManageThread(device_id, 'camera', mqtt_client, manager)
+mqtt_status_manage_thread_factory(device_id, 'camera', mqtt_client, manager)
 
 
 def run_sound():
@@ -31,6 +32,6 @@ def run_sound():
 
 
 sound_manager = ThreadManager(run_sound)
-MqttStatusManageThread(device_id, 'speaker', mqtt_client, sound_manager)
+mqtt_status_manage_thread_factory(device_id, 'speaker', mqtt_client, sound_manager)
 
 mqtt_client.loop_forever()

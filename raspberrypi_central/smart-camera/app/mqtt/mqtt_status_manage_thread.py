@@ -1,5 +1,6 @@
 import struct
 from thread.thread_manager import ThreadManager
+import logging
 
 
 class MqttStatusManageThread():
@@ -7,8 +8,10 @@ class MqttStatusManageThread():
     This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
     """
-    def __init__(self, device_id: str, service_name: str, mqtt_client, thread_manager: ThreadManager):
+    def __init__(self, logger: logging, device_id: str, service_name: str, mqtt_client, thread_manager: ThreadManager):
+        self._logger = logger
         self._thread_manager = thread_manager
+        self._service_name = service_name
 
         mqtt_topic = f'status/{service_name}/{device_id}'
 
@@ -20,12 +23,18 @@ class MqttStatusManageThread():
 
     def _switch_on_or_off(self, client, userdata, msg):
         message = msg.payload
-        (status) = struct.unpack('?', message)
+        status = struct.unpack('?', message)[0]
+
+        self._logger.info(f'Receive status {status} for {self._service_name}')
 
         if status:
             self._thread_manager.running = True
         else:
             self._thread_manager.running = False
+
+
+def mqtt_status_manage_thread_factory(*args, **kargs):
+    return MqttStatusManageThread(logging, *args, **kargs)
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

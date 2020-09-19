@@ -43,5 +43,4 @@ class Camera():
 
             self._last_time_people_detected = datetime.datetime.now()
         elif self._needToPublishNoMotion():
-            print('PUBLISH NO MOTION')
             self.mqtt_client.publish(f'motion/camera/{self._device_id}', payload=struct.pack('?', 0), qos=1, retain=True)

@@ -46,6 +46,12 @@ class MqttTopicSubscription(Subscription):
     _callback: MessageCallbackType
     qos: int = 1
 
+    def _log_error(self, message: MqttMessage):
+        _LOGGER.exception(
+            f"Can't perform payload transform: on {message}"
+        )
+
+
     def callback(self, message: MqttMessage):
         self._callback(message)
 
@@ -69,12 +75,11 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
     def callback(self, message: MqttMessage):
         try:
             payload = json.loads(message.payload)
-            message.payload = payload
-            super().callback(message)
         except json.JSONDecodeError:
-            _LOGGER.error(
-                f"Unable to decode json payload {message.payload} {message}"
-            )
+            return self._log_error(message)
+
+        message.payload = payload
+        super().callback(message)
 
 
 @dataclass
@@ -83,8 +88,7 @@ class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
         try:
             decoded = struct.unpack('?', message.payload)
         except (struct.error, TypeError):
-            print('error')
-            return
+            return self._log_error(message)
 
         payload = decoded[0]
         message.payload = payload
@@ -99,10 +103,7 @@ class MqttTopicSubscriptionEncoding(MqttTopicSubscription):
         try:
             payload = message.payload.decode(self.encoding)
         except (AttributeError, UnicodeDecodeError):
-            _LOGGER.error(
-                f"Can't decode payload {message.payload} on {message.topic} with encoding {self.encoding}"
-            )
-            return
+            return self._log_error(message)
 
         message.payload = payload
         super().callback(message)

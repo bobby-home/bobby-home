@@ -81,7 +81,12 @@ class DetectMotion():
         return results
 
     def process_frame(self, stream):
-        image = Image.fromarray(stream).convert('RGB').resize(
+        """
+        From Tensorflow examples, we have .convert('RGB') before the resize.
+        We removed it because the RGB is created at the stream level (opencv or picamera).
+        And actually it didn't transform the stream to RGB.
+        """
+        image = Image.fromarray(stream).resize(
             (self.input_width, self.input_height), Image.ANTIALIAS)
 
         results = self._detect_objects(

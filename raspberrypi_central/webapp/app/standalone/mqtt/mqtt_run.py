@@ -1,12 +1,11 @@
-import os, sys
-import django
-
+import sys
 sys.path.append('/usr/src/app')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
-django.setup()
+
+from utils.django.standalone_init import init
+init()
 
 
-from standalone.mqtt import mqtt_factory  # noqa: E402
+from utils.mqtt import mqtt_factory  # noqa: E402
 from alarm.mqtt import register  # noqa: E402
 
 mqtt = mqtt_factory(client_id='hello-world')

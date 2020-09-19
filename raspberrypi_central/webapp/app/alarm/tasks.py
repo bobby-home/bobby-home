@@ -1,47 +1,31 @@
-import os
-
 from celery import shared_task
-import paho.mqtt.client as mqtt
-
 from alarm import models as alarm_models
 from devices import models as device_models
 from notification.tasks import send_message
-from standalone.mqtt import mqtt_factory
-
-
-class AlarmMessaging():
-
-    def __init__(self, mqtt_client):
-        self._mqtt_client = mqtt_client
-
-    def set_alarm_status(self, status: bool):
-        self._mqtt_client.publish('status/alarm', status, qos=1)
-
-        if status is False:
-            self.set_sound_status(False)
-
-    def set_sound_status(self, status: bool):
-        self._mqtt_client.publish('status/sound', status, qos=1)
+from utils.mqtt import mqtt_factory
+from .messaging import alarm_messaging_factory, speaker_messaging_factory
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
-def camera_motion_picture(self, picture_path):
+def camera_motion_picture(self, device_id: str, picture_path: str):
+    # TODO #91 link camera motion to device_id
     picture = alarm_models.CameraMotionDetectedPicture(picture_path=picture_path)
     picture.save()
 
     kwargs = {
         'picture_path': picture_path
     }
+
     send_message.apply_async(kwargs=kwargs)
 
 
 @shared_task(name="security.play_sound")
-def play_sound(motion_came_from_device_id: str):
+def play_sound(device_id: str):
     # device = device_models.Device.objects.get(device_id=device_id)
     mqtt_client = mqtt_factory()
 
-    alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_sound_status(True)
+    speaker = speaker_messaging_factory(mqtt_client)
+    speaker.publish_speaker_status(device_id, True)
 
 
 @shared_task(name="security.camera_motion_detected")
@@ -58,7 +42,7 @@ def camera_motion_detected(device_id: str):
     # TODO: check if this is a correct way to create & run multiple jobs.
     # ! They are not related, they have to run in total parallel.
     send_message.apply_async(kwargs=kwargs)
-    play_sound.apply_async(kwargs={'motion_came_from_device_id': device_id})
+    play_sound.apply_async(kwargs={'device_id': device_id})
 
 
 @shared_task(name="alarm.set_alarm_off")
@@ -74,14 +58,14 @@ def set_alarm_on():
 
 
 @shared_task
-def alarm_status_changed(status: bool):
+def alarm_status_changed(device_id: str, status: bool):
     mqtt_client = mqtt_factory()
 
-    alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_alarm_status(status)
+    alarm_messaging = alarm_messaging_factory(mqtt_client)
+    alarm_messaging.publish_alarm_status(device_id, status)
 
     kwargs = {
-        'message': f'Votre alarme a changée de status: {status}'
+        'message': f'Votre alarme {device_id} a changée de status: {status}'
     }
 
     send_message.apply_async(kwargs=kwargs)

@@ -1,5 +1,5 @@
 import os
-from mqtt.mqtt_status_manage_thread import MqttStatusManageThread
+from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
 from thread.thread_manager import ThreadManager
 from camera.camera_factory import camera_factory
 from camera.play_sound import PlaySound
@@ -7,9 +7,9 @@ from mqtt.mqtt_client import get_mqtt_client
 from camera.videostream import VideoStream
 
 
-mqtt_client = get_mqtt_client(f"{os.environ['DEVICE_ID']}-rpi4-alarm-motion")
+device_id = os.environ['DEVICE_ID']
 
-MQTT_ALARM_CAMERA_TOPIC = 'status/alarm'
+mqtt_client = get_mqtt_client(f"{device_id}-rpi4-alarm-motion")
 
 
 def run():
@@ -24,7 +24,7 @@ def run():
 
 
 manager = ThreadManager(run)
-MqttStatusManageThread(mqtt_client, manager, MQTT_ALARM_CAMERA_TOPIC)
+mqtt_status_manage_thread_factory(device_id, 'camera', mqtt_client, manager)
 
 
 def run_sound():
@@ -32,6 +32,6 @@ def run_sound():
 
 
 sound_manager = ThreadManager(run_sound)
-MqttStatusManageThread(mqtt_client, sound_manager, 'status/sound')
+mqtt_status_manage_thread_factory(device_id, 'speaker', mqtt_client, sound_manager)
 
 mqtt_client.loop_forever()

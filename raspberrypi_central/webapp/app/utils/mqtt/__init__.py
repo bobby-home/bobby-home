@@ -91,7 +91,7 @@ class MQTT():
 
 
 def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
-    if client_id is not None:
+    if client_id is None:
         clean_session = True
 
     mqttConfig = MqttConfig(

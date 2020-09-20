@@ -7,18 +7,10 @@ from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
 
-def image_to_byte_array(image: Image):
-    imgByteArr = io.BytesIO()
-    image.save(imgByteArr, format='jpeg')
-    imgByteArr = imgByteArr.getvalue()
-
-    return imgByteArr
-
-
 @dataclass
 class People():
     bounding_box: any
-    class_i: any
+    class_id: any
     score: float
 
 
@@ -84,7 +76,7 @@ class DetectPeople():
 
         return results
 
-    def process_frame(self, stream) -> Tuple[bool, List[People], Optional[bytes]]:
+    def process_frame(self, stream) -> Tuple[bool, List[People], Optional[Image.Image]]:
         """
         From Tensorflow examples, we have .convert('RGB') before the resize.
         We removed it because the RGB is created at the stream level (opencv or picamera).
@@ -99,12 +91,12 @@ class DetectPeople():
         peoples = []
 
         for result in results:
-            label = self.labels[result['class_id']]
+            label = self.labels[result.class_id]
 
             if label == 'person':
                 peoples.append(result)
 
         if len(peoples) > 0:
-            return True, peoples, image_to_byte_array(image)
+            return True, peoples, image
 
         return False, peoples, None

@@ -3,6 +3,9 @@ import io
 import numpy as np
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
+from dataclasses import dataclass
+from typing import List, Tuple, Optional
+
 
 
 def image_to_byte_array(image: Image):
@@ -13,7 +16,14 @@ def image_to_byte_array(image: Image):
     return imgByteArr
 
 
-class DetectMotion():
+@dataclass
+class People():
+    bounding_box: any
+    class_i: any
+    score: float
+
+
+class DetectPeople():
 
     def __init__(self):
         self._last_time_people_detected = None
@@ -56,8 +66,8 @@ class DetectMotion():
         tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
         return tensor
 
-    def _detect_objects(self, interpreter, image, threshold):
-        """Returns a list of detection results, each a dictionary of object info."""
+    def _detect_objects(self, interpreter, image, threshold) -> List[People]:
+        """Returns a list of detection results, each a People object."""
         self._set_input_tensor(interpreter, image)
         interpreter.invoke()
 
@@ -70,17 +80,12 @@ class DetectMotion():
         results = []
         for i in range(count):
             if scores[i] >= threshold:
-                result = {
-                    'bounding_box': boxes[i],
-                    'class_id': classes[i],
-                    'score': scores[i]
-                }
-
+                result = People(bounding_box=boxes[i], class_id=classes[i], score=scores[i])
                 results.append(result)
 
         return results
 
-    def process_frame(self, stream):
+    def process_frame(self, stream) -> Tuple[bool, List[People], Optional[bytes]]:
         """
         From Tensorflow examples, we have .convert('RGB') before the resize.
         We removed it because the RGB is created at the stream level (opencv or picamera).
@@ -92,12 +97,15 @@ class DetectMotion():
         results = self._detect_objects(
             self.interpreter, image, self.args['threshold'])
 
-        for obj in results:
-            label = self.labels[obj['class_id']]
-            score = obj['score']
+        peoples = []
+
+        for result in results:
+            label = self.labels[result['class_id']]
 
             if label == 'person':
-                print(f'we found {label} score={score}')
-                return True, image_to_byte_array(image)
+                peoples.append(result)
 
-        return False, None
+        if len(peoples) > 0:
+            return True, peoples, image_to_byte_array(image)
+
+        return False, peoples, None

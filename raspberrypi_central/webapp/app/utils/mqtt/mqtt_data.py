@@ -10,6 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PublishPayloadType = Union[str, bytes, int, float, None]
 
+
 @dataclass
 class MqttConfig:
     hostname: str
@@ -50,7 +51,6 @@ class MqttTopicSubscription(Subscription):
         _LOGGER.exception(
             f"Can't perform payload transform: on {message}"
         )
-
 
     def callback(self, message: MqttMessage):
         self._callback(message)

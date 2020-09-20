@@ -1,11 +1,11 @@
-from camera.detect_motion import DetectMotion
+from camera.detect_motion import DetectPeople
 import datetime
 import struct
 
 
 class Camera():
 
-    def __init__(self, detect_motion: DetectMotion, get_mqtt_client, device_id):
+    def __init__(self, detect_motion: DetectPeople, get_mqtt_client, device_id):
         self._device_id = device_id
         self.get_mqtt_client = get_mqtt_client
         self._last_time_people_detected = None
@@ -32,10 +32,17 @@ class Camera():
 
         return time_lapsed
 
+    def _is_people_in_roi(self, people, image: bytes):
+        pass
+
     def processFrame(self, frame):
-        result, byteArr = self.detect_motion.process_frame(frame)
+        result, peoples, image = self.detect_motion.process_frame(frame)
 
         if result is True:
+            # We have to check if people is in ROI.
+            for people in peoples:
+                self._is_people_in_roi(people, image)
+
             if self._last_time_people_detected is None:
                 self._initialize = False
                 self.mqtt_client.publish(f'motion/camera/{self._device_id}', struct.pack('?', 1), qos=1, retain=True)

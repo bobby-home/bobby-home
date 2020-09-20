@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
 
-
 def image_to_byte_array(image: Image):
     imgByteArr = io.BytesIO()
     image.save(imgByteArr, format='jpeg')

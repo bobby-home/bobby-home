@@ -15,7 +15,10 @@ class CameraRectangleROI(models.Model):
     w = models.DecimalField(max_digits=8, decimal_places=4)
     h = models.DecimalField(max_digits=8, decimal_places=4)
 
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
+    image_width = models.DecimalField(max_digits=8, decimal_places=4)
+    image_height = models.DecimalField(max_digits=8, decimal_places=4)
+
+    # device = models.ForeignKey(Device, on_delete=models.PROTECT)
 
 
 class AlarmSchedule(models.Model):

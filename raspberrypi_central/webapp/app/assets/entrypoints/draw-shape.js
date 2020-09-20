@@ -1,3 +1,6 @@
+import '../css/draw-shape.scss'
+
+
 function readTheFile(file) {
   const reader = new FileReader()
 
@@ -10,7 +13,7 @@ function readTheFile(file) {
   })
 }
 
-function drawImage(canvas, image, resizeCanvas) {
+function drawImage(canvas, image, resizeCanvas, callback) {
   const img = new Image()
   img.src = image
 
@@ -19,6 +22,8 @@ function drawImage(canvas, image, resizeCanvas) {
     resizeCanvas(img.width, img.height)
     context.clearRect(0, 0, img.width, img.height)
     context.drawImage(img, 0, 0)
+
+    callback(img.width, img.height)
   }
 }
 
@@ -29,11 +34,11 @@ function resizeCanvas(canvas, width, height) {
   }
 }
 
-function loadAndDrawImage(canvas, resizeCanvas, event) {
+function loadAndDrawImage(canvas, resizeCanvas, callback, event) {
   const file = [...event.target.files].pop()
 
   readTheFile(file)
-    .then((image) => drawImage(canvas, image, resizeCanvas))
+    .then((image) => drawImage(canvas, image, resizeCanvas, callback))
 }
 
 function prepareDOM() {
@@ -85,6 +90,7 @@ class PencilTool {
   // This is called when you release the mouse button.
   mouseup (e) {
     if (this.started) {
+      console.log(`end draw (${e.offsetX}, ${e.offsetY})`)
       this.mousemove(e)
       this.started = false
       img_update()
@@ -103,12 +109,18 @@ class RectangleTool {
     this.shape = {}
   }
 
+  // This is called when you start holding down the mouse button.
+  // This starts the pencil drawing.
   mousedown(e) {
+    console.log('rectangle mousedown')
     this.started = true
     this.x0 = e.offsetX
     this.y0 = e.offsetY
   }
 
+  // This function is called every time you move the mouse. Obviously, it only 
+  // draws if the this.started state is set to true (when you are holding down 
+  // the mouse button).
   mousemove(e) {
     if (!this.started) {
       return
@@ -129,6 +141,7 @@ class RectangleTool {
     this.canvas2DContext.strokeRect(x, y, w, h)
   }
 
+  // This is called when you release the mouse button.
   mouseup(e) {
     if (this.started) {
       this.mousemove(e)
@@ -140,10 +153,14 @@ class RectangleTool {
 
 class Drawing {
 
-  constructor() {
+  constructor(form) {
+    console.log('drawing constructor')
     this.shapes = []
+    this.form = form
 
     const {mainCanvas, tmpCanvas} = prepareDOM()
+    console.log({mainCanvas, tmpCanvas})
+
     this.mainCanvas = mainCanvas
     this.tmpCanvas = tmpCanvas
 
@@ -156,8 +173,8 @@ class Drawing {
     this._imageHandler()
 
     /**
-     * * We are using arrow functions here to keep the "this" variable bounded to the instance.
-     * * Otherwise, it's bounded to the event and not the instance, so undefined errors on the run!
+     * We are using arrow functions here to keep the "this" variable bounded to the instance.
+     * Otherwise, it's bounded to the event and not the instance, so undefined errors on the run!
      */
     this.tmpCanvas.addEventListener('mousedown', e => this.tool.mousedown(e), false)
     this.tmpCanvas.addEventListener('mousemove', e => this.tool.mousemove(e), false)
@@ -167,7 +184,13 @@ class Drawing {
   _imageHandler() {
     const resizeCanvasBound = resizeCanvas.bind(null, [this.tmpCanvas, this.mainCanvas])
 
-    const load = loadAndDrawImage.bind(null, this.mainCanvas, resizeCanvasBound)
+    const loadedImage =(width, height) => {
+      console.log({width, height})
+      this.form.imageWidth.value = width
+      this.form.imageHeight.value = height
+    }
+
+    const load = loadAndDrawImage.bind(null, this.mainCanvas, resizeCanvasBound, loadedImage)
 
     const loadInput = document.querySelector('#load')
     loadInput.addEventListener('change', (event) => load(event))
@@ -179,13 +202,34 @@ class Drawing {
    * completes a drawing operation.
    */
   applyChangesOnMainCanvas(shape) {
+    console.log({shape})
     this.shapes.push(shape)
+
+    const {x, y, w, h} = shape
+
+    this.form.xInput.value = x
+    this.form.yInput.value = y
+    this.form.wInput.value = w
+    this.form.hInput.value = h
+
     this.mainCanvas2DContext.drawImage(this.tmpCanvas, 0, 0)
 		this.tmpCanvas2DContext.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height)
   }
 
 }
 
+const xInput = document.querySelector('#id_x')
+const yInput = document.querySelector('#id_y')
+const wInput = document.querySelector('#id_w')
+const hInput = document.querySelector('#id_h')
+
+const imageWidth = document.querySelector('#id_image_width')
+const imageHeight = document.querySelector('#id_image_height')
+
+
+const form = { xInput, yInput, wInput, hInput, imageWidth, imageHeight }
+// console.log(form)
+
 window.addEventListener('load', () => {
-  new Drawing()
+  new Drawing(form)
 }, false)

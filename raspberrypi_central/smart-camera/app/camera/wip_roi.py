@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def order_points_new(pts):
     # sort the points based on their x-coordinates
     xSorted = pts[np.argsort(pts[:, 0]), :]
@@ -38,6 +39,14 @@ h = 46
 image_width = 300
 image_height = 300
 
+def contour_from_points(points):
+    np_points = np.array(points)
+
+    ordered_points = order_points_new(points)
+
+    # https://stackoverflow.com/a/24174904
+    return ordered_points.reshape((-1,1,2)).astype(np.int32)
+
 while(True):
     ret, frame = cap.read()
 
@@ -57,24 +66,41 @@ while(True):
 
     # List of (x,y) points in clockwise order
     points = np.array([[x1,y1], [x2,y2], [x3,y3], [x4,y4]])
-    ordered_points = order_points_new(points)
+    roi_contours = contour_from_points(points)
 
-    print(ordered_points)
+    motions_points = points
+    motion_contours = contour_from_points(motions_points)
 
-    # https://stackoverflow.com/a/24174904
-    ctr = ordered_points.reshape((-1,1,2)).astype(np.int32)
+    cv2.drawContours(frame, [roi_contours], 0, (0,255,0), 1)
+    cv2.drawContours(frame, [motion_contours], 0, (0,0,255), 1)
 
-    cv2.drawContours(frame,[ctr], 0, (0,255,0), 3)
+    # create an image filled with zeros, single-channel, same size as img.
+    blank_frame = np.zeros(frame.shape[0:2])
 
-    point = (300,400)
-    frame = cv2.circle(frame, point, radius=2, color=(0, 0, 255), thickness=2)
+    # copy each of the contours (assuming there's just two) to its own image. 
+    # Just fill with a '1'.
+    img1 = cv2.drawContours(blank_frame.copy(), [roi_contours], 0, 1, thickness=-1)
+    img2 = cv2.drawContours(blank_frame.copy(), [motion_contours], 0, 1, thickness=-1)
 
-    points = [point, (305,405)]
+    print(f'roi_contours: {roi_contours}')
 
-    results = any([cv2.pointPolygonTest(ctr, point, False) for point in points])
-    print(results)
+    out_arr = np.nonzero(img1)
+    print('non value zero for img roi contour:', out_arr)
+
+    print('any img2?', img2.any())
+    print('any img1?', img1.any())
+
+    # now AND the two together
+    intersection = np.logical_and(img1, img2)
+    print(f'intersection 1: {intersection.any()}')
+
+    intersection2 = (img1 + img2) == 2
+    print(f'intersection 2 result: {intersection2.any()}')
+
 
     cv2.imshow("preview", frame)
+    # cv2.imshow("roi_contours", img1)
+    # cv2.imshow("motion_contours", img2)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break

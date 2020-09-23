@@ -1,7 +1,7 @@
 from typing import Tuple
 
 
-def scalePoint(old_img_width: float, old_img_height: float, new_img_width: float, new_img_height:float, x: float, y: float) -> Tuple[float, float]:
+def scale_point(old_img_width: float, old_img_height: float, new_img_width: float, new_img_height:float, x: float, y: float) -> Tuple[float, float]:
     """Allows you to scale points for a new image size.
 
     Args:

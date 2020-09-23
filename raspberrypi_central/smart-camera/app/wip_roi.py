@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
+from image_processing.contour_collision import contour_collision
+from image_processing.contour import create_contour_from_points
 
+# cap = cv2.VideoCapture(0)
 
 def order_points_new(pts):
     # sort the points based on their x-coordinates
@@ -30,8 +33,6 @@ def order_points_new(pts):
     # bottom-right, and bottom-left order
     return np.array([tl, tr, br, bl], dtype="float32")
 
-cap = cv2.VideoCapture(0)
-
 x = 14
 y = 9
 w = 36
@@ -39,19 +40,13 @@ h = 46
 image_width = 300
 image_height = 300
 
-def contour_from_points(points):
-    np_points = np.array(points)
-
-    ordered_points = order_points_new(points)
-
-    # https://stackoverflow.com/a/24174904
-    return ordered_points.reshape((-1,1,2)).astype(np.int32)
-
 while(True):
-    ret, frame = cap.read()
+    width = 640
+    height = 480
 
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    frame = np.zeros((height, width, 3), np.uint8)
+    # _, frame = cap.read()
+
 
     def scalePoint(x, y):
         new_x = (x / image_width) * width
@@ -66,13 +61,16 @@ while(True):
 
     # List of (x,y) points in clockwise order
     points = np.array([[x1,y1], [x2,y2], [x3,y3], [x4,y4]])
-    roi_contours = contour_from_points(points)
 
-    motions_points = points
-    motion_contours = contour_from_points(motions_points)
+    print(points)
 
-    cv2.drawContours(frame, [roi_contours], 0, (0,255,0), 1)
-    cv2.drawContours(frame, [motion_contours], 0, (0,0,255), 1)
+    roi_contours = create_contour_from_points(order_points_new(points))
+
+    motions_points = points + 70
+    motion_contours = create_contour_from_points(motions_points)
+
+    frame = cv2.drawContours(frame, [roi_contours], 0, (0,255,0), 3)
+    frame = cv2.drawContours(frame, [motion_contours], 0, (0,0,255), 3)
 
     # create an image filled with zeros, single-channel, same size as img.
     blank_frame = np.zeros(frame.shape[0:2])
@@ -82,25 +80,15 @@ while(True):
     img1 = cv2.drawContours(blank_frame.copy(), [roi_contours], 0, 1, thickness=-1)
     img2 = cv2.drawContours(blank_frame.copy(), [motion_contours], 0, 1, thickness=-1)
 
-    print(f'roi_contours: {roi_contours}')
-
-    out_arr = np.nonzero(img1)
-    print('non value zero for img roi contour:', out_arr)
-
-    print('any img2?', img2.any())
-    print('any img1?', img1.any())
-
     # now AND the two together
     intersection = np.logical_and(img1, img2)
     print(f'intersection 1: {intersection.any()}')
 
-    intersection2 = (img1 + img2) == 2
-    print(f'intersection 2 result: {intersection2.any()}')
+    # intersection2 = (img1 + img2) == 2
+    # print(f'intersection 2 result: {intersection2.any()}')
 
 
     cv2.imshow("preview", frame)
-    # cv2.imshow("roi_contours", img1)
-    # cv2.imshow("motion_contours", img2)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break

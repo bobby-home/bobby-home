@@ -5,11 +5,23 @@ from PIL import Image
 from tflite_runtime.interpreter import Interpreter
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
+from dataclasses import dataclass
+
+@dataclass
+class BoundingBox():
+    ymin: float
+    xmin: float
+    ymax: float
+    xmax: float
+
+@dataclass
+class ObjectBoundingBox(BoundingBox):
+    contours: np.ndarray
 
 
 @dataclass
 class People():
-    bounding_box: any
+    bounding_box: ObjectBoundingBox
     class_id: any
     score: float
 
@@ -57,21 +69,53 @@ class DetectPeople():
         tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
         return tensor
 
+    def _relative_to_absolute_bounding_box(self, bounding_box: BoundingBox, image_wdith, image_height):
+        ymin, xmin, ymax, xmax = bounding_box
+
+        xmin = int(xmin * image_wdith)
+        xmax = int(xmax * image_wdith)
+        ymin = int(ymin * image_height)
+        ymax = int(ymax * image_height)
+
+        # construction of the contours
+        # List of (x,y) points in clockwise order <!>
+        x1 = xmin
+        y1 = ymax
+
+        x2 = xmax
+        y2 = ymax
+
+        x3 = xmax
+        y3 = ymin
+
+        x4 = xmin
+        y4 = ymin
+
+        points = np.array([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
+        # https://stackoverflow.com/a/24174904
+        contours = points.reshape((-1,1,2)).astype(np.int32)
+
+        return ObjectBoundingBox(ymin, xmin, ymax, xmax, contours)
+
     def _detect_objects(self, interpreter, image, threshold) -> List[People]:
         """Returns a list of detection results, each a People object."""
         self._set_input_tensor(interpreter, image)
         interpreter.invoke()
 
         # Get all output details
-        boxes = self._get_output_tensor(interpreter, 0)
+        tf_bounding_box = self._get_output_tensor(interpreter, 0)
         classes = self._get_output_tensor(interpreter, 1)
         scores = self._get_output_tensor(interpreter, 2)
         count = int(self._get_output_tensor(interpreter, 3))
 
+        WIDTH, HEIGHT = image.size
+
         results = []
         for i in range(count):
             if scores[i] >= threshold:
-                result = People(bounding_box=boxes[i], class_id=classes[i], score=scores[i])
+                bounding_box = self._relative_to_absolute_bounding_box(tf_bounding_box[i], WIDTH, HEIGHT)
+
+                result = People(bounding_box=bounding_box, class_id=classes[i], score=scores[i])
                 results.append(result)
 
         return results

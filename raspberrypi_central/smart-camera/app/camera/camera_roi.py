@@ -51,9 +51,7 @@ class ROICamera(CameraAnalyzeObject):
         image_height, image_width = frame.shape[0:2]
 
         if image_width != self._prev_image_width or image_height != self._prev_image_height:
-            self._scaled_contours = [scale_point(300, 300, 330, 330, x, y) for [[x, y]] in self._contours]
+            self._scaled_contours = [scale_point(self._contour_image_width, self._contour_image_height, image_width, image_height, x, y) for [[x, y]] in self._contours]
             self._scaled_contours = create_contour_from_points(np.array(self._scaled_contours))
-
-        print(self._scaled_contours, object_bounding_box.contours)
 
         return contour_collision(frame, self._scaled_contours, object_bounding_box.contours)

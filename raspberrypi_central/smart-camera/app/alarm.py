@@ -12,14 +12,15 @@ device_id = os.environ['DEVICE_ID']
 mqtt_client = get_mqtt_client(f"{device_id}-rpi4-alarm-motion")
 
 
-def run():
+def run(*args, **kwargs):
+    print(f'from mqtt: {args} {kwargs}')
     camera = camera_factory(get_mqtt_client)
 
     CAMERA_WIDTH = 640
     CAMERA_HEIGHT = 480
 
     # TODO: see issue #78
-    VideoStream(camera.processFrame, resolution=(
+    VideoStream(camera.process_frame, resolution=(
         CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)
 
 

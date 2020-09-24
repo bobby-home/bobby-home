@@ -1,5 +1,6 @@
 from multiprocessing import Process
 from typing import Callable
+from functools import partial
 
 
 class ThreadManager:
@@ -9,7 +10,7 @@ class ThreadManager:
         self._process = None
         self._to_run = to_run
 
-    def _start_process(self):
+    def _start_process(self, *args, **kwargs):
         if (self._process is None):
             """
             Here we call a `run` function.
@@ -17,6 +18,8 @@ class ThreadManager:
             So if the Process has to release something before we end it, we can't.
             TODO: Please see issue #79
             """
+            to_run = partial(self._to_run, *args, **kwargs)
+
             self._process = Process(target=self._to_run)
             self._process.start()
 
@@ -29,10 +32,9 @@ class ThreadManager:
     def running(self):
         return self._is_running
 
-    @running.setter
-    def running(self, running):
-        self._is_running = running
-        if running is True:
-            self._start_process()
-        elif running is False:
+    def run(self, status: bool, *args, **kwargs):
+        self._is_running = status
+        if status is True:
+            self._start_process(*args, **kwargs)
+        elif status is False:
             self._stop_process()

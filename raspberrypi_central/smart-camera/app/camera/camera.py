@@ -1,21 +1,19 @@
-from camera.detect_motion import DetectPeople, People, ObjectBoundingBox
+from camera.detect_motion import DetectPeople, People
 from camera.camera_analyze import CameraAnalyzeObject
 import datetime
 import struct
 from PIL import Image
-import io
-from functools import partial
+from image_processing.bin_image import pil_image_to_byte_array
 import numpy as np
 import cv2
 
 
-
 def order_points_new(pts):
-    # sort the points based on their x-coordinates
+    # sort the points based on their x coordinates
     xSorted = pts[np.argsort(pts[:, 0]), :]
 
     # grab the left-most and right-most points from the sorted
-    # x-roodinate points
+    # x-croodinate points
     leftMost = xSorted[:2, :]
     rightMost = xSorted[2:, :]
 
@@ -39,15 +37,7 @@ def order_points_new(pts):
     return np.array([tl, tr, br, bl], dtype="float32")
 
 
-def image_to_byte_array(image: Image):
-    imgByteArr = io.BytesIO()
-    image.save(imgByteArr, format='jpeg')
-    imgByteArr = imgByteArr.getvalue()
-
-    return imgByteArr
-
-
-class Camera():
+class Camera:
 
     def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client, device_id):
         self._analyze_motion = analyze_motion
@@ -64,7 +54,7 @@ class Camera():
         self.mqtt_client = self.get_mqtt_client(client_name=f'{self._device_id}-rpi4-alarm-motion-DETECT')
         self.mqtt_client.loop_start()
 
-    def _needToPublishNoMotion(self):
+    def _need_to_publish_no_motion(self) -> bool:
         if self._initialize is True:
             self._initialize = False
             return True
@@ -77,8 +67,7 @@ class Camera():
 
         return time_lapsed
 
-
-    def processFrame(self, frame):
+    def process_frame(self, frame):
         result, peoples, image = self.detect_motion.process_frame(frame)
 
         if result is True:
@@ -99,10 +88,10 @@ class Camera():
                 self._initialize = False
                 self.mqtt_client.publish(f'motion/camera/{self._device_id}', struct.pack('?', 1), qos=1, retain=True)
 
-                byteArr = image_to_byte_array(Image.fromarray(opencvImage))
+                byteArr = pil_image_to_byte_array(Image.fromarray(opencvImage))
 
                 self.mqtt_client.publish(f'motion/picture/{self._device_id}', payload=byteArr, qos=1)
 
             self._last_time_people_detected = datetime.datetime.now()
-        elif self._needToPublishNoMotion():
+        elif self._need_to_publish_no_motion():
             self.mqtt_client.publish(f'motion/camera/{self._device_id}', payload=struct.pack('?', 0), qos=1, retain=True)

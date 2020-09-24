@@ -1,4 +1,4 @@
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 import numpy as np
 from camera.detect_motion import ObjectBoundingBox
 

@@ -1,14 +1,16 @@
 import uuid
 import logging
-from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage
+from abc import ABC, abstractmethod
+
+from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
+    MqttMessage
 from utils.mqtt import MQTT
 from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
-from alarm.models import AlarmStatus
+from alarm.models import AlarmStatus, CameraRectangleROI
 from .messaging import alarm_messaging_factory, speaker_messaging_factory
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,28 +58,58 @@ def on_motion_picture(message: MqttMessage):
     camera_motion_picture.apply_async(kwargs=data)
 
 
-def on_connected_speaker(client: MQTT, message: MqttMessage):
-    topic = split_camera_topic(message.topic)
-    device_id = topic['device_id']
+class OnConnectedHandler(ABC):
+    def __init__(self, client: MQTT):
+        self._client = client
 
-    if message.payload is True:
-        speaker_messaging_factory(client).publish_speaker_status(topic['device_id'], False)
-    else:
-        _LOGGER.error(f'We lost the mqtt connection with {device_id}')
+    @abstractmethod
+    def on_connected(self, device_id: str) -> None:
+        pass
 
 
-def on_connected_camera(client: MQTT, message: MqttMessage):
-    topic = split_camera_topic(message.topic)
-    device_id = topic['device_id']
+class OnStatus:
+    def __init__(self, handler: OnConnectedHandler):
+        self._handler = handler
 
-    if message.payload is True:
+    def on_connected(self, message: MqttMessage) -> None:
+        topic = split_camera_topic(message.topic)
+        device_id = topic['device_id']
+
+        if message.payload is True:
+            self._handler.on_connected(device_id)
+        else:
+            _LOGGER.error(f'We lost the mqtt connection with {device_id}')
+
+
+class OnConnectedCameraHandler(OnConnectedHandler):
+
+    def on_connected(self, device_id: str) -> None:
         device_status = AlarmStatus.objects.get(device__device_id=device_id)
-        alarm_messaging_factory(client).publish_alarm_status(device_status.device.device_id, device_status.running)
-    else:
-        _LOGGER.error(f'We lost the mqtt connection with {device_id}')
+        device_roi = CameraRectangleROI.objects.all().first()
+        # TODO: get ROI from database linked to this device_id
+        # roi = {'x': 128, 'y': 185, 'w': 81, 'h': 76, 'definition_width': 300, 'definition_height': 300}
+
+        alarm_messaging_factory(self._client) \
+            .publish_alarm_status(device_status.device.device_id, device_status.running, device_roi)
+
+
+class OnConnectedSpeakerHandler(OnConnectedHandler):
+
+    def on_connected(self, device_id: str) -> None:
+        speaker_messaging_factory(self._client).publish_speaker_status(device_id, False)
+
+
+def bind_on_connected(mqtt: MQTT, service_name: str, handler) -> MqttTopicSubscriptionBoolean:
+    handler_instance: OnConnectedHandler = handler(mqtt)
+    on_status = OnStatus(handler_instance)
+
+    return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
 
 
 def register(mqtt: MQTT):
+    speaker = bind_on_connected(mqtt, 'speaker', OnConnectedSpeakerHandler)
+    camera = bind_on_connected(mqtt, 'camera', OnConnectedCameraHandler)
+
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(
             topic='motion/#',
@@ -92,8 +124,7 @@ def register(mqtt: MQTT):
             topic='connected/camera/+',
             qos=1,
             topics=[
-                MqttTopicSubscriptionBoolean('connected/camera/+', partial(on_connected_camera, mqtt)),
-                MqttTopicSubscriptionBoolean('connected/speaker/+', partial(on_connected_speaker, mqtt)),
+                speaker, camera
             ]
         )
     ])

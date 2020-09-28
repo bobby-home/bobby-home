@@ -86,7 +86,7 @@ class MQTT():
             timestamp,
         ))
 
-    def publish(self, topic, message, qos=None, retain=False):
+    def publish(self, topic, message, qos=1, retain=False):
         self._client.publish(topic, message, qos=qos, retain=retain)
 
 

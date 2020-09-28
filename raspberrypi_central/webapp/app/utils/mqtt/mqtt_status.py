@@ -1,6 +1,8 @@
 import struct
-from abc import ABCMeta, abstractmethod
 import json
+from decimal import Decimal
+
+
 from utils.mqtt import MQTT
 
 
@@ -10,7 +12,13 @@ class MqttBooleanStatus:
 
     def publish(self, topic, message: bool):
         status_bytes = struct.pack('?', message)
-        self._mqtt_client.publish(topic, status_bytes, )
+        self._mqtt_client.publish(topic, status_bytes, qos=1, retain=True)
+
+
+def decimal_default(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError
 
 
 class MqttJsonStatus:
@@ -18,7 +26,9 @@ class MqttJsonStatus:
         self._mqtt_client = mqtt_client
 
     def publish(self, topic, msg: bool, data):
-        # @TODO: merge with data passed by param, but how do we do this? :)
-        data = json.dumps(msg)
+        data['status'] = msg
+        encoded_data = json.dumps(data, default=decimal_default)
 
-        self._mqtt_client.publish(topic, data)
+        print(encoded_data)
+
+        self._mqtt_client.publish(topic, encoded_data, qos=1, retain=True)

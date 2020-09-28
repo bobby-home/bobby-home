@@ -39,8 +39,14 @@ def camera_motion_detected(device_id: str):
         'message': f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
     }
 
-    # TODO: check if this is a correct way to create & run multiple jobs.
-    # ! They are not related, they have to run in total parallel.
+    """
+    TODO: check if this is a correct way to create & run multiple jobs.
+    ! They are not related, they have to run in total parallel.
+    
+    send_message can run multiple time for one notification See issue #94
+    If something goes wrong in this function after the real send notification, then
+    it will retry it -> notify the user multiple times.
+    """
     send_message.apply_async(kwargs=kwargs)
     play_sound.apply_async(kwargs={'device_id': device_id})
 

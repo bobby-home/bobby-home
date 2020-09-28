@@ -9,19 +9,19 @@ import cv2
 
 
 def order_points_new(pts):
-    # sort the points based on their x coordinates
-    xSorted = pts[np.argsort(pts[:, 0]), :]
+    # sort the points based on their x-coordinates
+    x_sorted = pts[np.argsort(pts[:, 0]), :]
 
     # grab the left-most and right-most points from the sorted
     # x-croodinate points
-    leftMost = xSorted[:2, :]
-    rightMost = xSorted[2:, :]
+    left_most = x_sorted[:2, :]
+    right_most = x_sorted[2:, :]
 
     # now, sort the left-most coordinates according to their
     # y-coordinates so we can grab the top-left and bottom-left
     # points, respectively
-    leftMost = leftMost[np.argsort(leftMost[:, 1]), :]
-    (tl, bl) = leftMost
+    left_most = left_most[np.argsort(left_most[:, 1]), :]
+    (tl, bl) = left_most
 
     # if use Euclidean distance, it will run in error when the object
     # is trapezoid. So we should use the same simple y-coordinates order method.
@@ -29,8 +29,8 @@ def order_points_new(pts):
     # now, sort the right-most coordinates according to their
     # y-coordinates so we can grab the top-right and bottom-right
     # points, respectively
-    rightMost = rightMost[np.argsort(rightMost[:, 1]), :]
-    (tr, br) = rightMost
+    right_most = right_most[np.argsort(right_most[:, 1]), :]
+    (tr, br) = right_most
 
     # return the coordinates in top-left, top-right,
     # bottom-right, and bottom-left order
@@ -76,7 +76,7 @@ class Camera:
                 people: People
                 r = self._analyze_motion.is_object_considered(frame, people.bounding_box)
 
-                opencvImage = cv2.drawContours(frame, [people.bounding_box.contours], 0, (0,0,255), 2)
+                frame = cv2.drawContours(frame, [people.bounding_box.contours], 0, (0, 0, 255), 2)
 
                 peoples_in_roi.append(r)
 
@@ -86,12 +86,12 @@ class Camera:
 
             if is_anybody_in_roi and self._last_time_people_detected is None:
                 self._initialize = False
-                self.mqtt_client.publish(f'motion/camera/{self._device_id}', struct.pack('?', 1), qos=1, retain=True)
+                self.mqtt_client.publish(f'motion/camera/{self._device_id}', struct.pack('?', 1), )
 
-                byteArr = pil_image_to_byte_array(Image.fromarray(opencvImage))
+                byte_arr = pil_image_to_byte_array(Image.fromarray(frame))
 
-                self.mqtt_client.publish(f'motion/picture/{self._device_id}', payload=byteArr, qos=1)
+                self.mqtt_client.publish(f'motion/picture/{self._device_id}', payload=byte_arr, qos=1)
 
             self._last_time_people_detected = datetime.datetime.now()
         elif self._need_to_publish_no_motion():
-            self.mqtt_client.publish(f'motion/camera/{self._device_id}', payload=struct.pack('?', 0), qos=1, retain=True)
+            self.mqtt_client.publish(f'motion/camera/{self._device_id}')

@@ -1,6 +1,5 @@
 import uuid
 import logging
-from abc import ABC, abstractmethod
 
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage
@@ -10,7 +9,11 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from functools import partial
 from alarm.models import AlarmStatus, CameraRectangleROI
+
+from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
 from .messaging import alarm_messaging_factory, speaker_messaging_factory
+from django.forms.models import model_to_dict
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,29 +61,6 @@ def on_motion_picture(message: MqttMessage):
     camera_motion_picture.apply_async(kwargs=data)
 
 
-class OnConnectedHandler(ABC):
-    def __init__(self, client: MQTT):
-        self._client = client
-
-    @abstractmethod
-    def on_connected(self, device_id: str) -> None:
-        pass
-
-
-class OnStatus:
-    def __init__(self, handler: OnConnectedHandler):
-        self._handler = handler
-
-    def on_connected(self, message: MqttMessage) -> None:
-        topic = split_camera_topic(message.topic)
-        device_id = topic['device_id']
-
-        if message.payload is True:
-            self._handler.on_connected(device_id)
-        else:
-            _LOGGER.error(f'We lost the mqtt connection with {device_id}')
-
-
 class OnConnectedCameraHandler(OnConnectedHandler):
 
     def on_connected(self, device_id: str) -> None:
@@ -89,8 +69,11 @@ class OnConnectedCameraHandler(OnConnectedHandler):
         # TODO: get ROI from database linked to this device_id
         # roi = {'x': 128, 'y': 185, 'w': 81, 'h': 76, 'definition_width': 300, 'definition_height': 300}
 
+        # Otherwise you'll get error: "Object of type <ModelClass> is not JSON serializable"
+        device_roi_obj = model_to_dict(device_roi)
+
         alarm_messaging_factory(self._client) \
-            .publish_alarm_status(device_status.device.device_id, device_status.running, device_roi)
+            .publish_alarm_status(device_status.device.device_id, device_status.running, device_roi_obj)
 
 
 class OnConnectedSpeakerHandler(OnConnectedHandler):
@@ -116,7 +99,6 @@ def register(mqtt: MQTT):
             qos=1,
             topics=[
                 MqttTopicSubscriptionBoolean('motion/camera/+', partial(on_motion_camera, mqtt)),
-                # encoding is set to None because this topic receives a picture as bytes -> decode utf-8 on it will raise an Exception.
                 MqttTopicSubscription('motion/picture/+', on_motion_picture),
             ],
         ),

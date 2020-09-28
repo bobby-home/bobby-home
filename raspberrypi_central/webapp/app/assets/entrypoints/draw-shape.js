@@ -223,8 +223,8 @@ const yInput = document.querySelector('#id_y')
 const wInput = document.querySelector('#id_w')
 const hInput = document.querySelector('#id_h')
 
-const imageWidth = document.querySelector('#id_image_width')
-const imageHeight = document.querySelector('#id_image_height')
+const imageWidth = document.querySelector('#id_definition_width')
+const imageHeight = document.querySelector('#id_definition_height')
 
 
 const form = { xInput, yInput, wInput, hInput, imageWidth, imageHeight }

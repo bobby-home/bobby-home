@@ -5,5 +5,5 @@ from camera.detect_motion import ObjectBoundingBox
 
 class CameraAnalyzeObject(metaclass=ABCMeta):
     @abstractmethod
-    def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox):
+    def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> bool:
         pass

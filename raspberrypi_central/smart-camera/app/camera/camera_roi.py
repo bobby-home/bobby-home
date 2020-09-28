@@ -13,36 +13,34 @@ class ROI(ABC):
         pass
 
     @abstractmethod
-    def getContours(self) -> Tuple[np.ndarray, Tuple[float, float]]:
+    def get_contours(self) -> Tuple[np.ndarray, Tuple[float, float]]:
         pass
 
 
 class RectangleROI(ROI):
-    def __init__(self, x: float, y: float, w: float, h: float):
+    def __init__(self, x: float, y: float, w: float, h: float, definition_width: float, definition_height: float):
+        self.definition_width = definition_width
+        self.definition_height = definition_height
+        self.y = y
+        self.x = x
+        self.w = w
+        self.h = h
         super().__init__()
 
-    def getContours(self):
-        x = 128
-        y = 185
-        w = 81
-        h = 76
-        old_img_width = 300
-        old_image_height = 300
+    def get_contours(self):
+        x1, y1 = (self.x, self.y + self.h)
+        x2, y2 = (self.x + self.w, self.y + self.h)
+        x3, y3 = (self.x + self.w, self.y)
+        x4, y4 = (self.x, self.y)
 
-        x1, y1 = (x, y + h)
-        x2, y2 = (x + w, y + h)
-        x3, y3 = (x + w, y)
-        x4, y4 = (x, y)
+        points = np.array([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
 
-        points = np.array([[x1,y1], [x2,y2], [x3,y3], [x4,y4]])
-
-        # points to contour: https://stackoverflow.com/a/24174904
-        return points.reshape((-1,1,2)).astype(np.int32), (old_img_width, old_image_height)
+        return points.reshape((-1, 1, 2)).astype(np.int32), (self.definition_width, self.definition_height)
 
 
 class ROICamera(CameraAnalyzeObject):
     def __init__(self, roi: ROI):
-        self._contours, (self._contour_image_width, self._contour_image_height) = roi.getContours()
+        self._contours, (self._contour_image_width, self._contour_image_height) = roi.get_contours()
         self._prev_image_width = None
         self._prev_image_height = None
         self._scaled_contours = None

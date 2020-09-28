@@ -4,7 +4,7 @@ import logging
 import json
 
 
-class MqttStatusManageThread():
+class MqttStatusManageThread:
     """
     This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
@@ -29,20 +29,20 @@ class MqttStatusManageThread():
         # TODO: handle errors! Don't let the software crashes.
         if self._status_json is True:
             message = json.loads(message)
-            status = msg['status']
+            status = message['status']
         else:
             status = struct.unpack('?', message)[0]
 
         self._logger.info(f'Receive status {status} for {self._service_name}')
 
         if status:
-            self._thread_manager.run(True, message)
+            self._thread_manager.run(True, data=message)
         else:
             self._thread_manager.run(False)
 
 
-def mqtt_status_manage_thread_factory(*args, **kargs):
-    return MqttStatusManageThread(logging, *args, **kargs)
+def mqtt_status_manage_thread_factory(*args, **kwargs):
+    return MqttStatusManageThread(logging, *args, **kwargs)
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

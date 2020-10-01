@@ -61,17 +61,3 @@ def set_alarm_off():
 def set_alarm_on():
     s = alarm_models.AlarmStatus(running=True)
     s.save()
-
-
-@shared_task
-def alarm_status_changed(device_id: str, status: bool):
-    mqtt_client = mqtt_factory()
-
-    alarm_messaging = alarm_messaging_factory(mqtt_client)
-    alarm_messaging.publish_alarm_status(device_id, status)
-
-    kwargs = {
-        'message': f'Votre alarme {device_id} a changée de status: {status}'
-    }
-
-    send_message.apply_async(kwargs=kwargs)

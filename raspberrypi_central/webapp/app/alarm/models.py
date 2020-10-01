@@ -2,8 +2,10 @@ import uuid
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from django.db import models
 from house.models import House
+from utils.mqtt import mqtt_factory
 from . import tasks
 from devices.models import Device
+from .communication.alarm import NotifyAlarmStatus
 
 
 class CameraRectangleROI(models.Model):
@@ -18,7 +20,11 @@ class CameraRectangleROI(models.Model):
     definition_width = models.DecimalField(max_digits=8, decimal_places=4)
     definition_height = models.DecimalField(max_digits=8, decimal_places=4)
 
-    # device = models.ForeignKey(Device, on_delete=models.PROTECT)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT)
+
+    def save(self, *args, **kwargs):
+        NotifyAlarmStatus(mqtt_factory).publish(self.device.id)
+        super().save(*args, **kwargs)
 
 
 class AlarmSchedule(models.Model):
@@ -38,7 +44,6 @@ class AlarmSchedule(models.Model):
 
     turn_on_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_on')
     turn_off_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_off')
-
 
     def save(self, *args, **kwargs):
         days = []
@@ -129,7 +134,7 @@ class AlarmStatus(models.Model):
         if self.__class__.objects.count():
             self.pk = self.__class__.objects.first().pk
 
-        tasks.alarm_status_changed.delay(self.device_id, self.running)
+        NotifyAlarmStatus(mqtt_factory).publish(self.device_id, self.running)
 
         super().save(*args, **kwargs)
 

@@ -20,6 +20,9 @@ class OnConnectedHandler(ABC):
     def __init__(self, client: MQTT):
         self._client = client
 
+    def get_client(self):
+        return self._client
+
     @abstractmethod
     def on_connected(self, device_id: str) -> None:
         pass

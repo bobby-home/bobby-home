@@ -5,9 +5,10 @@ from functools import partial
 from image_processing.contour import create_contour_from_points
 from image_processing.contour_collision import contour_collision
 
+
 class ContourTestCase(unittest.TestCase):
 
-    def test_contour_collision_extact_same_position(self):
+    def test_contour_collision_exact_same_position(self):
         frame_width = 600
         frame_height = 400
 

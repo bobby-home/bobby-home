@@ -2,13 +2,15 @@ from multiprocessing import Process
 from typing import Callable
 from functools import partial
 
+from service_manager.service_manager import RunService
+
 
 class ThreadManager:
 
-    def __init__(self, to_run: Callable[[any], None]):
+    def __init__(self, run_service: RunService):
         self._is_running = False
         self._process = None
-        self._to_run = to_run
+        self._run_service = run_service
 
     def _start_process(self, data):
         if self._process is None:
@@ -18,13 +20,17 @@ class ThreadManager:
             So if the Process has to release something before we end it, we can't.
             TODO: Please see issue #79
             """
-            to_run = partial(self._to_run, data)
+            self._run_service.prepare_run(data)
 
-            self._process = Process(target=to_run)
+            self._process = Process(target=self._run_service.run)
             self._process.start()
+        elif self._run_service.is_restart_necessary(data):
+            self._stop_process()
+            self._start_process(data)
 
     def _stop_process(self):
         if self._process:
+            self._run_service.stop()
             self._process.terminate()
             self._process = None
 

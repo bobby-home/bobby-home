@@ -25,12 +25,14 @@ class MqttJsonStatus:
         self._mqtt_client = mqtt_client
 
     def publish(self, topic, msg: bool, data=None) -> None:
+        payload = {
+            'status': msg
+        }
+
         if data is None:
-            data = {}
+            payload['data'] = data
 
-        data['status'] = msg
-
-        encoded_data = json.dumps(data, default=decimal_default)
+        encoded_data = json.dumps(payload, default=decimal_default)
 
         print(encoded_data)
 

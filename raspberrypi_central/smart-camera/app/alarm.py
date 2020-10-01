@@ -1,10 +1,10 @@
 import os
-from typing import Optional
+from typing import Optional, List
 
 from camera.camera_analyze import CameraAnalyzeObject
 from roi.roi import RectangleROI
 from camera_analyze.all_analyzer import NoAnalyzer
-from camera_analyze.roi_analyzer import ROICamera
+from camera_analyze.roi_analyzer import ROICamera, IsConsideredByAnyAnalyzer
 from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
 from service_manager.service_manager import RunService
 from thread.thread_manager import ThreadManager
@@ -19,11 +19,26 @@ mqtt_client = get_mqtt_client(f"{device_id}-rpi4-alarm-motion")
 
 
 def roi_camera_from_args(args) -> Optional[CameraAnalyzeObject]:
+    """
+    {"status": true, "data": [{"id": 1, "x": 128.0, "y": 185.0, "w": 81.0, "h": 76.0, "definition_width": 300.0, "definition_height": 300.0, "device_id": 1}, {"id": 2, "x": 50.0, "y": 50.0, "w": 50.0, "h": 50.0, "definition_width": 300.0, "definition_height": 300.0, "device_id": 1}]}
+    I have to manage to have multiple CameraAnalyzeObject
+    or... I might use another class to handle multiple camera analyze object,
+    so I could do stuff like, if in CameraRectangleROI and it is not someone that I know (facial recognition), then we consider the people
+    -> ring the alarm.
+    """
     if args and len(args) > 0:
         args = args[0]
-        rectangle_roi = RectangleROI(x=args['x'], y=args['y'], w=args['w'], h=args['h'],
-                                     definition_width=args['definition_width'], definition_height=args['definition_height'])
-        return ROICamera(rectangle_roi)
+
+        analyzers: List[CameraAnalyzeObject] = []
+
+        for rectangle in args:
+            rectangle_roi = RectangleROI(x=rectangle['x'], y=rectangle['y'], w=rectangle['w'], h=rectangle['h'],
+                                         definition_width=rectangle['definition_width'],
+                                         definition_height=rectangle['definition_height'])
+            analyzer = ROICamera(rectangle_roi)
+            analyzers.append(analyzer)
+
+        return IsConsideredByAnyAnalyzer(analyzers)
 
     return None
 

@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 
 from camera.camera_analyze import CameraAnalyzeObject
@@ -23,3 +25,14 @@ class ROICamera(CameraAnalyzeObject):
             self._scaled_contours = create_contour_from_points(np.array(self._scaled_contours))
 
         return contour_collision(frame, self._scaled_contours, object_bounding_box.contours)
+
+
+class IsConsideredByAnyAnalyzer(CameraAnalyzeObject):
+    def __init__(self, analyzers: List[CameraAnalyzeObject]):
+        self._analyzers = analyzers
+
+    def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> bool:
+        for analyzer in self._analyzers:
+            r = analyzer.is_object_considered(frame, object_bounding_box)
+            if r is True:
+                return True

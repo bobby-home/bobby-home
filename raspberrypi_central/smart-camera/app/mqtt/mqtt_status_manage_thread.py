@@ -25,18 +25,20 @@ class MqttStatusManageThread:
 
     def _switch_on_or_off(self, client, userdata, msg):
         message = msg.payload
+        data = None
 
         # TODO: handle errors! Don't let the software crashes.
         if self._status_json is True:
             message = json.loads(message)
             status = message['status']
+            data = message['data']
         else:
             status = struct.unpack('?', message)[0]
 
         self._logger.info(f'Receive status {status} for {self._service_name}')
 
         if status:
-            self._thread_manager.run(True, data=message)
+            self._thread_manager.run(True, data=data)
         else:
             self._thread_manager.run(False)
 

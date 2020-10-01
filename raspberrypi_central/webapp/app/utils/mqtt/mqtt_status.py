@@ -26,11 +26,9 @@ class MqttJsonStatus:
 
     def publish(self, topic, msg: bool, data=None) -> None:
         payload = {
-            'status': msg
+            'status': msg,
+            'data': data
         }
-
-        if data is None:
-            payload['data'] = data
 
         encoded_data = json.dumps(payload, default=decimal_default)
 

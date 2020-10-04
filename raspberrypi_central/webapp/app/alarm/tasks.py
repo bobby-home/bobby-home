@@ -1,9 +1,9 @@
 from celery import shared_task
 from alarm import models as alarm_models
-from devices import models as device_models
 from notification.tasks import send_message
 from utils.mqtt import mqtt_factory
-from .messaging import alarm_messaging_factory, speaker_messaging_factory
+from .external.motion import save_motion
+from .messaging import speaker_messaging_factory
 
 
 @shared_task(name="security.camera_motion_picture", bind=True)
@@ -29,9 +29,8 @@ def play_sound(device_id: str):
 
 
 @shared_task(name="security.camera_motion_detected")
-def camera_motion_detected(device_id: str):
-    device = device_models.Device.objects.get(device_id=device_id)
-    alarm_models.CameraMotionDetected.objects.create(device=device)
+def camera_motion_detected(device_id: str, seen_in: dict):
+    device = save_motion(device_id, seen_in)
 
     location = device.location
 

@@ -8,7 +8,7 @@ import struct
 _LOGGER = logging.getLogger(__name__)
 
 
-PublishPayloadType = Union[str, bytes, int, float, None]
+PublishPayloadType = Union[str, bytes, int, float, dict, None]
 
 
 @dataclass

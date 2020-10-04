@@ -13,7 +13,7 @@ class NotifyAlarmStatus:
     def publish(self, device_id: str, running: bool = None):
         if running is None:
             from alarm.models import AlarmStatus
-            device_status = AlarmStatus.objects.get(device=device_id)
+            device_status = AlarmStatus.objects.get(device__device_id=device_id)
             running = device_status.running
 
         device_roi_obj = None
@@ -23,7 +23,7 @@ class NotifyAlarmStatus:
 
             # values() gives us python dictionaries, but they're in a QuerySet which is not JSON serializable
             # so we put everything in a python list which is JSON serializable.
-            device_roi = list(CameraRectangleROI.objects.filter(device=device_id).values())
+            device_roi = list(CameraRectangleROI.objects.filter(device__device_id=device_id).values())
 
             device_roi_obj = device_roi
 

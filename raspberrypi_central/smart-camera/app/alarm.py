@@ -9,13 +9,13 @@ from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
 from service_manager.service_manager import RunService
 from thread.thread_manager import ThreadManager
 from camera.camera_factory import camera_factory
-from mqtt.mqtt_client import get_mqtt_client
+from mqtt.mqtt_client import get_mqtt_client, get_mqtt
 from camera.videostream import VideoStream
 
 
 device_id = os.environ['DEVICE_ID']
 
-mqtt_client = get_mqtt_client(f"{device_id}-rpi4-alarm-motion")
+mqtt_client = get_mqtt(f"{device_id}-rpi4-alarm-motion")
 
 
 def roi_camera_from_args(args) -> Optional[CameraAnalyzeObject]:
@@ -88,4 +88,4 @@ mqtt_status_manage_thread_factory(device_id, 'camera', mqtt_client, manager, sta
 # sound_manager = ThreadManager(run_sound)
 # mqtt_status_manage_thread_factory(device_id, 'speaker', mqtt_client, sound_manager)
 
-mqtt_client.loop_forever()
+mqtt_client.client.loop_forever()

@@ -7,12 +7,14 @@ from dataclasses import dataclass
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
+
 @dataclass
-class BoundingBox():
+class BoundingBox:
     ymin: float
     xmin: float
     ymax: float
     xmax: float
+
 
 @dataclass
 class ObjectBoundingBox(BoundingBox):
@@ -20,17 +22,15 @@ class ObjectBoundingBox(BoundingBox):
 
 
 @dataclass
-class People():
+class People:
     bounding_box: ObjectBoundingBox
     class_id: any
     score: float
 
 
-class DetectPeople():
+class DetectPeople:
 
     def __init__(self):
-        self._last_time_people_detected = None
-
         self.args = {
             'model': 'tensorflow-object-detection/data/detect.tflite',
             'labels': 'tensorflow-object-detection/data/coco_labels.txt',
@@ -120,7 +120,7 @@ class DetectPeople():
 
         return results
 
-    def process_frame(self, stream) -> Tuple[bool, List[People], Optional[Image.Image]]:
+    def process_frame(self, stream) -> Tuple[List[People], Image.Image]:
         """
         From Tensorflow examples, we have .convert('RGB') before the resize.
         We removed it because the RGB is created at the stream level (opencv or picamera).
@@ -140,7 +140,4 @@ class DetectPeople():
             if label == 'person':
                 peoples.append(result)
 
-        if len(peoples) > 0:
-            return True, peoples, image
-
-        return False, peoples, None
+        return peoples, image

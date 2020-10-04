@@ -1,6 +1,6 @@
 import json
 from typing import List
-
+from enum import Enum
 from camera.detect_motion import DetectPeople, People
 from camera.camera_analyze import CameraAnalyzeObject, Consideration
 import datetime
@@ -40,7 +40,14 @@ def order_points_new(pts):
     return np.array([tl, tr, br, bl], dtype="float32")
 
 
+class CameraMqttTopics(Enum):
+    MOTION = 'motion/camera'
+    PICTURE = 'motion/picture'
+
+
 class Camera:
+
+    SECONDS_LAPSED_TO_PUBLISH = 5
 
     def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client, device_id):
         self._analyze_motion = analyze_motion
@@ -63,7 +70,7 @@ class Camera:
             return True
 
         time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= 5
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= Camera.SECONDS_LAPSED_TO_PUBLISH
 
         if time_lapsed:
             self._last_time_people_detected = None
@@ -83,32 +90,35 @@ class Camera:
 
         mqtt_payload = json.dumps(payload)
 
-        self.mqtt_client.publish(f'motion/camera/{self._device_id}', mqtt_payload, retain=True, qos=1)
+        self.mqtt_client.publish(f'{CameraMqttTopics.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
+
+    def _considered_peoples(self, frame, peoples: List[People]):
+        peoples_in_roi = []
+        for people in peoples:
+            considerations = self._analyze_motion.is_object_considered(frame, people.bounding_box)
+            # frame = cv2.drawContours(frame, [people.bounding_box.contours], 0, (0, 0, 255), 2)
+            peoples_in_roi.extend(considerations)
+
+        return peoples_in_roi
+
+    def _transform_image_to_publish(self, image):
+        return pil_image_to_byte_array(Image.fromarray(image))
 
     def process_frame(self, frame):
-        result, peoples, image = self.detect_motion.process_frame(frame)
+        peoples, image = self.detect_motion.process_frame(frame)
+        peoples_in_roi = self._considered_peoples(frame, peoples)
 
-        if result is True:
-            peoples_in_roi = []
-            for people in peoples:
-                considerations = self._analyze_motion.is_object_considered(frame, people.bounding_box)
+        is_anybody_in_roi = len(peoples_in_roi) > 0
 
-                frame = cv2.drawContours(frame, [people.bounding_box.contours], 0, (0, 0, 255), 2)
+        if is_anybody_in_roi and self._last_time_people_detected is None:
+            self._initialize = False
+            self._publish_motion(peoples_in_roi)
 
-                peoples_in_roi.extend(considerations)
+            byte_arr = self._transform_image_to_publish(frame)
 
-            is_anybody_in_roi = len(peoples_in_roi) > 0
+            self.mqtt_client.publish(f'{CameraMqttTopics.PICTURE}/{self._device_id}', byte_arr, qos=1)
 
-            print(f'is_anybody_in_roi = {is_anybody_in_roi}, {peoples_in_roi}')
-
-            if is_anybody_in_roi and self._last_time_people_detected is None:
-                self._initialize = False
-                self._publish_motion(peoples_in_roi)
-
-                byte_arr = pil_image_to_byte_array(Image.fromarray(frame))
-
-                self.mqtt_client.publish(f'motion/picture/{self._device_id}', payload=byte_arr, qos=1)
-
+        if is_anybody_in_roi:
             self._last_time_people_detected = datetime.datetime.now()
         elif self._need_to_publish_no_motion():
             payload = {
@@ -116,4 +126,4 @@ class Camera:
             }
 
             mqtt_payload = json.dumps(payload)
-            self.mqtt_client.publish(f'motion/camera/{self._device_id}', mqtt_payload, retain=True, qos=1)
+            self.mqtt_client.publish(f'{CameraMqttTopics.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)

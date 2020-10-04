@@ -30,6 +30,15 @@ class ROICamera(CameraAnalyzeObject):
 
         return []
 
+    def __str__(self):
+        return self._roi
+
+    def __eq__(self, other):
+        if not isinstance(other, ROICamera):
+            return NotImplemented
+
+        return self._roi == other._roi
+
 
 class IsConsideredByAnyAnalyzer(CameraAnalyzeObject):
     def __init__(self, analyzers: List[CameraAnalyzeObject]):
@@ -42,3 +51,9 @@ class IsConsideredByAnyAnalyzer(CameraAnalyzeObject):
                 return r
 
         return []
+
+    def __eq__(self, other):
+        if not isinstance(other, IsConsideredByAnyAnalyzer):
+            return NotImplemented
+
+        return self._analyzers == other._analyzers

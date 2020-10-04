@@ -25,6 +25,7 @@ class ThreadManager:
             self._process = Process(target=self._run_service.run)
             self._process.start()
         elif self._run_service.is_restart_necessary(data):
+            print(f'Restart camera because configuration changed')
             self._stop_process()
             self._start_process(data)
 

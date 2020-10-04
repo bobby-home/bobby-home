@@ -2,10 +2,12 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple
 
+from camera.camera_analyze import Consideration
+
 
 class ROI(ABC):
-    def __init__(self):
-        pass
+    def __init__(self, consideration: Consideration):
+        self.consideration = consideration
 
     @abstractmethod
     def get_contours(self) -> Tuple[np.ndarray, Tuple[float, float]]:
@@ -13,14 +15,14 @@ class ROI(ABC):
 
 
 class RectangleROI(ROI):
-    def __init__(self, x: float, y: float, w: float, h: float, definition_width: float, definition_height: float):
+    def __init__(self, consideration: Consideration, x: float, y: float, w: float, h: float, definition_width: float, definition_height: float):
         self.definition_width = definition_width
         self.definition_height = definition_height
         self.y = y
         self.x = x
         self.w = w
         self.h = h
-        super().__init__()
+        super().__init__(consideration)
 
     def __eq__(self, other):
         if not isinstance(other, RectangleROI):

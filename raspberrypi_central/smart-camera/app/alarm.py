@@ -1,7 +1,7 @@
 import os
 from typing import Optional, List
 
-from camera.camera_analyze import CameraAnalyzeObject
+from camera.camera_analyze import CameraAnalyzeObject, Consideration
 from roi.roi import RectangleROI
 from camera_analyze.all_analyzer import NoAnalyzer
 from camera_analyze.roi_analyzer import ROICamera, IsConsideredByAnyAnalyzer
@@ -32,7 +32,9 @@ def roi_camera_from_args(args) -> Optional[CameraAnalyzeObject]:
         analyzers: List[CameraAnalyzeObject] = []
 
         for rectangle in args:
-            rectangle_roi = RectangleROI(x=rectangle['x'], y=rectangle['y'], w=rectangle['w'], h=rectangle['h'],
+            consideration = Consideration(id=rectangle['id'], type='rectangle')
+
+            rectangle_roi = RectangleROI(consideration=consideration, x=rectangle['x'], y=rectangle['y'], w=rectangle['w'], h=rectangle['h'],
                                          definition_width=rectangle['definition_width'],
                                          definition_height=rectangle['definition_height'])
             analyzer = ROICamera(rectangle_roi)
@@ -54,7 +56,8 @@ class RunSmartCamera(RunService):
     def prepare_run(self, *args):
         self._camera_roi = roi_camera_from_args(args)
         if self._camera_roi is None:
-            self._camera_roi = NoAnalyzer()
+            consideration = Consideration(type='all')
+            self._camera_roi = NoAnalyzer(consideration)
 
         self._camera = camera_factory(get_mqtt_client, self._camera_roi)
 

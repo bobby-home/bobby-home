@@ -1,5 +1,8 @@
+import json
+from typing import List
+
 from camera.detect_motion import DetectPeople, People
-from camera.camera_analyze import CameraAnalyzeObject
+from camera.camera_analyze import CameraAnalyzeObject, Consideration
 import datetime
 import struct
 from PIL import Image
@@ -67,26 +70,40 @@ class Camera:
 
         return time_lapsed
 
+    def _publish_motion(self, considerations: List[Consideration]) -> None:
+        payload = {
+            'status': True
+        }
+
+        for consideration in considerations:
+            if consideration.type not in payload:
+                payload[consideration.type] = []
+
+            payload[consideration.type].append(consideration.id)
+
+        mqtt_payload = json.dumps(payload)
+
+        self.mqtt_client.publish(f'motion/camera/{self._device_id}', mqtt_payload, retain=True, qos=1)
+
     def process_frame(self, frame):
         result, peoples, image = self.detect_motion.process_frame(frame)
 
         if result is True:
             peoples_in_roi = []
             for people in peoples:
-                people: People
-                r = self._analyze_motion.is_object_considered(frame, people.bounding_box)
+                considerations = self._analyze_motion.is_object_considered(frame, people.bounding_box)
 
                 frame = cv2.drawContours(frame, [people.bounding_box.contours], 0, (0, 0, 255), 2)
 
-                peoples_in_roi.append(r)
+                peoples_in_roi.extend(considerations)
 
-            is_anybody_in_roi = any(peoples_in_roi)
+            is_anybody_in_roi = len(peoples_in_roi) > 0
 
             print(f'is_anybody_in_roi = {is_anybody_in_roi}, {peoples_in_roi}')
 
             if is_anybody_in_roi and self._last_time_people_detected is None:
                 self._initialize = False
-                self.mqtt_client.publish(f'motion/camera/{self._device_id}', struct.pack('?', 1), )
+                self._publish_motion(peoples_in_roi)
 
                 byte_arr = pil_image_to_byte_array(Image.fromarray(frame))
 
@@ -94,4 +111,9 @@ class Camera:
 
             self._last_time_people_detected = datetime.datetime.now()
         elif self._need_to_publish_no_motion():
-            self.mqtt_client.publish(f'motion/camera/{self._device_id}')
+            payload = {
+                'status': False
+            }
+
+            mqtt_payload = json.dumps(payload)
+            self.mqtt_client.publish(f'motion/camera/{self._device_id}', mqtt_payload, retain=True, qos=1)

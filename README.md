@@ -4,3 +4,16 @@ On the market to day, we can find a lot of security cameras, supposed to be inte
 
 This project is build from the ground up for simplicity, for developers and users, and also privacy first.
 
+## Status
+### Smart camera
+- [x] Detect human to notify.
+  - [x] Send picture to the main system.
+- [ ] Nocturne vision to detect human even when we don't have any light.
+
+### Dumb camera
+Nothing has been done yet and no plan for now because I have to finish the smart camera before to unlock some features that the system will use for dumb camera.
+
+### Alarm
+- [x] Schedule when to turn on or off the alarm.
+- [ ] Manage device by device, meaning that I can turn on a alarm device while some others are off.
+- [ ] Monitore if someone is detected to notify the end user without triggering the alarm system.

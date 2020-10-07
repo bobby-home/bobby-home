@@ -10,6 +10,8 @@ This software is currently under development and we are discovering some bugs da
 ### Smart camera
 - [x] Detect human to notify.
   - [x] Send picture to the main system.
+ - [x] Define ROIs (Region of interest) and use it to know whether the human is in a ROI or not.
+  - [ ] Attatch status to ROI. Basically one ROI can be in security mode and another one can be in watch only mode.
 - [ ] Nocturne vision to detect human even when we don't have any light.
 
 ### Dumb camera

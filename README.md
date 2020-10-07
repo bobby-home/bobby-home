@@ -5,6 +5,8 @@ On the market to day, we can find a lot of security cameras, supposed to be inte
 This project is build from the ground up for simplicity, for developers and users, and also privacy first.
 
 ## Status
+This software is currently under development and we are discovering some bugs day to day. It is currently deployed in one House to test it in the real world,  gather some data, and improve the overall!
+
 ### Smart camera
 - [x] Detect human to notify.
   - [x] Send picture to the main system.

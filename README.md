@@ -8,6 +8,7 @@ This project is build from the ground up for simplicity, for developers and user
 This software is currently under development and we are discovering some bugs day to day. It is currently deployed in one House to test it in the real world,  gather some data, and improve the overall!
 
 ### Smart camera
+- [x] Work with a PiCamera or USB camera on any hardware.
 - [x] Detect human to notify.
   - [x] Send picture to the main system.
  - [x] Define ROIs (Region of interest) and use it to know whether the human is in a ROI or not.

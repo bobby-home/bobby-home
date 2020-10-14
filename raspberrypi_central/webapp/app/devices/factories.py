@@ -1,5 +1,6 @@
 import factory
 from faker import Factory
+import uuid
 from .models import (
     Location,
 
@@ -26,7 +27,8 @@ class DeviceTypeFactory(factory.DjangoModelFactory):
 class DeviceFactory(factory.DjangoModelFactory):
     class Meta:
         model = Device
-    
+
+    device_id = factory.LazyAttribute(lambda obj: uuid.uuid4().__str__().split('-')[0])
     name = factory.LazyAttribute(lambda obj: faker.name())
     device_type = factory.SubFactory(DeviceTypeFactory)
     location = factory.SubFactory(LocationFactory)

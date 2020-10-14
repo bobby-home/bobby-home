@@ -23,7 +23,8 @@ class CameraRectangleROI(models.Model):
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
 
     def save(self, *args, **kwargs):
-        NotifyAlarmStatus(mqtt_factory).publish(self.device.id)
+        # TODO: remove comment to have this line of code.
+        # NotifyAlarmStatus(mqtt_factory).publish(self.device.id)
         super().save(*args, **kwargs)
 
 
@@ -141,10 +142,10 @@ class AlarmStatus(models.Model):
     def __str__(self):
         return f'Status is {self.running} for {self.device}'
 
-
 class CameraMotionDetected(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
+    in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
 
 
 class CameraMotionDetectedPicture(models.Model):

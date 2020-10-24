@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from camera.camera import Camera
 from camera.camera_analyze import Consideration, CameraAnalyzeObject
 from camera.camera_factory import camera_factory
 from camera.videostream import VideoStream
@@ -18,7 +19,9 @@ def roi_camera_from_args(args) -> Optional[CameraAnalyzeObject]:
     so I could do stuff like, if in CameraRectangleROI and it is not someone that I know (facial recognition), then we consider the people
     -> ring the alarm.
     """
-    if args and len(args) > 0:
+
+    # if args is empty, we will have: ([],)
+    if args and len(args) > 1:
         args = args[0]
 
         analyzers: List[CameraAnalyzeObject] = []
@@ -42,20 +45,23 @@ class RunSmartCamera(RunService):
     def __init__(self):
         self._stream = None
         self._camera = None
-        self._camera_roi = None
-        pass
+        self._camera_analyze_object = None
 
     def prepare_run(self, *args):
-        self._camera_roi = roi_camera_from_args(args)
-        if self._camera_roi is None:
-            consideration = Consideration(type='all')
-            self._camera_roi = NoAnalyzer(consideration)
+        self._camera_analyze_object = roi_camera_from_args(args)
 
-        self._camera = camera_factory(get_mqtt_client, self._camera_roi)
+        if self._camera_analyze_object is None:
+            # No analyzer, every people will be considered
+            consideration = Consideration(type='all')
+            self._camera_analyze_object = NoAnalyzer(consideration)
+
+        self._camera = camera_factory(get_mqtt_client, self._camera_analyze_object)
 
     def run(self) -> None:
         camera_width = 640
         camera_height = 480
+
+        self._camera.start()
 
         # TODO: see issue #78
         self._stream = VideoStream(self._camera.process_frame, resolution=(
@@ -63,7 +69,7 @@ class RunSmartCamera(RunService):
 
     def is_restart_necessary(self, *args) -> bool:
         new_roi = roi_camera_from_args(args)
-        return new_roi != self._camera_roi
+        return new_roi != self._camera_analyze_object
 
     def stop(self, *args) -> None:
         pass

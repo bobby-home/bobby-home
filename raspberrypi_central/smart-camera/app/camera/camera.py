@@ -57,9 +57,8 @@ class Camera:
         self._initialize = True
 
         self.detect_motion = detect_motion
-        self._start()
 
-    def _start(self):
+    def start(self):
         self.mqtt_client = self.get_mqtt_client(client_name=f'{self._device_id}-rpi4-alarm-motion-DETECT')
         self.mqtt_client.loop_start()
 
@@ -89,7 +88,7 @@ class Camera:
             payload[consideration.type].append(consideration.id)
 
         mqtt_payload = json.dumps(payload)
-
+        print(f'publish motion {mqtt_payload}')
         self.mqtt_client.publish(f'{CameraMqttTopics.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
     def _considered_peoples(self, frame, peoples: List[People]):
@@ -110,6 +109,7 @@ class Camera:
         peoples_in_roi = self._considered_peoples(frame, peoples)
 
         is_anybody_in_roi = len(peoples_in_roi) > 0
+        print(f'is_anybody_in_roi={is_anybody_in_roi}')
 
         if is_anybody_in_roi and self._last_time_people_detected is None:
             self._initialize = False
@@ -118,6 +118,7 @@ class Camera:
             self._publish_motion(peoples_in_roi, event_ref)
 
             byte_arr = self._transform_image_to_publish(frame)
+            print(f'publish picture {event_ref}')
             self.mqtt_client.publish(f'{CameraMqttTopics.PICTURE}/{self._device_id}/{event_ref}', byte_arr, qos=1)
 
         if is_anybody_in_roi:

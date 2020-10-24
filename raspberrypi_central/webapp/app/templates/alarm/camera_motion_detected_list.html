@@ -1,0 +1,25 @@
+{% extends '_layout.html' %}
+
+{% block header %}
+    <h1 class="h3">Camera motion list</h1>
+
+{% endblock header %}
+
+{% block body %}
+    <main class="l-container">
+        <div class="box">
+            <div class="box__body">
+                <h2>Camera motion list</h2>
+                <ul>
+                    {% for motion in motions %}
+                        <li>
+                        {{ motion.created_at }}
+{#                            <a href="{{ url('alarm:camera_rectangle_roi-edit', kwargs={'pk': roi.pk} )}}">{{ roi }}</a>#}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </main>
+
+{% endblock body %}

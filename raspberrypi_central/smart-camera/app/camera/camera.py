@@ -4,11 +4,10 @@ from enum import Enum
 from camera.detect_motion import DetectPeople, People
 from camera.camera_analyze import CameraAnalyzeObject, Consideration
 import datetime
-import struct
 from PIL import Image
 from image_processing.bin_image import pil_image_to_byte_array
 import numpy as np
-import cv2
+import uuid
 
 
 def order_points_new(pts):
@@ -77,9 +76,10 @@ class Camera:
 
         return time_lapsed
 
-    def _publish_motion(self, considerations: List[Consideration]) -> None:
+    def _publish_motion(self, considerations: List[Consideration], event_ref: str) -> None:
         payload = {
-            'status': True
+            'status': True,
+            'event_ref': event_ref
         }
 
         for consideration in considerations:
@@ -101,7 +101,8 @@ class Camera:
 
         return peoples_in_roi
 
-    def _transform_image_to_publish(self, image):
+    @staticmethod
+    def _transform_image_to_publish(image):
         return pil_image_to_byte_array(Image.fromarray(image))
 
     def process_frame(self, frame):
@@ -112,11 +113,12 @@ class Camera:
 
         if is_anybody_in_roi and self._last_time_people_detected is None:
             self._initialize = False
-            self._publish_motion(peoples_in_roi)
+
+            event_ref = str(uuid.uuid4())
+            self._publish_motion(peoples_in_roi, event_ref)
 
             byte_arr = self._transform_image_to_publish(frame)
-
-            self.mqtt_client.publish(f'{CameraMqttTopics.PICTURE}/{self._device_id}', byte_arr, qos=1)
+            self.mqtt_client.publish(f'{CameraMqttTopics.PICTURE}/{self._device_id}/{event_ref}', byte_arr, qos=1)
 
         if is_anybody_in_roi:
             self._last_time_people_detected = datetime.datetime.now()

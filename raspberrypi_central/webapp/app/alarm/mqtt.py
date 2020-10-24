@@ -17,14 +17,19 @@ from .models import AlarmStatus
 _LOGGER = logging.getLogger(__name__)
 
 
-def split_camera_topic(topic: str):
+def split_camera_topic(topic: str, is_event_ref = False):
     data = topic.split('/')
 
-    return {
+    data = {
         'type': data[0],
         'service': data[1],
         'device_id': data[2]
     }
+
+    if is_event_ref:
+        data['event_ref'] = data[3]
+
+    return data
 
 
 def on_motion_camera(client: MQTT, message: MqttMessage):
@@ -43,10 +48,10 @@ def on_motion_camera(client: MQTT, message: MqttMessage):
 
 
 def on_motion_picture(message: MqttMessage):
-    topic = split_camera_topic(message.topic)
+    topic = split_camera_topic(message.topic, True)
 
-    random = uuid.uuid4()
-    file_name = f'{random}.jpg'
+    event_ref = topic['event_ref']
+    file_name = f'{event_ref}.jpg'
 
     # Remember: image is bytearray
     image = message.payload
@@ -56,7 +61,8 @@ def on_motion_picture(message: MqttMessage):
 
     data = {
         'device_id': topic['device_id'],
-        'picture_path': picture_path
+        'picture_path': picture_path,
+        'event_ref': event_ref,
     }
 
     camera_motion_picture.apply_async(kwargs=data)
@@ -94,7 +100,7 @@ def register(mqtt: MQTT):
             qos=1,
             topics=[
                 MqttTopicSubscriptionJson('motion/camera/+', partial(on_motion_camera, mqtt)),
-                MqttTopicSubscription('motion/picture/+', on_motion_picture),
+                MqttTopicSubscription('motion/picture/+/+', on_motion_picture),
             ],
         ),
         MqttTopicFilterSubscription(

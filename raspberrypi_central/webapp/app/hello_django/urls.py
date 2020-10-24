@@ -6,7 +6,7 @@ from django.conf import settings
 urlpatterns = [
     path(r'admin/', admin.site.urls),
     path('device/', include('devices.urls')),
-    path('alarm/', include('alarm.urls')),
+    path('alarm/', include('alarm.urls', namespace='alarm')),
     path('alert/', include('alerts.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

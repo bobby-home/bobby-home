@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'notification',
 
     # third parties
+    'django_extensions',
     'rest_framework',
     'corsheaders',
     # 'debug_toolbar',

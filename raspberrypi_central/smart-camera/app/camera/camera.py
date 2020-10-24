@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from typing import List
 from enum import Enum
 from camera.detect_motion import DetectPeople, People
@@ -39,14 +40,11 @@ def order_points_new(pts):
     return np.array([tl, tr, br, bl], dtype="float32")
 
 
-class CameraMqttTopics(Enum):
-    MOTION = 'motion/camera'
-    PICTURE = 'motion/picture'
-
-
 class Camera:
 
     SECONDS_LAPSED_TO_PUBLISH = 5
+    MOTION = 'motion/camera'
+    PICTURE = 'motion/picture'
 
     def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client, device_id):
         self._analyze_motion = analyze_motion
@@ -78,18 +76,16 @@ class Camera:
     def _publish_motion(self, considerations: List[Consideration], event_ref: str) -> None:
         payload = {
             'status': True,
-            'event_ref': event_ref
+            'event_ref': event_ref,
+            'seen_in': defaultdict(list)
         }
 
         for consideration in considerations:
-            if consideration.type not in payload:
-                payload[consideration.type] = []
-
-            payload[consideration.type].append(consideration.id)
+            payload['seen_in'][consideration.type].append(consideration.id)
 
         mqtt_payload = json.dumps(payload)
         print(f'publish motion {mqtt_payload}')
-        self.mqtt_client.publish(f'{CameraMqttTopics.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
+        self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
     def _considered_peoples(self, frame, peoples: List[People]):
         peoples_in_roi = []
@@ -119,7 +115,7 @@ class Camera:
 
             byte_arr = self._transform_image_to_publish(frame)
             print(f'publish picture {event_ref}')
-            self.mqtt_client.publish(f'{CameraMqttTopics.PICTURE}/{self._device_id}/{event_ref}', byte_arr, qos=1)
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{event_ref}', byte_arr, qos=1)
 
         if is_anybody_in_roi:
             self._last_time_people_detected = datetime.datetime.now()
@@ -129,4 +125,4 @@ class Camera:
             }
 
             mqtt_payload = json.dumps(payload)
-            self.mqtt_client.publish(f'{CameraMqttTopics.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
+            self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)

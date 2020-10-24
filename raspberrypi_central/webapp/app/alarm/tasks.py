@@ -8,8 +8,8 @@ from .messaging import speaker_messaging_factory
 from alarm.models import AlarmSchedule
 
 
-@shared_task(name="security.camera_motion_picture", bind=True)
-def camera_motion_picture(self, device_id: str, picture_path: str, event_ref: str):
+@shared_task(name="security.camera_motion_picture")
+def camera_motion_picture(device_id: str, picture_path: str, event_ref: str):
     device = Device.objects.get(device_id=device_id)
 
     picture = alarm_models.CameraMotionDetectedPicture(device=device, picture_path=picture_path, event_ref=event_ref)
@@ -32,8 +32,11 @@ def play_sound(device_id: str):
 
 
 @shared_task(name="security.camera_motion_detected")
-def camera_motion_detected(device_id: str, seen_in: dict):
-    device = save_motion(device_id, seen_in)
+def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str):
+    device = save_motion(device_id, seen_in, event_ref)
+
+    if device is None:
+        return None
 
     location = device.location
 

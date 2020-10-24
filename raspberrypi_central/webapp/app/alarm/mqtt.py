@@ -20,26 +20,29 @@ _LOGGER = logging.getLogger(__name__)
 def split_camera_topic(topic: str, is_event_ref = False):
     data = topic.split('/')
 
-    data = {
+    r_data = {
         'type': data[0],
         'service': data[1],
         'device_id': data[2]
     }
 
     if is_event_ref:
-        data['event_ref'] = data[3]
+        r_data['event_ref'] = data[3]
 
-    return data
+    return r_data
 
 
 def on_motion_camera(client: MQTT, message: MqttMessage):
     topic = split_camera_topic(message.topic)
     payload = message.payload
 
+    print(f'on_motion_camera payload={on_motion_camera}')
+
     if payload['status'] is True:
         data = {
             'device_id': topic['device_id'],
-            'seen_in': payload['seen_in']
+            'seen_in': payload['seen_in'],
+            'event_ref': payload['event_ref'],
         }
         camera_motion_detected.apply_async(kwargs=data)
     else:
@@ -52,6 +55,8 @@ def on_motion_picture(message: MqttMessage):
 
     event_ref = topic['event_ref']
     file_name = f'{event_ref}.jpg'
+
+    print(f'on_motion_picture even_ref={event_ref}')
 
     # Remember: image is bytearray
     image = message.payload

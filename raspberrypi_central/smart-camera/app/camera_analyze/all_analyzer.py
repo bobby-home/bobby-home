@@ -11,5 +11,8 @@ class NoAnalyzer(CameraAnalyzeObject):
     def __init__(self, consideration: Consideration):
         self._consideration = consideration
 
+    def __eq__(self, other):
+        return True
+
     def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
         return [self._consideration]

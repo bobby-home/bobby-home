@@ -2,7 +2,7 @@ import factory
 from faker import Factory
 
 from devices.factories import DeviceFactory
-from .models import CameraRectangleROI
+from .models import CameraRectangleROI, AlarmStatus
 
 faker = Factory.create()
 
@@ -18,4 +18,12 @@ class CameraRectangleROIFactory(factory.DjangoModelFactory):
     definition_width = 100
     definition_height = 100
 
+    device = factory.SubFactory(DeviceFactory)
+
+
+class AlarmStatusFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = AlarmStatus
+
+    running = True
     device = factory.SubFactory(DeviceFactory)

@@ -36,6 +36,7 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str):
     device = save_motion(device_id, seen_in, event_ref)
 
     if device is None:
+        # the motion is already save in db, and so the notification should have been already send.
         return None
 
     location = device.location

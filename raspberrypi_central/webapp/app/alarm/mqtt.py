@@ -69,6 +69,14 @@ def on_motion_picture(message: MqttMessage):
     # Remember: image is bytearray
     image = message.payload
 
+    """
+    Warning: hacky thing.
+    - We need to save the file here because we cannot send it to a Task (memory consumption!).
+    - So we save manually the file to the disk at the right place for Django.
+    - But we can't use model.file.save('name.jpg', content, True) because we do not have the model instance here this is the task job.
+    - So we go with low-level API.
+    - at the end, picture_path is an absolute path e.g: "/usr/src/app/media/1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg"
+    """
     filename = default_storage.save(file_name, ContentFile(image))
     picture_path = default_storage.path(filename)
 

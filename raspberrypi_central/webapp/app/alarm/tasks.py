@@ -5,7 +5,8 @@ from notification.tasks import send_message
 from utils.mqtt import mqtt_factory
 from .external.motion import save_motion
 from .messaging import speaker_messaging_factory
-from alarm.models import AlarmSchedule
+from alarm.models import AlarmSchedule, CameraMotionDetectedPicture
+import os
 
 
 @shared_task(name="security.play_sound")
@@ -21,7 +22,16 @@ def play_sound(device_id: str):
 def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, status: str):
     device = Device.objects.get(device_id=device_id)
 
-    picture = alarm_models.CameraMotionDetectedPicture(device=device, picture_path=picture_path, event_ref=event_ref, is_motion=status)
+    picture = CameraMotionDetectedPicture(device=device, event_ref=event_ref, is_motion=status)
+
+    """
+    Warning: hacky thing...
+    - We need to set the file to the Django ImageField. Remember that the file is already saved on disk and picture_path
+    represent the absolute path. For instance: /usr/src/app/media/1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg
+    - But we cannot set picture.path directly, Django blocks this action. We only can change the picture.name which is the filename with extension.
+        - To retrieve this, we use the os.path.basename which gives us what django accepts: "1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg".
+    """
+    picture.picture.name = os.path.basename(picture_path)
     picture.save()
 
     kwargs = {

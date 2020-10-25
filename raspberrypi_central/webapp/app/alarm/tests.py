@@ -7,28 +7,38 @@ from devices.models import Device
 from . import models
 from api_keys.factories import ApiKeysFactory
 from api_keys.models import APIKey
+from .communication.alarm import NotifyAlarmStatus
 from .external.motion import save_motion
-from .factories import CameraRectangleROIFactory
-from .models import CameraMotionDetected, CameraRectangleROI
+from .factories import CameraRectangleROIFactory, AlarmStatusFactory
+from .models import CameraMotionDetected, CameraRectangleROI, AlarmStatus
+from unittest.mock import patch, MagicMock
 
 
 class SomeTestCase(TestCase):
     def setUp(self) -> None:
-        self.device: Device = DeviceFactory()
+        self.alarm_status: AlarmStatus = AlarmStatusFactory()
+        self.device: Device = self.alarm_status.device
+
         self.roi1 = CameraRectangleROIFactory(device=self.device)
         self.roi2 = CameraRectangleROIFactory(device=self.device)
 
-    def test_save_motion(self):
-        save_motion(self.device.device_id, {'rectangle': [self.roi1.id, self.roi2.id]})
+    # def test_save_motion(self):
+    #     save_motion(self.device.device_id, {'rectangle': [self.roi1.id, self.roi2.id]})
+    #
+    #     motion = CameraMotionDetected.objects.filter(device__device_id=self.device.device_id)
+    #     self.assertTrue(len(motion), 1)
+    #
+    #     rois = CameraRectangleROI.objects.filter(device=self.device)
+    #     self.assertTrue(len(rois), 2)
+    #
+    #     rois_ids = [roi.id for roi in rois]
+    #     self.assertEquals(rois_ids, [self.roi1.id, self.roi2.id])
 
-        motion = CameraMotionDetected.objects.filter(device__device_id=self.device.device_id)
-        self.assertTrue(len(motion), 1)
+    def test_save_motion_publish(self):
+        with patch.object(NotifyAlarmStatus, 'publish', return_value=None) as mock:
+            save_motion(self.device.device_id, {'rectangle': [self.roi1.id, self.roi2.id]})
+            mock.assert_called_once()
 
-        rois = CameraRectangleROI.objects.filter(device=self.device)
-        self.assertTrue(len(rois), 2)
-
-        rois_ids = [roi.id for roi in rois]
-        self.assertEquals(rois_ids, [self.roi1.id, self.roi2.id])
 
 # class AlarmViewTestCase(TestCase):
 #     def setUp(self):

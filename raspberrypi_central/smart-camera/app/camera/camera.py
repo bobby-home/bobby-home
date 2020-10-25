@@ -116,7 +116,7 @@ class Camera:
 
             byte_arr = self._transform_image_to_publish(frame)
             print(f'publish picture {self.event_ref}')
-            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}', byte_arr, qos=1)
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/1', byte_arr, qos=1)
 
         if is_anybody_in_roi:
             self._last_time_people_detected = datetime.datetime.now()
@@ -130,7 +130,7 @@ class Camera:
             self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
             byte_arr = self._transform_image_to_publish(frame)
-            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}', byte_arr, qos=1)
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/0', byte_arr, qos=1)
 
     @staticmethod
     def generate_event_ref():

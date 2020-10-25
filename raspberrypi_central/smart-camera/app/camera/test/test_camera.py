@@ -24,7 +24,7 @@ class TestCamera(TestCase):
 
         self.no_motion_payload = json.dumps({"status": False, 'event_ref': Camera.EVENT_REF_NO_MOTION})
         self.no_motion_call = call(self.motion_topic, self.no_motion_payload, retain=True, qos=1)
-        self.no_motion_picture_call = call(f'{self.picture_topic}/{Camera.EVENT_REF_NO_MOTION}', [], qos=1)
+        self.no_motion_picture_call = call(f'{self.picture_topic}/{Camera.EVENT_REF_NO_MOTION}/0', [], qos=1)
 
         self.no_motion_calls = [self.no_motion_call, self.no_motion_picture_call]
 
@@ -78,7 +78,7 @@ class TestCamera(TestCase):
 
         calls = [
             call(self.motion_topic, json.dumps({"status": True, 'event_ref': event_ref, "seen_in": {"rectangle": [1, 2]}}), retain=True, qos=1),
-            call(f'{self.picture_topic}/{event_ref}', [], qos=1)
+            call(f'{self.picture_topic}/{event_ref}/1', [], qos=1)
         ]
         self.mqtt_mock.publish.assert_has_calls(calls)
 
@@ -113,6 +113,6 @@ class TestCamera(TestCase):
 
             no_motion_payload = json.dumps({"status": False, 'event_ref': event_ref})
             no_motion_call = call(self.motion_topic, no_motion_payload, retain=True, qos=1)
-            no_motion_picture_call = call(f'{self.picture_topic}/{event_ref}', [], qos=1)
+            no_motion_picture_call = call(f'{self.picture_topic}/{event_ref}/0', [], qos=1)
 
             self.mqtt_mock.publish.assert_has_calls([no_motion_call, no_motion_picture_call])

@@ -14,7 +14,6 @@ class TestCamera(TestCase):
         self.device_id = 'some_id'
         self.motion_topic = f'{Camera.MOTION}/{self.device_id}'
         self.picture_topic = f'{Camera.PICTURE}/{self.device_id}'
-        self.no_motion_payload = '{"status": false}'
 
         self.box = ObjectBoundingBox(0, 0, 0, 0, [])
         self.people = People(self.box, 'class_id', 0.5)
@@ -23,6 +22,7 @@ class TestCamera(TestCase):
         self.analyze_object_mock = Mock()
         self.detect_motion_mock = Mock()
 
+        self.no_motion_payload = json.dumps({"status": False, 'event_ref': Camera.EVENT_REF_NO_MOTION})
         self.no_motion_call = call(self.motion_topic, self.no_motion_payload, retain=True, qos=1)
         self.no_motion_picture_call = call(f'{self.picture_topic}/{Camera.EVENT_REF_NO_MOTION}', [], qos=1)
 
@@ -88,6 +88,7 @@ class TestCamera(TestCase):
             - we don't test publish calls, it's already done.
         - we process a frame after SECONDS_LAPSED_TO_PUBLISH secs without any considerations -> the system makes the "no more motion" call.
         """
+
         self.detect_motion_mock.process_frame.return_value = [self.people], []
         consideration1 = Consideration(type='rectangle', id=1)
         consideration2 = Consideration(type='rectangle', id=2)
@@ -96,6 +97,8 @@ class TestCamera(TestCase):
         camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
+        event_ref = 'event_ref'
+        camera.generate_event_ref = lambda : event_ref
 
         camera.process_frame([])
 
@@ -108,4 +111,8 @@ class TestCamera(TestCase):
             mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.SECONDS_LAPSED_TO_PUBLISH)
             camera.process_frame([])
 
-            self.mqtt_mock.publish.assert_has_calls(self.no_motion_calls)
+            no_motion_payload = json.dumps({"status": False, 'event_ref': event_ref})
+            no_motion_call = call(self.motion_topic, no_motion_payload, retain=True, qos=1)
+            no_motion_picture_call = call(f'{self.picture_topic}/{event_ref}', [], qos=1)
+
+            self.mqtt_mock.publish.assert_has_calls([no_motion_call, no_motion_picture_call])

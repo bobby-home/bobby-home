@@ -56,6 +56,7 @@ class Camera:
         self._initialize = True
 
         self.detect_motion = detect_motion
+        self.event_ref = self.EVENT_REF_NO_MOTION
 
     def start(self):
         self.mqtt_client = self.get_mqtt_client(client_name=f'{self._device_id}-rpi4-alarm-motion-DETECT')
@@ -110,25 +111,26 @@ class Camera:
         if is_anybody_in_roi and self._last_time_people_detected is None:
             self._initialize = False
 
-            event_ref = self.generate_event_ref()
-            self._publish_motion(peoples_in_roi, event_ref)
+            self.event_ref = self.generate_event_ref()
+            self._publish_motion(peoples_in_roi, self.event_ref)
 
             byte_arr = self._transform_image_to_publish(frame)
-            print(f'publish picture {event_ref}')
-            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{event_ref}', byte_arr, qos=1)
+            print(f'publish picture {self.event_ref}')
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}', byte_arr, qos=1)
 
         if is_anybody_in_roi:
             self._last_time_people_detected = datetime.datetime.now()
         elif self._need_to_publish_no_motion():
             payload = {
-                'status': False
+                'status': False,
+                'event_ref': self.event_ref,
             }
 
             mqtt_payload = json.dumps(payload)
             self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
             byte_arr = self._transform_image_to_publish(frame)
-            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.EVENT_REF_NO_MOTION}', byte_arr, qos=1)
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}', byte_arr, qos=1)
 
     @staticmethod
     def generate_event_ref():

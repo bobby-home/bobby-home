@@ -154,3 +154,5 @@ class CameraMotionDetectedPicture(models.Model):
     picture_path = models.CharField(max_length=100, blank=True, null=True)
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
     event_ref = models.UUIDField(unique=True, editable=False)
+
+    is_motion = models.BooleanField()

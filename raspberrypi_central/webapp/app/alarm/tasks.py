@@ -9,10 +9,10 @@ from alarm.models import AlarmSchedule
 
 
 @shared_task(name="security.camera_motion_picture")
-def camera_motion_picture(device_id: str, picture_path: str, event_ref: str):
+def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, status: str):
     device = Device.objects.get(device_id=device_id)
 
-    picture = alarm_models.CameraMotionDetectedPicture(device=device, picture_path=picture_path, event_ref=event_ref)
+    picture = alarm_models.CameraMotionDetectedPicture(device=device, picture_path=picture_path, event_ref=event_ref, is_motion=status)
     picture.save()
 
     kwargs = {

@@ -28,6 +28,7 @@ def split_camera_topic(topic: str, is_event_ref = False):
 
     if is_event_ref:
         r_data['event_ref'] = data[3]
+        r_data['status'] = data[4]
 
     return r_data
 
@@ -38,14 +39,20 @@ def on_motion_camera(client: MQTT, message: MqttMessage):
 
     print(f'on_motion_camera payload={on_motion_camera}')
 
+    data = {
+        'device_id': topic['device_id'],
+        'event_ref': payload['event_ref'],
+    }
+
     if payload['status'] is True:
-        data = {
-            'device_id': topic['device_id'],
-            'seen_in': payload['seen_in'],
-            'event_ref': payload['event_ref'],
-        }
+        data['seen_in'] = payload['seen_in']
         camera_motion_detected.apply_async(kwargs=data)
     else:
+        if data['event_ref'] != '0':
+            # 0 = initialization
+            # TODO: save in database "no more motion".
+            pass
+
         speaker = speaker_messaging_factory(client)
         speaker.publish_speaker_status(topic['device_id'], False)
 
@@ -54,6 +61,12 @@ def on_motion_picture(message: MqttMessage):
     topic = split_camera_topic(message.topic, True)
 
     event_ref = topic['event_ref']
+    status = topic['status']
+
+    if event_ref == "0":
+        # Initialization: no motion
+        return
+
     file_name = f'{event_ref}.jpg'
 
     print(f'on_motion_picture even_ref={event_ref}')
@@ -68,6 +81,7 @@ def on_motion_picture(message: MqttMessage):
         'device_id': topic['device_id'],
         'picture_path': picture_path,
         'event_ref': event_ref,
+        'status': status,
     }
 
     camera_motion_picture.apply_async(kwargs=data)

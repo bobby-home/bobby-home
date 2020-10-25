@@ -143,16 +143,24 @@ class AlarmSchedule(models.Model):
 
 
 class CameraMotionDetected(models.Model):
+    class Meta:
+        unique_together = ['event_ref', 'is_motion']
+
     created_at = models.DateTimeField(auto_now_add=True)
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
     in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
-    event_ref = models.UUIDField(unique=True, editable=False)
+
+    event_ref = models.UUIDField()
+    is_motion = models.BooleanField()
 
 
 class CameraMotionDetectedPicture(models.Model):
+    class Meta:
+        unique_together = ['event_ref', 'is_motion']
+
     created_at = models.DateTimeField(auto_now_add=True)
     picture_path = models.CharField(max_length=100, blank=True, null=True)
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
-    event_ref = models.UUIDField(unique=True, editable=False)
 
+    event_ref = models.UUIDField()
     is_motion = models.BooleanField()

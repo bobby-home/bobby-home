@@ -8,6 +8,15 @@ from .messaging import speaker_messaging_factory
 from alarm.models import AlarmSchedule
 
 
+@shared_task(name="security.play_sound")
+def play_sound(device_id: str):
+    # device = device_models.Device.objects.get(device_id=device_id)
+    mqtt_client = mqtt_factory()
+
+    speaker = speaker_messaging_factory(mqtt_client)
+    speaker.publish_speaker_status(device_id, True)
+
+
 @shared_task(name="security.camera_motion_picture")
 def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, status: str):
     device = Device.objects.get(device_id=device_id)
@@ -22,18 +31,9 @@ def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, sta
     send_message.apply_async(kwargs=kwargs)
 
 
-@shared_task(name="security.play_sound")
-def play_sound(device_id: str):
-    # device = device_models.Device.objects.get(device_id=device_id)
-    mqtt_client = mqtt_factory()
-
-    speaker = speaker_messaging_factory(mqtt_client)
-    speaker.publish_speaker_status(device_id, True)
-
-
 @shared_task(name="security.camera_motion_detected")
-def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str):
-    device = save_motion(device_id, seen_in, event_ref)
+def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status: bool):
+    device, motion = save_motion(device_id, seen_in, event_ref, status)
 
     if device is None:
         # the motion is already save in db, and so the notification should have been already send.
@@ -41,8 +41,13 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str):
 
     location = device.location
 
+    if motion.is_motion:
+        message = f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
+    else:
+        message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
+
     kwargs = {
-        'message': f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
+        'message': message
     }
 
     """
@@ -54,7 +59,11 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str):
     it will retry it -> notify the user multiple times.
     """
     send_message.apply_async(kwargs=kwargs)
-    play_sound.apply_async(kwargs={'device_id': device_id})
+    # play_sound.apply_async(kwargs={'device_id': device_id})
+
+    mqtt_client = mqtt_factory()
+    speaker = speaker_messaging_factory(mqtt_client)
+    speaker.publish_speaker_status(device_id, motion.is_motion)
 
 
 @shared_task(name="alarm.set_alarm_off")

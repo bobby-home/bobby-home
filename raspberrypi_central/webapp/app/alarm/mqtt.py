@@ -7,12 +7,10 @@ from utils.mqtt import MQTT
 from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from functools import partial
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
 from .communication.alarm import NotifyAlarmStatus
 from .messaging import speaker_messaging_factory
-from .models import AlarmStatus
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,28 +31,25 @@ def split_camera_topic(topic: str, is_event_ref = False):
     return r_data
 
 
-def on_motion_camera(client: MQTT, message: MqttMessage):
+def on_motion_camera(message: MqttMessage):
     topic = split_camera_topic(message.topic)
     payload = message.payload
 
-    print(f'on_motion_camera payload={on_motion_camera}')
+    print(f'on_motion_camera payload={payload}')
 
     data = {
         'device_id': topic['device_id'],
         'event_ref': payload['event_ref'],
+        'status': payload['status'],
+        'seen_in': {},
     }
 
-    if payload['status'] is True:
+    if data['status'] is True:
         data['seen_in'] = payload['seen_in']
-        camera_motion_detected.apply_async(kwargs=data)
-    else:
-        if data['event_ref'] != '0':
-            # 0 = initialization
-            # TODO: save in database "no more motion".
-            pass
 
-        speaker = speaker_messaging_factory(client)
-        speaker.publish_speaker_status(topic['device_id'], False)
+    if data['event_ref'] != '0':
+        # 0 = initialization
+        camera_motion_detected.apply_async(kwargs=data)
 
 
 def on_motion_picture(message: MqttMessage):
@@ -63,13 +58,13 @@ def on_motion_picture(message: MqttMessage):
     event_ref = topic['event_ref']
     status = topic['status']
 
+    print(f'on_motion_picture even_ref={event_ref}')
+
     if event_ref == "0":
         # Initialization: no motion
         return
 
     file_name = f'{event_ref}.jpg'
-
-    print(f'on_motion_picture even_ref={event_ref}')
 
     # Remember: image is bytearray
     image = message.payload
@@ -118,8 +113,8 @@ def register(mqtt: MQTT):
             topic='motion/#',
             qos=1,
             topics=[
-                MqttTopicSubscriptionJson('motion/camera/+', partial(on_motion_camera, mqtt)),
-                MqttTopicSubscription('motion/picture/+/+', on_motion_picture),
+                MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
+                MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
             ],
         ),
         MqttTopicFilterSubscription(

@@ -45,6 +45,7 @@ class Camera:
     SECONDS_LAPSED_TO_PUBLISH = 5
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'
+    EVENT_REF_NO_MOTION = '0'
 
     def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client, device_id):
         self._analyze_motion = analyze_motion
@@ -105,12 +106,11 @@ class Camera:
         peoples_in_roi = self._considered_peoples(frame, peoples)
 
         is_anybody_in_roi = len(peoples_in_roi) > 0
-        print(f'is_anybody_in_roi={is_anybody_in_roi}')
 
         if is_anybody_in_roi and self._last_time_people_detected is None:
             self._initialize = False
 
-            event_ref = str(uuid.uuid4())
+            event_ref = self.generate_event_ref()
             self._publish_motion(peoples_in_roi, event_ref)
 
             byte_arr = self._transform_image_to_publish(frame)
@@ -126,3 +126,10 @@ class Camera:
 
             mqtt_payload = json.dumps(payload)
             self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
+
+            byte_arr = self._transform_image_to_publish(frame)
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.EVENT_REF_NO_MOTION}', byte_arr, qos=1)
+
+    @staticmethod
+    def generate_event_ref():
+        return str(uuid.uuid4())

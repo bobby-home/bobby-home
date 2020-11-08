@@ -1,11 +1,14 @@
 import json
 import uuid
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
+
 from django.db import models
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
+
+from alarm.communication.alarm import NotifyAlarmStatus
+from devices.models import Device
 from house.models import House
 from utils.mqtt import mqtt_factory
-from devices.models import Device
-from alarm.communication.alarm import NotifyAlarmStatus
+
 
 class AlarmStatusManager(models.Manager):
     def get_status(self):
@@ -25,34 +28,6 @@ class AlarmStatus(models.Model):
 
     def __str__(self):
         return f'Status is {self.running} for {self.device}'
-
-
-class CameraROI(models.Model):
-    device = models.OneToOneField(Device, on_delete=models.PROTECT)
-
-    """
-    We save the picture where the user defined the ROI.
-    This could be useful to check if the camera moves to let know the user
-    because the ROI could become wrong.
-    """
-    define_picture = models.ImageField()
-
-
-class CameraRectangleROI(models.Model):
-    # ? We might rework the max_digits & decimal_places here
-    # I didn't really know what to put here. Seems good but may not be optimized.
-
-    x = models.DecimalField(max_digits=8, decimal_places=4)
-    y = models.DecimalField(max_digits=8, decimal_places=4)
-    w = models.DecimalField(max_digits=8, decimal_places=4)
-    h = models.DecimalField(max_digits=8, decimal_places=4)
-
-    camera_roi = models.ForeignKey(CameraROI, on_delete=models.CASCADE)
-
-    # TODO: use a service to change rectangle ROI.
-    # def save(self, *args, **kwargs):
-    #     NotifyAlarmStatus(mqtt_factory).publish(self.device.device_id)
-    #     super().save(*args, **kwargs)
 
 
 class AlarmSchedule(models.Model):
@@ -92,7 +67,7 @@ class AlarmSchedule(models.Model):
             for day_int, day_str in enumerate(possible_days, start=0):
                 if getattr(self, day_str):
                     days.append(str(day_int))
-        
+
             # Celery crontab want a list as str, ex: "monday,tuesday,..."
             cron_days = ','.join(days)
 
@@ -148,27 +123,3 @@ class AlarmSchedule(models.Model):
             off_crontab.save()
 
         super().save(*args, **kwargs)
-
-
-class CameraMotionDetected(models.Model):
-    class Meta:
-        unique_together = ['event_ref', 'is_motion']
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
-    in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
-
-    event_ref = models.UUIDField()
-    is_motion = models.BooleanField()
-
-
-class CameraMotionDetectedPicture(models.Model):
-    class Meta:
-        unique_together = ['event_ref', 'is_motion']
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    picture = models.ImageField(blank=True, null=True)
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
-
-    event_ref = models.UUIDField()
-    is_motion = models.BooleanField()

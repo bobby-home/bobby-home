@@ -1,8 +1,8 @@
 from django.urls import include, path
 
 from alarm.views.alarm_status_views import AlarmStatusList, AlarmStatusUpdate, AlarmStatusCreate
-from alarm.views.camera_motion_views import CameraMotionDetectedList
-from alarm.views.camera_roi_views import CameraRectangleROICreate, CameraRectangleROIUpdate, CameraRectangleROIList
+from alarm.views.camera_motion_views import CameraMotionDetectedList, CameraMotionDetectedDetail
+from alarm.views.camera_roi_views import CameraROICreate, CameraROIUpdate, CameraROIList, CameraROIDelete
 
 app_name = 'alarm'
 
@@ -13,13 +13,15 @@ status_patterns = [
 ]
 
 roi_patterns = [
-    path('', CameraRectangleROIList.as_view(), name='camera_rectangle_roi-list'),
-    path('<int:pk>/edit', CameraRectangleROIUpdate.as_view(), name='camera_rectangle_roi-edit'),
-    path('add', CameraRectangleROICreate.as_view(), name='camera_rectangle_roi-add'),
+    path('', CameraROIList.as_view(), name='camera_roi-list'),
+    path('<int:pk>/edit', CameraROIUpdate.as_view(), name='camera_roi-edit'),
+    path('<int:pk>/delete', CameraROIDelete.as_view(), name='camera_roi-delete'),
+    path('add', CameraROICreate.as_view(), name='camera_roi-add'),
 ]
 
 motions_pattern = [
     path('', CameraMotionDetectedList.as_view(), name='camera_motion_detected-list'),
+    path('<int:pk>', CameraMotionDetectedDetail.as_view(), name='camera_motion_detected-detail'),
 ]
 
 urlpatterns = [

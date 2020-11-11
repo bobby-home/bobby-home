@@ -13,8 +13,9 @@
                 <ul>
                     {% for motion in motions %}
                         <li>
-                        {{ motion.created_at }}
-{#                            <a href="{{ url('alarm:camera_rectangle_roi-edit', kwargs={'pk': roi.pk} )}}">{{ roi }}</a>#}
+                            <a href="{{ url('alarm:camera_motion_detected-detail', kwargs={'pk': motion.pk} )}}">
+                                {{ motion.created_at }}
+                            </a>
                         </li>
                     {% endfor %}
                 </ul>

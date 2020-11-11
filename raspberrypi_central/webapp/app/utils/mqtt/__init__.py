@@ -100,7 +100,7 @@ def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
         user=os.environ['MQTT_USER'],
         password=os.environ['MQTT_PASSWORD'],
         hostname=os.environ['MQTT_HOSTNAME'],
-        port=os.environ['MQTT_PORT']
+        port=int(os.environ['MQTT_PORT'])
     )
 
     return MQTT(mqttConfig)

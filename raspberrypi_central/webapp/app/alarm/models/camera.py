@@ -25,11 +25,6 @@ class CameraRectangleROI(models.Model):
 
     camera_roi = models.ForeignKey(CameraROI, on_delete=models.CASCADE)
 
-    # TODO: use a service to change rectangle ROI.
-    # def save(self, *args, **kwargs):
-    #     NotifyAlarmStatus(mqtt_factory).publish(self.device.device_id)
-    #     super().save(*args, **kwargs)
-
 
 class CameraMotionDetected(models.Model):
     class Meta:
@@ -41,6 +36,19 @@ class CameraMotionDetected(models.Model):
 
     event_ref = models.UUIDField()
     is_motion = models.BooleanField()
+
+
+class CameraMotionDetectedBoundingBox(models.Model):
+    """
+    This is given by Tensorflow, they are bounding boxes around an object.
+    This coordinates have been rescaled on the picture, they are not relatives ([0;1]).
+    """
+    x = models.DecimalField(max_digits=8, decimal_places=4)
+    y = models.DecimalField(max_digits=8, decimal_places=4)
+    w = models.DecimalField(max_digits=8, decimal_places=4)
+    h = models.DecimalField(max_digits=8, decimal_places=4)
+
+    camera_motion_detected = models.ForeignKey(CameraMotionDetected, on_delete=models.CASCADE)
 
 
 class CameraMotionDetectedPicture(models.Model):

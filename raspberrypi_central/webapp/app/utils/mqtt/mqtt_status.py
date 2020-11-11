@@ -2,6 +2,7 @@ import struct
 import json
 from decimal import Decimal
 
+from utils.json.decimal_encoder import DecimalEncoder
 from utils.mqtt import MQTT
 
 
@@ -30,7 +31,9 @@ class MqttJsonStatus:
             'data': data
         }
 
-        encoded_data = json.dumps(payload, default=decimal_default)
+        print(f'payload={payload}')
+
+        encoded_data = json.dumps(payload, cls=DecimalEncoder)
 
         print(encoded_data)
 

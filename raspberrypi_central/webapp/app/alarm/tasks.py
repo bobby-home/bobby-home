@@ -1,12 +1,13 @@
+import os
+from typing import List
+
 from celery import shared_task
-from alarm import models as alarm_models
 from devices.models import Device
 from notification.tasks import send_message
 from utils.mqtt import mqtt_factory
 from .external.motion import save_motion
 from .messaging import speaker_messaging_factory
-from alarm.models import AlarmSchedule, CameraMotionDetectedPicture
-import os
+from alarm.models import AlarmSchedule, CameraMotionDetectedPicture, AlarmStatus
 
 
 @shared_task(name="security.play_sound")
@@ -69,8 +70,9 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
     it will retry it -> notify the user multiple times.
     """
     send_message.apply_async(kwargs=kwargs)
-    # play_sound.apply_async(kwargs={'device_id': device_id})
 
+    # We do it in this task for now.
+    # play_sound.apply_async(kwargs={'device_id': device_id})
     mqtt_client = mqtt_factory()
     speaker = speaker_messaging_factory(mqtt_client)
     speaker.publish_speaker_status(device_id, motion.is_motion)
@@ -79,15 +81,18 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):
     schedule = AlarmSchedule.objects.get(uuid=alarm_status_uui)
-    for alarm_status in schedule.alarm_statuses:
-        alarm_status = False
+    alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses
+
+    for alarm_status in alarm_statuses:
+        alarm_status.running = False
         alarm_status.save()
 
 
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on(alarm_status_uui):
     schedule = AlarmSchedule.objects.get(uuid=alarm_status_uui)
-    for alarm_status in schedule.alarm_statuses:
-        alarm_status = True
-        alarm_status.save()
+    alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses
 
+    for alarm_status in alarm_statuses:
+        alarm_status.running = True
+        alarm_status.save()

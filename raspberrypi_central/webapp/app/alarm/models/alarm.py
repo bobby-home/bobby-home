@@ -4,10 +4,9 @@ import uuid
 from django.db import models
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
-from alarm.communication.alarm import NotifyAlarmStatus
+from alarm.communication.alarm import notify_alarm_status_factory
 from devices.models import Device
 from house.models import House
-from utils.mqtt import mqtt_factory
 
 
 class AlarmStatusManager(models.Manager):
@@ -20,10 +19,10 @@ class AlarmStatus(models.Model):
     objects = AlarmStatusManager()
 
     running = models.BooleanField()
-    device = models.OneToOneField(Device, on_delete=models.PROTECT)
+    device = models.OneToOneField(Device, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
-        NotifyAlarmStatus(mqtt_factory).publish(self.device.device_id, self.running)
+        notify_alarm_status_factory().publish_status_changed(self.device_id, self.running)
         super().save(*args, **kwargs)
 
     def __str__(self):

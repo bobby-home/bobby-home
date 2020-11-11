@@ -1,10 +1,30 @@
+import uuid
+
 import factory
 from faker import Factory
 
 from devices.factories import DeviceFactory
-from .models import CameraRectangleROI, AlarmStatus
+from .models import CameraRectangleROI, AlarmStatus, CameraROI, CameraMotionDetectedPicture
 
 faker = Factory.create()
+
+
+class CameraMotionDetectedPictureFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = CameraMotionDetectedPicture
+
+    event_ref = factory.LazyAttribute(lambda obj: uuid.uuid4().__str__())
+    is_motion = True
+    device = factory.SubFactory(DeviceFactory)
+    picture = factory.django.FileField()
+
+
+class CameraROIFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = CameraROI
+
+    device = factory.SubFactory(DeviceFactory)
+
 
 class CameraRectangleROIFactory(factory.DjangoModelFactory):
     class Meta:
@@ -15,10 +35,7 @@ class CameraRectangleROIFactory(factory.DjangoModelFactory):
     w = 0
     h = 0
 
-    definition_width = 100
-    definition_height = 100
-
-    device = factory.SubFactory(DeviceFactory)
+    # camera_roi = factory.SubFactory(CameraROIFactory)
 
 
 class AlarmStatusFactory(factory.DjangoModelFactory):

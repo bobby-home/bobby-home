@@ -1,11 +1,12 @@
 from django.contrib import admin
 
-import alarm.models.alarm
-import alarm.models.camera
-from . import models
+from .models.camera import CameraROI, CameraRectangleROI, CameraMotionDetectedPicture, CameraMotionDetected
+from .models.alarm import AlarmStatus, AlarmSchedule
 
-admin.site.register(alarm.models.alarm.AlarmStatus)
-admin.site.register(alarm.models.alarm.AlarmSchedule)
-admin.site.register(alarm.models.camera.CameraMotionDetected)
-admin.site.register(alarm.models.camera.CameraMotionDetectedPicture)
-admin.site.register(alarm.models.camera.CameraRectangleROI)
+admin.site.register(AlarmStatus)
+admin.site.register(AlarmSchedule)
+
+admin.site.register(CameraMotionDetected)
+admin.site.register(CameraMotionDetectedPicture)
+admin.site.register(CameraRectangleROI)
+admin.site.register(CameraROI)

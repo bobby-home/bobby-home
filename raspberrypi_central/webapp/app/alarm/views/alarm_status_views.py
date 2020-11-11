@@ -1,6 +1,9 @@
 from django.urls import reverse_lazy
-from django.views.generic import ListView, UpdateView, CreateView
+from django.views.generic import ListView, UpdateView
+from django.views.generic.edit import CreateView
+
 from alarm.models import AlarmStatus
+from utils.django.json_view import JsonableResponseMixin
 
 
 class AlarmStatusCreate(CreateView):
@@ -9,7 +12,7 @@ class AlarmStatusCreate(CreateView):
     template_name = 'alarm/status_form.html'
 
 
-class AlarmStatusUpdate(UpdateView):
+class AlarmStatusUpdate(JsonableResponseMixin, UpdateView):
     model = AlarmStatus
     fields = ['running']
     template_name = 'alarm/status_form.html'

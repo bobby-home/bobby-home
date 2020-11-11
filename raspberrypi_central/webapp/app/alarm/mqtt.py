@@ -9,7 +9,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
-from .communication.alarm import NotifyAlarmStatus
+from .communication.alarm import NotifyAlarmStatus, notify_alarm_status_factory
 from .messaging import speaker_messaging_factory
 
 _LOGGER = logging.getLogger(__name__)
@@ -93,8 +93,8 @@ def on_motion_picture(message: MqttMessage):
 class OnConnectedCameraHandler(OnConnectedHandler):
 
     def on_connected(self, device_id: str) -> None:
-        mx = NotifyAlarmStatus(self.get_client)
-        mx.publish(device_id)
+        mx = notify_alarm_status_factory(self.get_client)
+        mx.publish_device_connected(device_id)
 
 
 class OnConnectedSpeakerHandler(OnConnectedHandler):

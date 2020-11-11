@@ -13,7 +13,7 @@ class Consideration:
 
 class CameraAnalyzeObject(metaclass=ABCMeta):
     @abstractmethod
-    def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
+    def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
         pass
 
     @abstractmethod

@@ -1,7 +1,12 @@
+import dataclasses
 import json
 from collections import defaultdict
-from typing import List
+from typing import List, Callable, Any
+import paho.mqtt.client as mqtt
 from enum import Enum
+
+from attr import dataclass
+
 from camera.detect_motion import DetectPeople, People
 from camera.camera_analyze import CameraAnalyzeObject, Consideration
 import datetime
@@ -40,6 +45,12 @@ def order_points_new(pts):
     return np.array([tl, tr, br, bl], dtype="float32")
 
 
+@dataclass
+class ObjectLinkConsiderations:
+    object: People
+    considerations: List[Consideration]
+
+
 class Camera:
 
     SECONDS_LAPSED_TO_PUBLISH = 5
@@ -47,7 +58,7 @@ class Camera:
     PICTURE = 'motion/picture'
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client, device_id):
+    def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client: Callable[[any], mqtt.Client], device_id):
         self._analyze_motion = analyze_motion
         self._device_id = device_id
         self.get_mqtt_client = get_mqtt_client
@@ -75,28 +86,38 @@ class Camera:
 
         return time_lapsed
 
-    def _publish_motion(self, considerations: List[Consideration], event_ref: str) -> None:
+    def _publish_motion(self, object_link_considerations: List[ObjectLinkConsiderations], event_ref: str) -> None:
         payload = {
             'status': True,
             'event_ref': event_ref,
-            'seen_in': defaultdict(list)
+            'seen_in': defaultdict(dict)
         }
 
-        for consideration in considerations:
-            payload['seen_in'][consideration.type].append(consideration.id)
+        for object_link_consideration in object_link_considerations:
+            object_link_consideration: ObjectLinkConsiderations
+
+            for consideration in object_link_consideration.considerations:
+                if len(payload['seen_in'][consideration.type]) == 0:
+                    payload['seen_in'][consideration.type] = {'ids': []}
+
+                payload['seen_in'][consideration.type]['ids'].append(consideration.id)
+                payload['seen_in'][consideration.type]['bounding_box'] = dataclasses.asdict(object_link_consideration.object.bounding_box)
 
         mqtt_payload = json.dumps(payload)
         print(f'publish motion {mqtt_payload}')
         self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
-    def _considered_peoples(self, frame, peoples: List[People]):
-        peoples_in_roi = []
-        for people in peoples:
-            considerations = self._analyze_motion.is_object_considered(frame, people.bounding_box)
-            # frame = cv2.drawContours(frame, [people.bounding_box.contours], 0, (0, 0, 255), 2)
-            peoples_in_roi.extend(considerations)
+    def _considered_peoples(self, frame, peoples: List[People]) -> List[ObjectLinkConsiderations]:
+        object_considerations: List[ObjectLinkConsiderations] = []
 
-        return peoples_in_roi
+        for people in peoples:
+            considerations = self._analyze_motion.considered_objects(frame, people.bounding_box)
+
+            if len(considerations) > 0:
+                obj = ObjectLinkConsiderations(people, considerations)
+                object_considerations.append(obj)
+
+        return object_considerations
 
     @staticmethod
     def _transform_image_to_publish(image):
@@ -104,27 +125,29 @@ class Camera:
 
     def process_frame(self, frame):
         peoples, image = self.detect_motion.process_frame(frame)
-        peoples_in_roi = self._considered_peoples(frame, peoples)
 
-        is_anybody_in_roi = len(peoples_in_roi) > 0
+        considered_peoples = self._considered_peoples(frame, peoples)
+        is_any_considered_object = len(considered_peoples) > 0
 
-        if is_anybody_in_roi and self._last_time_people_detected is None:
+        if is_any_considered_object and self._last_time_people_detected is None:
             self._initialize = False
 
             self.event_ref = self.generate_event_ref()
-            self._publish_motion(peoples_in_roi, self.event_ref)
+            self._publish_motion(considered_peoples, self.event_ref)
 
             byte_arr = self._transform_image_to_publish(frame)
             print(f'publish picture {self.event_ref}')
             self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/1', byte_arr, qos=1)
 
-        if is_anybody_in_roi:
+        if is_any_considered_object:
             self._last_time_people_detected = datetime.datetime.now()
         elif self._need_to_publish_no_motion():
             payload = {
                 'status': False,
                 'event_ref': self.event_ref,
             }
+
+            print(f'no more motion {payload}')
 
             mqtt_payload = json.dumps(payload)
             self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)

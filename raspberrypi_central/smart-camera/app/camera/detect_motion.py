@@ -23,6 +23,8 @@ class ObjectBoundingBox(BoundingBox):
 
 @dataclass
 class People:
+    # These are absolute coordinates not relatives one processed by Tensorflow.
+    # it has been rescaled for the image.
     bounding_box: ObjectBoundingBox
     class_id: any
     score: float
@@ -69,7 +71,7 @@ class DetectPeople:
         tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
         return tensor
 
-    def _relative_to_absolute_bounding_box(self, bounding_box: BoundingBox, image_wdith, image_height):
+    def _relative_to_absolute_bounding_box(self, bounding_box: BoundingBox, image_wdith, image_height) -> ObjectBoundingBox:
         ymin, xmin, ymax, xmax = bounding_box
 
         xmin = int(xmin * image_wdith)

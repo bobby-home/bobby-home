@@ -18,7 +18,7 @@ class ROICamera(CameraAnalyzeObject):
         self._prev_image_height = None
         self._scaled_contours = None
 
-    def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
+    def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
         image_height, image_width = frame.shape[0:2]
 
         if image_width != self._prev_image_width or image_height != self._prev_image_height:
@@ -44,9 +44,9 @@ class IsConsideredByAnyAnalyzer(CameraAnalyzeObject):
     def __init__(self, analyzers: List[CameraAnalyzeObject]):
         self._analyzers = analyzers
 
-    def is_object_considered(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
+    def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
         for analyzer in self._analyzers:
-            r = analyzer.is_object_considered(frame, object_bounding_box)
+            r = analyzer.considered_objects(frame, object_bounding_box)
             if len(r) > 0:
                 return r
 

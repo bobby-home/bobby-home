@@ -15,7 +15,7 @@ class AlarmMessaging:
         self._mqtt_status = mqtt_status
         self._speaker_messaging = speaker_messaging
 
-    def publish_alarm_status(self, device_id: str, status: bool, data):
+    def publish_alarm_status(self, device_id: str, status: bool, data = None):
         self._mqtt_status.publish(f'status/camera/{device_id}', status, data)
 
         if status is False:

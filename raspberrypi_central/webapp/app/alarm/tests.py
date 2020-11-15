@@ -34,27 +34,28 @@ class NotifyAlarmStatusTestCase(TestCase):
         self.roi1 = CameraRectangleROIFactory(camera_roi=self.roi)
         self.roi2 = CameraRectangleROIFactory(camera_roi=self.roi)
 
-        self.alarm_messaging_factory_mock = Mock()
         self.alarm_messaging_mock = Mock()
-        self.alarm_messaging_factory_mock.return_value = self.alarm_messaging_mock
-        self.get_mqtt_client_mock = Mock()
 
     def test_publish_false(self):
-        notify = NotifyAlarmStatus(self.alarm_messaging_factory_mock, self.get_mqtt_client_mock)
+        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_status_changed(self.device.id, False)
 
         self.alarm_messaging_mock.publish_alarm_status.assert_called_once()
 
-        expected_calls = [call(self.device.device_id, False, None)]
+        expected_calls = [call(self.device.device_id, False, {})]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
     def test_publish_true_with_roi(self):
-        notify = NotifyAlarmStatus(self.alarm_messaging_factory_mock, self.get_mqtt_client_mock)
+        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_status_changed(self.device.id, True)
 
         self.alarm_messaging_mock.publish_alarm_status.assert_called_once()
 
-        expected_calls = [call(self.device.device_id, True, [model_to_dict(self.roi1), model_to_dict(self.roi2)])]
+        payload = {
+            'rectangles': [model_to_dict(self.roi1), model_to_dict(self.roi2)]
+        }
+
+        expected_calls = [call(self.device.device_id, True, payload)]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
     def test_publish_roi_changed_false(self):
@@ -62,7 +63,7 @@ class NotifyAlarmStatusTestCase(TestCase):
         self.alarm_status.save()
 
         fake_roi = [{}, {}]
-        notify = NotifyAlarmStatus(self.alarm_messaging_factory_mock, self.get_mqtt_client_mock)
+        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_roi_changed(self.device.id, fake_roi)
 
         self.alarm_messaging_mock.publish_alarm_status.assert_not_called()
@@ -72,12 +73,15 @@ class NotifyAlarmStatusTestCase(TestCase):
         self.alarm_status.save()
 
         fake_roi = [{}, {}]
-        notify = NotifyAlarmStatus(self.alarm_messaging_factory_mock, self.get_mqtt_client_mock)
+        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_roi_changed(self.device.id, fake_roi)
 
         self.alarm_messaging_mock.publish_alarm_status.assert_called_once()
 
-        expected_calls = [call(self.device.device_id, True, fake_roi)]
+        payload = {
+            'rectangles': fake_roi
+        }
+        expected_calls = [call(self.device.device_id, True, payload)]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
 
@@ -115,7 +119,6 @@ class SaveMotionTestCase(TestCase):
         self.roi2 = CameraRectangleROIFactory(camera_roi=self.roi)
 
     def test_save_motion(self):
-        # TODO WARNING: the smart camera send us ymin, xmin, ymax, xmax not x y h w !!!
         seen_in = {
             'rectangle': {
                 'ids': [self.roi1.id, self.roi2.id],

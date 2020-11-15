@@ -2,15 +2,15 @@ from typing import List
 
 import numpy as np
 
-from camera.camera_analyze import CameraAnalyzeObject, Consideration
+from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 from roi.roi import ROI
-from camera.detect_motion import ObjectBoundingBox
+from object_detection.model import ObjectBoundingBox
 from image_processing.contour import create_contour_from_points
 from image_processing.contour_collision import contour_collision
 from image_processing.scale import scale_point
 
 
-class ROICamera(CameraAnalyzeObject):
+class ROICameraAnalyzer(CameraAnalyzer):
     def __init__(self, roi: ROI):
         self._roi = roi
         self._contours, (self._contour_image_width, self._contour_image_height) = roi.get_contours()
@@ -34,26 +34,7 @@ class ROICamera(CameraAnalyzeObject):
         return self._roi
 
     def __eq__(self, other):
-        if not isinstance(other, ROICamera):
+        if not isinstance(other, ROICameraAnalyzer):
             return NotImplemented
 
         return self._roi == other._roi
-
-
-class IsConsideredByAnyAnalyzer(CameraAnalyzeObject):
-    def __init__(self, analyzers: List[CameraAnalyzeObject]):
-        self._analyzers = analyzers
-
-    def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
-        for analyzer in self._analyzers:
-            r = analyzer.considered_objects(frame, object_bounding_box)
-            if len(r) > 0:
-                return r
-
-        return []
-
-    def __eq__(self, other):
-        if not isinstance(other, IsConsideredByAnyAnalyzer):
-            return NotImplemented
-
-        return self._analyzers == other._analyzers

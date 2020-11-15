@@ -2,9 +2,14 @@ from typing import List, Dict
 
 from django.db import IntegrityError
 
+from alarm.communication.alarm_consts import ROITypes
 from alarm.models import CameraMotionDetected
 from alarm.models.camera import CameraMotionDetectedBoundingBox
 from devices import models as device_models
+
+def _save_bounding_box(data, motion: CameraMotionDetected):
+    bounding_box = data['bounding_box']
+    CameraMotionDetectedBoundingBox.objects.create(**bounding_box, camera_motion_detected=motion).save()
 
 
 def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: str, status: bool):
@@ -16,20 +21,19 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
     except IntegrityError:
         return None, None
 
-    if 'rectangle' in seen_in:
-        seen_in_rectangle = seen_in['rectangle']
+    if ROITypes.RECTANGLES.value in seen_in:
+        seen_in_rectangle = seen_in[ROITypes.RECTANGLES.value]
 
         rectangle_roi_id: List[str] = seen_in_rectangle['ids']
         motion.in_rectangle_roi.add(*rectangle_roi_id)
 
-        bounding_box = seen_in_rectangle['bounding_box']
+        _save_bounding_box(seen_in_rectangle, motion)
 
-        CameraMotionDetectedBoundingBox.objects.create(**bounding_box, camera_motion_detected=motion).save()
+    elif ROITypes.FULL.value in seen_in:
+        full = seen_in[ROITypes.FULL.value]
 
-    """
-    TODO: save CameraMotionDetectedBoundingBox when we do not have ROI defined.
-    1. when we don't have any roi defined how the consideration is created? I mean the "type" name, it's something like "any" or "all"
-    where is it created? Smart-camera or here? because I need this value here.
-    """
+        _save_bounding_box(full, motion)
+    else:
+        raise ValueError(f'{seen_in} is not understandable by our system.')
 
     return device, motion

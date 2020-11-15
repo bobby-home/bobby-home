@@ -1,6 +1,7 @@
 import uuid
 
 import factory
+from django.core.files.base import ContentFile
 from faker import Factory
 
 from devices.factories import DeviceFactory
@@ -19,11 +20,24 @@ class CameraMotionDetectedPictureFactory(factory.DjangoModelFactory):
     picture = factory.django.FileField()
 
 
+class CameraROIFactoryConf:
+    default_image_width = 1024
+    default_image_height = 768
+
+
 class CameraROIFactory(factory.DjangoModelFactory):
     class Meta:
         model = CameraROI
 
     device = factory.SubFactory(DeviceFactory)
+    # Hacky thing from here: https://stackoverflow.com/a/25822090
+    define_picture = factory.LazyAttribute(
+            lambda _: ContentFile(
+                factory.django.ImageField()._make_data(
+                    {'width': CameraROIFactoryConf.default_image_width, 'height': CameraROIFactoryConf.default_image_height}
+                ), 'example.jpg'
+            )
+        )
 
 
 class CameraRectangleROIFactory(factory.DjangoModelFactory):

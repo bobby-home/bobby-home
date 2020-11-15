@@ -6,7 +6,7 @@ from django.views.generic import UpdateView, ListView
 from django.views.generic.edit import FormView, DeleteView
 from django.forms.models import model_to_dict
 
-from alarm.communication.alarm import NotifyAlarmStatus, notify_alarm_status_factory
+from alarm.communication.out_alarm import NotifyAlarmStatus, notify_alarm_status_factory
 from alarm.forms import CameraRectangleROIFormSet, CameraROIForm, CameraROIUpdateForm
 from alarm.models import CameraRectangleROI, CameraMotionDetectedPicture, CameraROI
 from utils.django.json_view import JsonableResponseMixin
@@ -20,8 +20,8 @@ class CameraROIList(ListView):
     context_object_name = 'rois'
 
 
-def notify_mqtt(device_id, rectangle_rois):
-    notify_alarm_status_factory().publish_roi_changed(device_id, rectangle_rois)
+def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
+    notify_alarm_status_factory().publish_roi_changed(camera_roi, device_id, rectangle_rois)
 
 
 class CameraROIDelete(DeleteView):
@@ -78,11 +78,13 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
     def form_valid(self, form): 
         formset = CameraRectangleROIFormSet(self.request.POST)
 
+        camera_roi: CameraROI = form.instance
+
         if formset.is_valid():
             with transaction.atomic():
                 form.save(commit=False)
 
-                camera_roi_pk = form.instance.pk
+                camera_roi_pk = camera_roi.pk
                 # The UI doesn't allow the user to modify a Rectangle. So we delete them all to recreate them.
                 CameraRectangleROI.objects.filter(camera_roi=camera_roi_pk).delete()
 
@@ -94,7 +96,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
                 form.save()
 
             rectangles = [model_to_dict(instance) for instance in instances]
-            transaction.on_commit(lambda: notify_mqtt(form.instance.device_id, rectangles))
+            transaction.on_commit(lambda: notify_mqtt(form.instance.device_id, camera_roi, rectangles))
 
             return super().form_valid(form)
 
@@ -128,6 +130,8 @@ class CameraROICreate(FormView):
         # It should return an HttpResponse.
         formset = CameraRectangleROIFormSet(self.request.POST)
 
+        camera_roi: CameraROI = form.instance
+
         if formset.is_valid():
             with transaction.atomic():
                 form.save()
@@ -140,11 +144,11 @@ class CameraROICreate(FormView):
                 formset.save()
 
             rectangles = [model_to_dict(instance) for instance in instances]
-            transaction.on_commit(lambda: notify_mqtt(form.instance.device_id, rectangles))
+            transaction.on_commit(lambda: notify_mqtt(form.instance.device_id, camera_roi, rectangles))
 
             return super().form_valid(form)
 
-
+        # @TODO
         print('no valid, what do we do here :)')
         return super().form_invalid(formset.errors)
 

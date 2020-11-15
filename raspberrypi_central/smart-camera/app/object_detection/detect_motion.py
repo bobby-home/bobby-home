@@ -1,51 +1,10 @@
 import re
-import io
 import numpy as np
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
-from dataclasses import dataclass
-from typing import List, Tuple, Optional
-from dataclasses import dataclass
+from typing import List, Tuple
 
-
-@dataclass
-class BoundingBox:
-    """
-    Definition given by Tensorflow.
-    """
-    ymin: float
-    xmin: float
-    ymax: float
-    xmax: float
-
-    def __post_init__(self):
-        if self.ymin > self.ymax:
-            raise ValueError(f'ymin ({self.ymin} has to be <= than ymax ({self.ymax}.')
-
-        if self.xmin > self.xmax:
-            raise ValueError(f'xmin ({self.xmin} has to be <= than xmax ({self.xmax}')
-
-
-@dataclass
-class BoundingBoxPointAndSize:
-    x: float
-    y: float
-    w: float
-    h: float
-
-@dataclass
-class ObjectBoundingBox(BoundingBox):
-    contours: np.ndarray
-
-
-@dataclass
-class People:
-    # These are absolute coordinates not relatives one processed by Tensorflow.
-    # it has been rescaled for the image.
-    bounding_box: ObjectBoundingBox
-    bounding_box_point_and_size: BoundingBoxPointAndSize
-    class_id: any
-    score: float
+from object_detection.model import BoundingBox, BoundingBoxPointAndSize, ObjectBoundingBox, People
 
 
 class DetectPeople:

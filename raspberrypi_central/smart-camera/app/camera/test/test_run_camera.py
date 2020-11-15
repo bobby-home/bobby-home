@@ -1,10 +1,11 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from camera.camera_analyze import Consideration
+from camera_analyze.camera_analyzer import Consideration
 from camera.run_camera import roi_camera_from_args, RunSmartCamera
 from camera_analyze.all_analyzer import NoAnalyzer
-from camera_analyze.roi_analyzer import IsConsideredByAnyAnalyzer, ROICamera
+from camera_analyze.roi_analyzer import ROICameraAnalyzer
+from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer
 from roi.roi import RectangleROI
 
 
@@ -61,11 +62,11 @@ class ROICameraFromData(TestCase):
         }
 
         result = roi_camera_from_args(payload)
-        self.assertIsInstance(result, IsConsideredByAnyAnalyzer)
+        self.assertIsInstance(result, ConsideredByAnyAnalyzer)
 
         self.assertEqual(len(result._analyzers), 2)
         for analyzer, rectangle in zip(result._analyzers, payload['rois']['rectangles']):
-            self.assertIsInstance(analyzer, ROICamera)
+            self.assertIsInstance(analyzer, ROICameraAnalyzer)
             self.assertIsInstance(analyzer._roi, RectangleROI)
 
             expected = {

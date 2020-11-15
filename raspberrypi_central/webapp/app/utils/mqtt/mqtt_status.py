@@ -15,11 +15,6 @@ class MqttBooleanStatus:
         self._mqtt_client.publish(topic, status_bytes, qos=1, retain=True)
 
 
-def decimal_default(obj):
-    if isinstance(obj, Decimal):
-        return float(obj)
-    raise TypeError
-
 
 class MqttJsonStatus:
     def __init__(self, mqtt_client: MQTT):

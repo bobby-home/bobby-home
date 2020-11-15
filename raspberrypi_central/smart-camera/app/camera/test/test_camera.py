@@ -4,8 +4,8 @@ from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
 from camera.camera import Camera
-from camera.camera_analyze import Consideration
-from camera.detect_motion import People, ObjectBoundingBox, BoundingBoxPointAndSize, BoundingBox
+from camera_analyze.camera_analyzer import Consideration
+from object_detection.model import BoundingBox, BoundingBoxPointAndSize, ObjectBoundingBox, People
 from datetime import datetime, timedelta
 
 

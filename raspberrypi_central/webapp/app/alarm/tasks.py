@@ -5,7 +5,7 @@ from celery import shared_task
 from devices.models import Device
 from notification.tasks import send_message
 from utils.mqtt import mqtt_factory
-from .external.motion import save_motion
+from alarm.communication.in_motion import save_motion
 from .messaging import speaker_messaging_factory
 from alarm.models import AlarmSchedule, CameraMotionDetectedPicture, AlarmStatus
 

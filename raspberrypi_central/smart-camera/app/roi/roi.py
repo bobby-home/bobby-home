@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-from camera.camera_analyze import Consideration
+from camera_analyze.camera_analyzer import Consideration
 
 
 class ROI(ABC):

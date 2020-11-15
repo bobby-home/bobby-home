@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, List
 import numpy as np
-from camera.detect_motion import ObjectBoundingBox
+from object_detection.model import ObjectBoundingBox
 
 
 @dataclass
@@ -11,7 +11,7 @@ class Consideration:
     id: Optional[int] = None
 
 
-class CameraAnalyzeObject(metaclass=ABCMeta):
+class CameraAnalyzer(metaclass=ABCMeta):
     @abstractmethod
     def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
         pass

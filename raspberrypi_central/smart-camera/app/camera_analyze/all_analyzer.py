@@ -2,11 +2,11 @@ from typing import List
 
 import numpy as np
 
-from camera.camera_analyze import CameraAnalyzeObject, Consideration
-from camera.detect_motion import ObjectBoundingBox
+from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
+from object_detection.model import ObjectBoundingBox
 
 
-class NoAnalyzer(CameraAnalyzeObject):
+class NoAnalyzer(CameraAnalyzer):
 
     def __init__(self, consideration: Consideration):
         self._consideration = consideration

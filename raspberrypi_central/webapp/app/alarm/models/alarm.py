@@ -4,7 +4,7 @@ import uuid
 from django.db import models
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
-from alarm.communication.alarm import notify_alarm_status_factory
+from alarm.communication.out_alarm import notify_alarm_status_factory
 from devices.models import Device
 from house.models import House
 

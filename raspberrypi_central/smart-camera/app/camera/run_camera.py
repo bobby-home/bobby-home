@@ -1,17 +1,18 @@
-from typing import List, Dict, Callable
+from typing import List, Callable
 
 from camera.camera import Camera
-from camera.camera_analyze import Consideration, CameraAnalyzeObject
+from camera_analyze.camera_analyzer import Consideration, CameraAnalyzer
 from camera.camera_factory import camera_factory
 from camera.videostream import VideoStream
 from camera_analyze.all_analyzer import NoAnalyzer
-from camera_analyze.roi_analyzer import IsConsideredByAnyAnalyzer, ROICamera
+from camera_analyze.roi_analyzer import ROICameraAnalyzer
+from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer
 from mqtt.mqtt_client import get_mqtt_client
 from roi.roi import RectangleROI
 from service_manager.service_manager import RunService
 
 
-def roi_camera_from_args(data = None) -> CameraAnalyzeObject:
+def roi_camera_from_args(data = None) -> CameraAnalyzer:
     """
     {"status": true, "data": [{"id": 1, "x": 128.0, "y": 185.0, "w": 81.0, "h": 76.0, "definition_width": 300.0, "definition_height": 300.0, "device_id": 1}, {"id": 2, "x": 50.0, "y": 50.0, "w": 50.0, "h": 50.0, "definition_width": 300.0, "definition_height": 300.0, "device_id": 1}]}
     I have to manage to have multiple CameraAnalyzeObject
@@ -22,23 +23,23 @@ def roi_camera_from_args(data = None) -> CameraAnalyzeObject:
 
     rois = data.get('rois', None)
 
-    analyzers: List[CameraAnalyzeObject] = []
+    analyzers: List[CameraAnalyzer] = []
 
     if rois:
         if 'rectangles' in rois:
             rectangles = rois.get('rectangles')
             for rectangle in rectangles:
-                consideration = Consideration(id=rectangle['id'], type='rectangle')
+                consideration = Consideration(id=rectangle['id'], type='rectangles')
 
                 rectangle_roi = RectangleROI(consideration=consideration, x=rectangle['x'], y=rectangle['y'],
                                              w=rectangle['w'], h=rectangle['h'],
                                              definition_width=rois['definition_width'],
                                              definition_height=rois['definition_height'])
 
-                analyzer = ROICamera(rectangle_roi)
+                analyzer = ROICameraAnalyzer(rectangle_roi)
                 analyzers.append(analyzer)
 
-            return IsConsideredByAnyAnalyzer(analyzers)
+            return ConsideredByAnyAnalyzer(analyzers)
 
         if 'full' in rois:
             consideration = Consideration(type='full')

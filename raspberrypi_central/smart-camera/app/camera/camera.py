@@ -1,14 +1,14 @@
 import dataclasses
 import json
 from collections import defaultdict
-from typing import List, Callable, Any
+from typing import List, Callable
 import paho.mqtt.client as mqtt
-from enum import Enum
 
 from attr import dataclass
 
-from camera.detect_motion import DetectPeople, People
-from camera.camera_analyze import CameraAnalyzeObject, Consideration
+from object_detection.detect_motion import DetectPeople
+from object_detection.model import People
+from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 import datetime
 from PIL import Image
 from image_processing.bin_image import pil_image_to_byte_array
@@ -58,7 +58,7 @@ class Camera:
     PICTURE = 'motion/picture'
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, analyze_motion: CameraAnalyzeObject, detect_motion: DetectPeople, get_mqtt_client: Callable[[any], mqtt.Client], device_id):
+    def __init__(self, analyze_motion: CameraAnalyzer, detect_motion: DetectPeople, get_mqtt_client: Callable[[any], mqtt.Client], device_id):
         self._analyze_motion = analyze_motion
         self._device_id = device_id
         self.get_mqtt_client = get_mqtt_client

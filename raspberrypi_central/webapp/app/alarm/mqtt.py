@@ -9,7 +9,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
-from .communication.alarm import NotifyAlarmStatus, notify_alarm_status_factory
+from .communication.out_alarm import NotifyAlarmStatus, notify_alarm_status_factory
 from .messaging import speaker_messaging_factory
 
 _LOGGER = logging.getLogger(__name__)

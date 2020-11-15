@@ -101,7 +101,7 @@ class Camera:
                     payload['seen_in'][consideration.type] = {'ids': []}
 
                 payload['seen_in'][consideration.type]['ids'].append(consideration.id)
-                payload['seen_in'][consideration.type]['bounding_box'] = dataclasses.asdict(object_link_consideration.object.bounding_box)
+                payload['seen_in'][consideration.type]['bounding_box'] = dataclasses.asdict(object_link_consideration.object.bounding_box_point_and_size)
 
         mqtt_payload = json.dumps(payload)
         print(f'publish motion {mqtt_payload}')

@@ -5,8 +5,20 @@ from unittest.mock import Mock, call, patch
 
 from camera.camera import Camera
 from camera.camera_analyze import Consideration
-from camera.detect_motion import People, ObjectBoundingBox
+from camera.detect_motion import People, ObjectBoundingBox, BoundingBoxPointAndSize, BoundingBox
 from datetime import datetime, timedelta
+
+
+class TestBoundingBox(TestCase):
+    def test_wrong_bounding_box(self):
+        with self.assertRaises(ValueError) as context:
+            BoundingBox(ymin=10, ymax=5, xmin=2, xmax=5)
+
+        with self.assertRaises(ValueError) as context:
+            BoundingBox(ymin=10, ymax=15, xmin=4, xmax=2)
+
+        # and everything should be fine here
+        BoundingBox(ymin=10, ymax=15, xmin=4, xmax=20)
 
 
 class TestCamera(TestCase):
@@ -17,7 +29,8 @@ class TestCamera(TestCase):
         self.picture_topic = f'{Camera.PICTURE}/{self.device_id}'
 
         self.box = ObjectBoundingBox(0, 0, 0, 0, [])
-        self.people = People(self.box, 'class_id', 0.5)
+        self.box_point_and_size = BoundingBoxPointAndSize(0, 0, 0, 0)
+        self.people = People(self.box, self.box_point_and_size, 'class_id', 0.5)
 
         self.mqtt_mock = Mock()
         self.analyze_object_mock = Mock()
@@ -91,7 +104,7 @@ class TestCamera(TestCase):
             "seen_in": {
                 "rectangle": {
                     'ids': [1, 2],
-                    'bounding_box': dataclasses.asdict(self.people.bounding_box)
+                    'bounding_box': dataclasses.asdict(self.people.bounding_box_point_and_size)
                 }
             }
         }
@@ -102,6 +115,38 @@ class TestCamera(TestCase):
         ]
         self.mqtt_mock.publish.assert_has_calls(calls)
 
+    def test_motion_with_all_consideration(self):
+        consideration1 = Consideration(type='all')
+
+        self.detect_motion_mock.process_frame.return_value = [self.people], []
+        self.analyze_object_mock.considered_objects.return_value = [consideration1]
+
+        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id)
+        camera.start()
+        camera._transform_image_to_publish = lambda *a: []
+
+        event_ref = 'event_ref'
+        camera.generate_event_ref = lambda : event_ref
+
+        camera.process_frame([])
+
+        self.analyze_object_mock.considered_objects.assert_called_once()
+
+        payload = {
+            "status": True, 'event_ref': event_ref,
+            "seen_in": {
+                "all": {
+                    'ids': [None],
+                    'bounding_box': dataclasses.asdict(self.people.bounding_box_point_and_size)
+                }
+            }
+        }
+
+        calls = [
+            call(self.motion_topic, json.dumps(payload), retain=True, qos=1),
+            call(f'{self.picture_topic}/{event_ref}/1', [], qos=1)
+        ]
+        self.mqtt_mock.publish.assert_has_calls(calls)
 
     def test_motion_no_more_motion(self):
         """

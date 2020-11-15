@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 class RunService(ABC):
 
     @abstractmethod
-    def prepare_run(self, *args):
+    def prepare_run(self, data = None):
         pass
 
     @abstractmethod

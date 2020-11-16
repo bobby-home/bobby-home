@@ -4,7 +4,8 @@ from PIL import Image
 from tflite_runtime.interpreter import Interpreter
 from typing import List, Tuple
 
-from object_detection.model import BoundingBox, BoundingBoxPointAndSize, ObjectBoundingBox, People
+from object_detection.detect_people_utils import get_bounding_box_contours
+from object_detection.model import BoundingBox, BoundingBoxPointAndSize, BoundingBoxWithContours, People
 
 
 class DetectPeople:
@@ -49,44 +50,25 @@ class DetectPeople:
         return tensor
 
     @staticmethod
-    def _bounding_box_size(bounding_box: BoundingBox) -> BoundingBoxPointAndSize:
-        """
-        xmax >= xmin and ymax >= ymin
-        Validation has been done in BoundingBox class.
-        """
-        delta_x = bounding_box.xmax - bounding_box.xmin
-        delta_y = bounding_box.ymax - bounding_box.ymin
+    def _relative_to_absolute_bounding_box(bounding_box: BoundingBox, image_width, image_height) -> BoundingBox:
+        # Convert the bounding box figures from relative coordinates
+        # to absolute coordinates based on the original resolution
 
-        return BoundingBoxPointAndSize(x=bounding_box.xmin, y=bounding_box.ymin, w=delta_x, h=delta_y)
+        xmin = bounding_box.xmin
+        ymin = bounding_box.ymin
 
-    @staticmethod
-    def _relative_to_absolute_bounding_box(bounding_box: BoundingBox, image_width, image_height) -> ObjectBoundingBox:
-        ymin, xmin, ymax, xmax = bounding_box
+        xmax = bounding_box.xmax
+        ymax = bounding_box.ymax
 
         xmin = int(xmin * image_width)
         xmax = int(xmax * image_width)
         ymin = int(ymin * image_height)
         ymax = int(ymax * image_height)
 
-        # construction of the contours
-        # List of (x,y) points in clockwise order <!>
-        x1 = xmin
-        y1 = ymax
+        # contours = get_bounding_box_contours()
+        # return ObjectBoundingBox(ymin, xmin, ymax, xmax, contours)
 
-        x2 = xmax
-        y2 = ymax
-
-        x3 = xmax
-        y3 = ymin
-
-        x4 = xmin
-        y4 = ymin
-
-        points = np.array([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
-        # https://stackoverflow.com/a/24174904
-        contours = points.reshape((-1,1,2)).astype(np.int32)
-
-        return ObjectBoundingBox(ymin, xmin, ymax, xmax, contours)
+        return BoundingBox(ymin=ymin, xmin=xmin, ymax=ymax, xmax=xmax)
 
     def _detect_objects(self, interpreter, image, threshold) -> List[People]:
         """Returns a list of detection results, each a People object."""
@@ -104,10 +86,14 @@ class DetectPeople:
         results = []
         for i in range(count):
             if scores[i] >= threshold:
-                bounding_box = self._relative_to_absolute_bounding_box(tf_bounding_box[i], WIDTH, HEIGHT)
-                bounding_box_point_and_size = self._bounding_box_size(bounding_box)
+                ymin, xmin, ymax, xmax = tf_bounding_box[i]
 
-                result = People(bounding_box=bounding_box, bounding_box_point_and_size=bounding_box_point_and_size, class_id=classes[i], score=scores[i])
+                # Tensorflow model computes things with relatives coordinate to keep numbers small which helps to make the model converge faster.
+                # to exploit results, we need absolute (to the picture) coords.
+                relative_bounding_box = BoundingBox(ymin=ymin, xmin=xmin, ymax=ymax, xmax=xmax)
+                bounding_box = self._relative_to_absolute_bounding_box(relative_bounding_box, WIDTH, HEIGHT)
+
+                result = People(bounding_box=bounding_box, class_id=classes[i], score=scores[i])
                 results.append(result)
 
         return results

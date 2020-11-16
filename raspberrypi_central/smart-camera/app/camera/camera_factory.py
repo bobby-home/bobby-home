@@ -1,6 +1,6 @@
 from .camera import Camera
 import os
-from object_detection.detect_motion import DetectPeople
+from object_detection.detect_people import DetectPeople
 from camera_analyze.camera_analyzer import CameraAnalyzer
 
 

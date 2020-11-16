@@ -40,7 +40,7 @@ class MqttStatusManageThread:
         else:
             status = struct.unpack('?', message)[0]
 
-        self._logger.info(f'Receive status {status} for {self._service_name}')
+        print(f'Receive status {status} for {self._service_name} with data {data}')
 
         if status:
             self._thread_manager.run(True, data=data)

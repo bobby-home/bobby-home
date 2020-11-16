@@ -5,7 +5,8 @@ from unittest.mock import Mock, call, patch
 
 from camera.camera import Camera
 from camera_analyze.camera_analyzer import Consideration
-from object_detection.model import BoundingBox, BoundingBoxPointAndSize, ObjectBoundingBox, People
+from object_detection.detect_people_utils import bounding_box_from_point_and_size, bounding_box_size
+from object_detection.model import BoundingBox, BoundingBoxPointAndSize, BoundingBoxWithContours, People
 from datetime import datetime, timedelta
 
 
@@ -28,9 +29,9 @@ class TestCamera(TestCase):
         self.motion_topic = f'{Camera.MOTION}/{self.device_id}'
         self.picture_topic = f'{Camera.PICTURE}/{self.device_id}'
 
-        self.box = ObjectBoundingBox(0, 0, 0, 0, [])
-        self.box_point_and_size = BoundingBoxPointAndSize(0, 0, 0, 0)
-        self.people = People(self.box, self.box_point_and_size, 'class_id', 0.5)
+        self.bounding_box = BoundingBox(0, 0, 0, 0)
+        self.bounding_box_point_and_size = bounding_box_size(self.bounding_box)
+        self.people = People(self.bounding_box, 'class_id', 0.5)
 
         self.mqtt_mock = Mock()
         self.analyze_object_mock = Mock()
@@ -104,7 +105,7 @@ class TestCamera(TestCase):
             "seen_in": {
                 "rectangle": {
                     'ids': [1, 2],
-                    'bounding_box': dataclasses.asdict(self.people.bounding_box_point_and_size)
+                    'bounding_box': dataclasses.asdict(self.bounding_box_point_and_size)
                 }
             }
         }
@@ -137,10 +138,12 @@ class TestCamera(TestCase):
             "seen_in": {
                 "all": {
                     'ids': [None],
-                    'bounding_box': dataclasses.asdict(self.people.bounding_box_point_and_size)
+                    'bounding_box': dataclasses.asdict(self.people.bounding_box)
                 }
             }
         }
+
+        print(f'payload = {payload}')
 
         calls = [
             call(self.motion_topic, json.dumps(payload), retain=True, qos=1),

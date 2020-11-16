@@ -4,8 +4,10 @@ from unittest.mock import Mock
 from camera_analyze.camera_analyzer import Consideration
 from camera.run_camera import roi_camera_from_args, RunSmartCamera
 from camera_analyze.all_analyzer import NoAnalyzer
-from camera_analyze.roi_analyzer import ROICameraAnalyzer
+from camera_analyze.rectangle_roi_analyzer import CameraAnalyzerRectangleROI
 from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer
+from object_detection.detect_people_utils import bounding_box_from_point_and_size
+from object_detection.model import BoundingBox, BoundingBoxPointAndSize
 from roi.roi import RectangleROI
 
 
@@ -34,6 +36,13 @@ class RunCamera(TestCase):
         payload['rois']['rectangles'].pop()
         self.assertTrue(run.is_restart_necessary(payload))
 
+        another_payload = {
+            'rois': {
+                'full': True
+            }
+        }
+
+        self.assertTrue(run.is_restart_necessary(another_payload))
 
 
 class ROICameraFromData(TestCase):
@@ -62,16 +71,26 @@ class ROICameraFromData(TestCase):
         }
 
         result = roi_camera_from_args(payload)
+
         self.assertIsInstance(result, ConsideredByAnyAnalyzer)
 
         self.assertEqual(len(result._analyzers), 2)
+
         for analyzer, rectangle in zip(result._analyzers, payload['rois']['rectangles']):
-            self.assertIsInstance(analyzer, ROICameraAnalyzer)
+            self.assertIsInstance(analyzer, CameraAnalyzerRectangleROI)
             self.assertIsInstance(analyzer._roi, RectangleROI)
 
+            print(analyzer._roi.__dict__)
+
+            consideration = Consideration(type='rectangles', id=rectangle['id'])
+
+            rectangle.pop('id', None)
+            bounding_box = BoundingBoxPointAndSize(**rectangle)
+            bounding_box = bounding_box_from_point_and_size(bounding_box)
+
             expected = {
-                **rectangle,
-                'consideration': Consideration(type='rectangle', id=rectangle['id']),
+                'bounding_box': bounding_box,
+                'consideration': consideration,
                 'definition_width': payload['rois']['definition_width'],
                 'definition_height': payload['rois']['definition_height'],
             }

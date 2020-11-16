@@ -7,6 +7,8 @@ import numpy as np
 class BoundingBox:
     """
     Definition given by Tensorflow.
+    (ymin, xmin, ymax, xmax) rectangle to be drawn, where (ymin, xmin) and (ymax, xmax)
+    are opposite corners of the desired rectangle.
     """
     ymin: float
     xmin: float
@@ -19,6 +21,19 @@ class BoundingBox:
 
         if self.xmin > self.xmax:
             raise ValueError(f'xmin ({self.xmin} has to be <= than xmax ({self.xmax}')
+
+    def is_intersect(self, other) -> bool:
+        if self.xmin > other.xmax or self.xmax < other.xmin:
+            return False
+
+        if self.ymin > other.ymax or self.ymax < other.ymin:
+            return False
+
+        return True
+
+    @property
+    def area(self):
+        return (self.xmax - self.xmin) * (self.ymax - self.ymin)
 
 
 @dataclass
@@ -34,7 +49,7 @@ class BoundingBoxPointAndSize:
 
 
 @dataclass
-class ObjectBoundingBox(BoundingBox):
+class BoundingBoxWithContours(BoundingBox):
     contours: np.ndarray
 
 
@@ -42,7 +57,14 @@ class ObjectBoundingBox(BoundingBox):
 class People:
     # These are absolute coordinates not relatives one processed by Tensorflow.
     # it has been rescaled for the image.
-    bounding_box: ObjectBoundingBox
-    bounding_box_point_and_size: BoundingBoxPointAndSize
+    bounding_box: BoundingBox
     class_id: any
     score: float
+
+
+@dataclass
+class PeopleAllData(People):
+    """
+    This object is what we send to the main system.
+    """
+    bounding_box_point_and_size: BoundingBoxPointAndSize

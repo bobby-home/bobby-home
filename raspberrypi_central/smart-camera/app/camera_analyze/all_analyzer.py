@@ -1,9 +1,7 @@
 from typing import List
 
-import numpy as np
-
 from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
-from object_detection.model import ObjectBoundingBox
+from object_detection.model import BoundingBox
 
 
 class NoAnalyzer(CameraAnalyzer):
@@ -12,7 +10,10 @@ class NoAnalyzer(CameraAnalyzer):
         self._consideration = consideration
 
     def __eq__(self, other):
+        if not isinstance(other, NoAnalyzer):
+            return NotImplemented
+
         return True
 
-    def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
+    def considered_objects(self, object_bounding_box: BoundingBox) -> List[Consideration]:
         return [self._consideration]

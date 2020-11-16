@@ -28,6 +28,8 @@ class ThreadManager:
             print(f'Restart camera because configuration changed')
             self._stop_process()
             self._start_process(data)
+        else:
+            print("Didn't restart because the configuration remains the same.")
 
     def _stop_process(self):
         if self._process:

@@ -1,8 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, List
-import numpy as np
-from object_detection.model import ObjectBoundingBox
+from object_detection.model import BoundingBox
 
 
 @dataclass
@@ -13,7 +12,7 @@ class Consideration:
 
 class CameraAnalyzer(metaclass=ABCMeta):
     @abstractmethod
-    def considered_objects(self, frame: np.ndarray, object_bounding_box: ObjectBoundingBox) -> List[Consideration]:
+    def considered_objects(self, object_bounding_box: BoundingBox) -> List[Consideration]:
         pass
 
     @abstractmethod

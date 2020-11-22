@@ -9,8 +9,8 @@ class CameraAnalyzerRectangleROI(CameraAnalyzer):
     def __init__(self, roi: RectangleROI):
         self._roi = roi
 
-    def considered_objects(self, other_bounding_box: BoundingBox) -> List[Consideration]:
-        if self._roi.bounding_box.is_intersect(other_bounding_box):
+    def considered_objects(self, object_bounding_box: BoundingBox) -> List[Consideration]:
+        if self._roi.bounding_box.is_intersect(object_bounding_box):
             return [self._roi.consideration]
 
         return []

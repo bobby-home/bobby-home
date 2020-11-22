@@ -21,7 +21,7 @@ class CameraROIList(ListView):
 
 
 def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
-    notify_alarm_status_factory().publish_roi_changed(camera_roi, device_id, rectangle_rois)
+    notify_alarm_status_factory().publish_roi_changed(device_id, camera_roi, rectangle_rois)
 
 
 class CameraROIDelete(DeleteView):
@@ -86,7 +86,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
                 camera_roi_pk = camera_roi.pk
                 # The UI doesn't allow the user to modify a Rectangle. So we delete them all to recreate them.
-                CameraRectangleROI.objects.filter(camera_roi=camera_roi_pk).delete()
+                CameraRectangleROI.objects.filter(camera_roi=camera_roi_pk).update(disabled=True)
 
                 instances = formset.save(commit=False)
                 for instance in instances:
@@ -105,7 +105,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
 
 
-class CameraROICreate(FormView):
+class CameraROICreate(JsonableResponseMixin, FormView):
     template_name = 'alarm/camera_roi_form.html'
     model = CameraROI
     form_class = CameraROIForm
@@ -119,7 +119,9 @@ class CameraROICreate(FormView):
 
         motion_picture = CameraMotionDetectedPicture.objects.last()
         context['motion_picture'] = motion_picture.picture
+
         return context
+
 
     def form_invalid(self, form):
         return super().form_invalid(form)
@@ -134,7 +136,10 @@ class CameraROICreate(FormView):
 
         if formset.is_valid():
             with transaction.atomic():
+                motion_picture = CameraMotionDetectedPicture.objects.last()
+                form.instance.define_picture = motion_picture.picture
                 form.save()
+
                 camera_roi_pk = form.instance.pk
 
                 instances = formset.save(commit=False)

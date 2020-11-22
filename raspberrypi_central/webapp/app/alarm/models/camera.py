@@ -14,7 +14,14 @@ class CameraROI(models.Model):
     define_picture = models.ImageField()
 
 
+class CameraRectangleROIManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().filter(disabled=False)
+
+
 class CameraRectangleROI(models.Model):
+    objects = CameraRectangleROIManager()
     # ? We might rework the max_digits & decimal_places here
     # I didn't really know what to put here. Seems good but may not be optimized.
 
@@ -22,6 +29,8 @@ class CameraRectangleROI(models.Model):
     y = models.DecimalField(max_digits=8, decimal_places=4)
     w = models.DecimalField(max_digits=8, decimal_places=4)
     h = models.DecimalField(max_digits=8, decimal_places=4)
+
+    disabled = models.BooleanField(default=False)
 
     camera_roi = models.ForeignKey(CameraROI, on_delete=models.CASCADE)
 

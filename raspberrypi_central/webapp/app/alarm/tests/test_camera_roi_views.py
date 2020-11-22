@@ -80,6 +80,9 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
 
     def test_edit(self):
+        CameraRectangleROIFactory(camera_roi=self.camera_roi)
+        CameraRectangleROIFactory(camera_roi=self.camera_roi)
+
         camera_rectangle_rois = [
             CameraRectangleROI(x=Decimal(249), y=Decimal(120), w=Decimal(226), h=Decimal(293), camera_roi=self.camera_roi),
             CameraRectangleROI(x=Decimal(56), y=Decimal(36), w=Decimal(72), h=Decimal(111), camera_roi=self.camera_roi),
@@ -102,12 +105,15 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
             self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
-            rectangle_rois = CameraRectangleROI.objects.filter(camera_roi=self.camera_roi)
+            rectangle_rois = CameraRectangleROI.objects.filter(camera_roi=self.camera_roi, disabled=False)
             self.assertEqual(len(rectangle_rois), 2)
+
+            disabled_rectangle_rois = CameraRectangleROI.objects.filter(camera_roi=self.camera_roi, disabled=True)
+            self.assertEqual(len(disabled_rectangle_rois), 2)
 
             rectangles = [model_to_dict(instance) for instance in rectangle_rois]
 
-            expected_call = [call(self.alarm_status.pk, rectangles)]
+            expected_call = [call(self.alarm_status.pk,self.camera_roi, rectangles)]
             mock.assert_called_once()
 
             mock.assert_has_calls(expected_call)

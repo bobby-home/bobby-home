@@ -96,7 +96,9 @@ class CameraROIViewsTestCase(TransactionTestCase):
         }
 
         with patch.object(NotifyAlarmStatus, 'publish_roi_changed', return_value=None) as mock:
-            response = self.client.post(reverse_lazy('alarm:camera_roi-edit', kwargs={'pk': self.camera_roi.id}), payload)
+            response = self.client.post(
+                reverse_lazy('alarm:camera_roi-edit', kwargs={'pk': self.camera_roi.id}),
+                payload)
 
             camera_rois = CameraROI.objects.filter(device=self.device)
             self.assertEqual(len(camera_rois), 1)
@@ -107,9 +109,6 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
             rectangle_rois = CameraRectangleROI.objects.filter(camera_roi=self.camera_roi, disabled=False)
             self.assertEqual(len(rectangle_rois), 2)
-
-            disabled_rectangle_rois = CameraRectangleROI.objects.filter(camera_roi=self.camera_roi, disabled=True)
-            self.assertEqual(len(disabled_rectangle_rois), 2)
 
             rectangles = [model_to_dict(instance) for instance in rectangle_rois]
 
@@ -122,3 +121,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
             expected_rois_dict = [model_to_dict(roi, exclude=('camera_roi', 'id')) for roi in camera_rectangle_rois]
 
             self.assertEqual(rectangle_rois_dict, expected_rois_dict)
+
+            # When we do update, we disable all previous ROI
+            disabled_rectangle_rois = CameraRectangleROI.objects.filter(camera_roi=self.camera_roi, disabled=True)
+            self.assertEqual(len(disabled_rectangle_rois), 2)

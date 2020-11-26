@@ -21,7 +21,9 @@ class CameraRectangleROIManager(models.Manager):
 
 
 class CameraRectangleROI(models.Model):
-    objects = CameraRectangleROIManager()
+    actives = CameraRectangleROIManager()
+    objects = models.Manager()
+
     # ? We might rework the max_digits & decimal_places here
     # I didn't really know what to put here. Seems good but may not be optimized.
 

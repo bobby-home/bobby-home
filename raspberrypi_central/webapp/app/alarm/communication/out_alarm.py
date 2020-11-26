@@ -53,7 +53,7 @@ class NotifyAlarmStatus:
 
             try:
                 camera_roi = CameraROI.objects.get(device_id=device_pk)
-                device_roi_querysets = list(CameraRectangleROI.objects.filter(camera_roi__device_id=device_pk))
+                device_roi_querysets = list(CameraRectangleROI.actives.filter(camera_roi__device_id=device_pk))
                 device_rois = [model_to_dict(device_roi) for device_roi in device_roi_querysets]
             except CameraROI.DoesNotExist:
                 pass

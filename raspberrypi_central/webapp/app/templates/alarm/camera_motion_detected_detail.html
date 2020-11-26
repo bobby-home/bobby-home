@@ -14,13 +14,25 @@
                     {{ motion.created_at }}
                     {% if picture %}
                         {{ picture }}
-                        <img src="{{ picture.picture.url }}" alt="Motion picture">
+{#                        <img src="{{ picture.picture.url }}" alt="Motion picture">#}
                     {% else %}
                         We do not have any picture for this motion.
                     {% endif %}
                 </ul>
+                <canvas id="picture-canvas">
+
+                </canvas>
+
             </div>
         </div>
     </main>
+
+    <script>
+        const FILE_URL = "{{ picture.picture.url }}"
+        const BOUNDING_BOXES = JSON.parse({{ bounding_boxes|tojson }})
+        const CAMERA_ROI = JSON.parse({{ camera_roi|tojson }})
+    </script>
+
+    {% assets 'entrypoints/motion-detected.js' %}
 
 {% endblock body %}

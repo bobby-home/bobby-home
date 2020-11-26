@@ -154,7 +154,7 @@ function prepareDOM() {
 
 const form = document.querySelector('.form-ajax')
 
-const predefined_rectangles = RECTANGLES
+const predefined_rectangles = window.RECTANGLES || []
 
 const drawing = new Drawing(predefined_rectangles, FILE_URL)
 

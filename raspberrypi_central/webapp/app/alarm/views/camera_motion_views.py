@@ -1,6 +1,7 @@
+import json
 from django.views.generic import ListView, DetailView
-
-from alarm.models import CameraMotionDetected, CameraMotionDetectedPicture
+from alarm.models import CameraMotionDetected, CameraMotionDetectedPicture, CameraRectangleROI
+from utils.json.decimal_encoder import DecimalEncoder
 
 
 class CameraMotionDetectedList(ListView):
@@ -11,12 +12,19 @@ class CameraMotionDetectedList(ListView):
 
 class CameraMotionDetectedDetail(DetailView):
     model = CameraMotionDetected
+    template_name = 'alarm/camera_motion_detected_detail.html'
     context_object_name = 'motion'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         camera_motion_detected: CameraMotionDetected = context[self.context_object_name]
-        print(context['object'])
+
+        camera_roi = list(camera_motion_detected.in_rectangle_roi.all().values())
+        # camera_roi = list(camera_motion_detected.device.cameraroi.camerarectangleroi_set.all().values())
+
+        bounding_boxes = list(camera_motion_detected.cameramotiondetectedboundingbox_set.all().values())
+        context['bounding_boxes'] = json.dumps(bounding_boxes, cls=DecimalEncoder)
+        context['camera_roi'] = json.dumps(camera_roi, cls=DecimalEncoder)
 
         try:
             context['picture'] = CameraMotionDetectedPicture.objects.get(event_ref=camera_motion_detected.event_ref)

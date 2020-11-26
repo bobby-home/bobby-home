@@ -21,8 +21,11 @@ class CameraRectangleROIManager(models.Manager):
 
 
 class CameraRectangleROI(models.Model):
-    actives = CameraRectangleROIManager()
+    class Meta:
+        default_manager_name = 'objects'
+
     objects = models.Manager()
+    actives = CameraRectangleROIManager()
 
     # ? We might rework the max_digits & decimal_places here
     # I didn't really know what to put here. Seems good but may not be optimized.

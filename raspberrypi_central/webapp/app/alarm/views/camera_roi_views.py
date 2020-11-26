@@ -63,7 +63,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
         context = super(CameraROIUpdate, self).get_context_data(**kwargs)
         camera_roi = context['cameraroi']
 
-        camera_roi_rectangles = list(CameraRectangleROI.objects.filter(camera_roi=camera_roi).values())
+        camera_roi_rectangles = list(CameraRectangleROI.actives.filter(camera_roi=camera_roi).values())
         camera_roi_rectangles = json.dumps(camera_roi_rectangles, cls=DecimalEncoder)
 
         context['camera_rectangle_roi_formset'] = CameraRectangleROIFormSet(queryset=CameraRectangleROI.objects.none())
@@ -75,7 +75,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
         return context
 
-    def form_valid(self, form): 
+    def form_valid(self, form):
         formset = CameraRectangleROIFormSet(self.request.POST)
 
         camera_roi: CameraROI = form.instance
@@ -86,7 +86,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
                 camera_roi_pk = camera_roi.pk
                 # The UI doesn't allow the user to modify a Rectangle. So we delete them all to recreate them.
-                CameraRectangleROI.objects.filter(camera_roi=camera_roi_pk).update(disabled=True)
+                CameraRectangleROI.objects.filter(camera_roi=camera_roi_pk, disabled=False).update(disabled=True)
 
                 instances = formset.save(commit=False)
                 for instance in instances:

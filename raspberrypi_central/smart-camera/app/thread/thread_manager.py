@@ -22,17 +22,21 @@ class ThreadManager:
             """
             self._run_service.prepare_run(data)
 
+            # TODO: add log see #102
             self._process = Process(target=self._run_service.run)
             self._process.start()
         elif self._run_service.is_restart_necessary(data):
+            # TODO: see #102
             print(f'Restart camera because configuration changed')
             self._stop_process()
             self._start_process(data)
         else:
+            # TODO: see #102
             print("Didn't restart because the configuration remains the same.")
 
     def _stop_process(self):
         if self._process:
+            # TODO: add log, see #102
             self._run_service.stop()
             self._process.terminate()
             self._process = None

@@ -32,7 +32,7 @@ class MqttStatusManageThread:
         message = msg.payload
         data = None
 
-        # TODO: handle errors! Don't let the software crashes.
+        # TODO: #102 handle errors! Don't let the software crashes.
         if self._status_json is True:
             message = json.loads(message)
             status = message['status']

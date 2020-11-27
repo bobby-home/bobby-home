@@ -15,37 +15,7 @@ from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 import datetime
 from PIL import Image
 from image_processing.bin_image import pil_image_to_byte_array
-import numpy as np
 import uuid
-
-
-def order_points_new(pts):
-    # sort the points based on their x-coordinates
-    x_sorted = pts[np.argsort(pts[:, 0]), :]
-
-    # grab the left-most and right-most points from the sorted
-    # x-croodinate points
-    left_most = x_sorted[:2, :]
-    right_most = x_sorted[2:, :]
-
-    # now, sort the left-most coordinates according to their
-    # y-coordinates so we can grab the top-left and bottom-left
-    # points, respectively
-    left_most = left_most[np.argsort(left_most[:, 1]), :]
-    (tl, bl) = left_most
-
-    # if use Euclidean distance, it will run in error when the object
-    # is trapezoid. So we should use the same simple y-coordinates order method.
-
-    # now, sort the right-most coordinates according to their
-    # y-coordinates so we can grab the top-right and bottom-right
-    # points, respectively
-    right_most = right_most[np.argsort(right_most[:, 1]), :]
-    (tr, br) = right_most
-
-    # return the coordinates in top-left, top-right,
-    # bottom-right, and bottom-left order
-    return np.array([tl, tr, br, bl], dtype="float32")
 
 
 @dataclass

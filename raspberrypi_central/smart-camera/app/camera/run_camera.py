@@ -21,7 +21,6 @@ CAMERA_HEIGHT = 480
 
 def roi_camera_from_args(data = None) -> CameraAnalyzer:
     """
-    {"status": true, "data": [{"id": 1, "x": 128.0, "y": 185.0, "w": 81.0, "h": 76.0, "definition_width": 300.0, "definition_height": 300.0, "device_id": 1}, {"id": 2, "x": 50.0, "y": 50.0, "w": 50.0, "h": 50.0, "definition_width": 300.0, "definition_height": 300.0, "device_id": 1}]}
     I have to manage to have multiple CameraAnalyzeObject
     or... I might use another class to handle multiple camera analyze object,
     so I could do stuff like, if in CameraRectangleROI and it is not someone that I know (facial recognition), then we consider the people

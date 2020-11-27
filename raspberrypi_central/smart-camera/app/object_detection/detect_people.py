@@ -1,11 +1,10 @@
 import re
+from typing import List, Tuple
 import numpy as np
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
-from typing import List, Tuple
 
-from object_detection.detect_people_utils import get_bounding_box_contours
-from object_detection.model import BoundingBox, BoundingBoxPointAndSize, BoundingBoxWithContours, People
+from object_detection.model import BoundingBox, People
 
 
 class DetectPeople:
@@ -64,9 +63,6 @@ class DetectPeople:
         xmax = int(xmax * image_width)
         ymin = int(ymin * image_height)
         ymax = int(ymax * image_height)
-
-        # contours = get_bounding_box_contours()
-        # return ObjectBoundingBox(ymin, xmin, ymax, xmax, contours)
 
         return BoundingBox(ymin=ymin, xmin=xmin, ymax=ymax, xmax=xmax)
 

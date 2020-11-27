@@ -48,6 +48,7 @@ class MqttTopicSubscription(Subscription):
     qos: int = 1
 
     def _log_error(self, message: MqttMessage):
+        # TODO: see #102
         _LOGGER.exception(
             f"Can't perform payload transform: on {message}"
         )

@@ -78,21 +78,22 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
     speaker.publish_speaker_status(device_id, motion.is_motion)
 
 
-@shared_task(name="alarm.set_alarm_off")
-def set_alarm_off(alarm_status_uui):
+def set_alarm_status(alarm_status_uui: str, status: bool):
     schedule = AlarmSchedule.objects.get(uuid=alarm_status_uui)
-    alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses
+
+    alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses.all()
 
     for alarm_status in alarm_statuses:
-        alarm_status.running = False
+        alarm_status.running = status
         alarm_status.save()
+
+
+@shared_task(name="alarm.set_alarm_off")
+def set_alarm_off(alarm_status_uui):
+    set_alarm_status(alarm_status_uui, False)
 
 
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on(alarm_status_uui):
-    schedule = AlarmSchedule.objects.get(uuid=alarm_status_uui)
-    alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses
+    set_alarm_status(alarm_status_uui, True)
 
-    for alarm_status in alarm_statuses:
-        alarm_status.running = True
-        alarm_status.save()

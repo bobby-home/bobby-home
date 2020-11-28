@@ -11,7 +11,7 @@ from house.models import House
 
 class AlarmStatusManager(models.Manager):
     def get_status(self):
-        # TODO: we will remove this for issue #86
+        # TODO: we will remove this for issue #103
         return self.all().first()
 
 
@@ -47,10 +47,24 @@ class AlarmSchedule(models.Model):
 
     is_disabled_by_system = models.BooleanField(default=False)
 
-    turn_on_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_on')
-    turn_off_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_off')
+    turn_on_task = models.OneToOneField(
+        PeriodicTask,
+        blank=True, null=True,
+        on_delete=models.CASCADE,
+        related_name='alarm_schedule_on'
+    )
 
-    alarm_statuses = models.ForeignKey(AlarmStatus, on_delete=models.PROTECT)
+    turn_off_task = models.OneToOneField(
+        PeriodicTask,
+        blank=True, null=True,
+        on_delete=models.CASCADE,
+        related_name='alarm_schedule_off'
+    )
+
+    alarm_statuses = models.ManyToManyField(
+        AlarmStatus,
+        related_name='alarm_schedules'
+    )
 
     def save(self, *args, **kwargs):
         days = []

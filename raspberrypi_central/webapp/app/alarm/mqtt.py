@@ -1,4 +1,3 @@
-import uuid
 import logging
 
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \

@@ -1,7 +1,7 @@
 {% extends '_layout.html' %}
 
 {% block header %}
-    <h1 class="h3">Camera motion list</h1>
+    <h1 class="h3">Camera motion detail</h1>
 
 {% endblock header %}
 
@@ -11,17 +11,15 @@
             <div class="box__body">
                 <h2>Camera motion detected</h2>
                 <ul>
-                    {{ motion.created_at }}
+                    <p>{{ motion.created_at }}</p>
+                    <p>is motion? {{ motion.is_motion }}</p>
                     {% if picture %}
                         {{ picture }}
-{#                        <img src="{{ picture.picture.url }}" alt="Motion picture">#}
                     {% else %}
                         We do not have any picture for this motion.
                     {% endif %}
                 </ul>
-                <canvas id="picture-canvas">
-
-                </canvas>
+                <canvas id="picture-canvas"></canvas>
 
             </div>
         </div>

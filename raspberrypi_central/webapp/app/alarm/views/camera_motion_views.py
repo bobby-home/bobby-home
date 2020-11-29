@@ -26,7 +26,9 @@ class CameraMotionDetectedDetail(DetailView):
         context['camera_roi'] = json.dumps(camera_roi, cls=DecimalEncoder)
 
         try:
-            context['picture'] = CameraMotionDetectedPicture.objects.get(event_ref=camera_motion_detected.event_ref)
+            context['picture'] = CameraMotionDetectedPicture.objects.get(event_ref=camera_motion_detected.event_ref, is_motion=False)
+        except CameraMotionDetectedPicture.DoesNotExist:
+            context['picture'] = CameraMotionDetectedPicture.objects.get(event_ref=camera_motion_detected.event_ref, is_motion=True)
         except CameraMotionDetectedPicture.DoesNotExist:
             context['picture'] = None
 

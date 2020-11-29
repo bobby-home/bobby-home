@@ -17,6 +17,8 @@ class AlarmStatusRepository:
         pass
 
     def set_status(self, status: bool):
+        # TODO: update because right now this is device by device, you have to choose what device you want to turn on/off
+        # and change the query of course...
         s = AlarmStatus(running=status)
         s.save()
 

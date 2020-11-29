@@ -13,3 +13,5 @@ django-celery-beat==2.0.0
 python-telegram-bot==12.8
 pytz==2020.1
 requests==2.24.*
+django_extensions==3.0.9
+Pillow==8.0.*

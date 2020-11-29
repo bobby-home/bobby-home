@@ -1,23 +1,15 @@
 import re
-import io
+from typing import List, Tuple
 import numpy as np
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
 
-
-def image_to_byte_array(image: Image):
-    imgByteArr = io.BytesIO()
-    image.save(imgByteArr, format='jpeg')
-    imgByteArr = imgByteArr.getvalue()
-
-    return imgByteArr
+from object_detection.model import BoundingBox, People
 
 
-class DetectMotion():
+class DetectPeople:
 
     def __init__(self):
-        self._last_time_people_detected = None
-
         self.args = {
             'model': 'tensorflow-object-detection/data/detect.tflite',
             'labels': 'tensorflow-object-detection/data/coco_labels.txt',
@@ -56,31 +48,53 @@ class DetectMotion():
         tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
         return tensor
 
-    def _detect_objects(self, interpreter, image, threshold):
-        """Returns a list of detection results, each a dictionary of object info."""
+    @staticmethod
+    def _relative_to_absolute_bounding_box(bounding_box: BoundingBox, image_width, image_height) -> BoundingBox:
+        # Convert the bounding box figures from relative coordinates
+        # to absolute coordinates based on the original resolution
+
+        xmin = bounding_box.xmin
+        ymin = bounding_box.ymin
+
+        xmax = bounding_box.xmax
+        ymax = bounding_box.ymax
+
+        xmin = int(xmin * image_width)
+        xmax = int(xmax * image_width)
+        ymin = int(ymin * image_height)
+        ymax = int(ymax * image_height)
+
+        return BoundingBox(ymin=ymin, xmin=xmin, ymax=ymax, xmax=xmax)
+
+    def _detect_objects(self, interpreter, image, threshold) -> List[People]:
+        """Returns a list of detection results, each a People object."""
         self._set_input_tensor(interpreter, image)
         interpreter.invoke()
 
         # Get all output details
-        boxes = self._get_output_tensor(interpreter, 0)
+        tf_bounding_box = self._get_output_tensor(interpreter, 0)
         classes = self._get_output_tensor(interpreter, 1)
         scores = self._get_output_tensor(interpreter, 2)
         count = int(self._get_output_tensor(interpreter, 3))
 
+        WIDTH, HEIGHT = image.size
+
         results = []
         for i in range(count):
             if scores[i] >= threshold:
-                result = {
-                    'bounding_box': boxes[i],
-                    'class_id': classes[i],
-                    'score': scores[i]
-                }
+                ymin, xmin, ymax, xmax = tf_bounding_box[i]
 
+                # Tensorflow model computes things with relatives coordinate to keep numbers small which helps to make the model converge faster.
+                # to exploit results, we need absolute (to the picture) coords.
+                relative_bounding_box = BoundingBox(ymin=ymin, xmin=xmin, ymax=ymax, xmax=xmax)
+                bounding_box = self._relative_to_absolute_bounding_box(relative_bounding_box, WIDTH, HEIGHT)
+
+                result = People(bounding_box=bounding_box, class_id=classes[i], score=scores[i])
                 results.append(result)
 
         return results
 
-    def process_frame(self, stream):
+    def process_frame(self, stream) -> Tuple[List[People], Image.Image]:
         """
         From Tensorflow examples, we have .convert('RGB') before the resize.
         We removed it because the RGB is created at the stream level (opencv or picamera).
@@ -92,12 +106,12 @@ class DetectMotion():
         results = self._detect_objects(
             self.interpreter, image, self.args['threshold'])
 
-        for obj in results:
-            label = self.labels[obj['class_id']]
-            score = obj['score']
+        peoples = []
+
+        for result in results:
+            label = self.labels[result.class_id]
 
             if label == 'person':
-                print(f'we found {label} score={score}')
-                return True, image_to_byte_array(image)
+                peoples.append(result)
 
-        return False, None
+        return peoples, image

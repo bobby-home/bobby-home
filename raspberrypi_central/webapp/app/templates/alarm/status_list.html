@@ -1,0 +1,23 @@
+{% extends '_layout.html' %}
+
+{% block header %}
+    <h1 class="h3">Alarm status list</h1>
+
+{% endblock header %}
+
+{% block body %}
+    <main class="l-container">
+        <div class="box">
+            <div class="box__body">
+                <h2>Alarm status list</h2>
+                <ul>
+                    {% for status in statuses %}
+                        <li>
+                            <a href="{{ url('alarm:status-edit', kwargs={'pk': status.pk} )}}">{{ status }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </main>
+
+{% endblock body %}

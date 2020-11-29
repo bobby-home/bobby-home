@@ -1,47 +1,11 @@
-Lors de l'installation de pygame sur rpi, j'avais cette erreur:
-```
-Hunting dependencies...
-sh: 1: sdl-config: not found
-sh: 1: sdl-config: not found
-sh: 1: sdl-config: not found
-WARNING: "sdl-config" failed!
-```
+## Why do we restart the camera process to update configuration
+Because this is hard to implement ipc (inter-process communication). Of course we could use some socket it is not that hard
+but this is code to maintain, test... And of course this is error/bug-prone.
 
-Recherche du package:
-```
-sudo apt install apt-file
-apt-file search "sdl-config"
-```
+The configuration of the camera won't change frequently, so this won't impact very badly the performance of
+the overall system. Of course by restarting a new process we recreate the video stream and so one, which is
+kinda expensive but this won't happen frequently so this is not a problem.
 
-Qui me donne:
-```
-emscripten: /usr/share/emscripten/system/bin/sdl-config
-libsdl1.2-dev: /usr/bin/sdl-config
-libsdl1.2-dev: /usr/share/man/man1/sdl-config.1.gz
-lush-library: /usr/share/lush/packages/sdl/sdl-config.lsh
-```
-
-I'm searching for a binary, so I'm downloading this package:
-```
-sudo apt install libsdl1.2-dev
-```
-
-Erreur sur l'accès à la caméra du rpi dans un container:
-
-```
-mmal: mmal_vc_shm_init: could not initialize vc shared memory service
-mmal: mmal_vc_component_create: failed to initialise shm for 'vc.camera_info' (7:EIO)
-mmal: mmal_component_create_core: could not create component 'vc.camera_info' (7)
-mmal: Failed to create camera_info component
-```
-Résolu grâce au flag `privileged: true` et la politique d'accès à la camera.
-See: https://www.losant.com/blog/how-to-access-the-raspberry-pi-camera-in-docker
-
-Autre erreur:
-```
-TypeError: item 9 in _argtypes_ passes a union by value, which is unsupported
-```
-
-J'étais sur Python 3.8.x, il s'avère qu'il fallait downgrade sur python 3.7.4
-
-Source:https://stackoverflow.com/questions/59892863/python-error-typeerror-item-1-in-argtypes-passes-a-union-by-value-which-is
+The first idea was to use Thread to have memory sharing out of the box, so we could change the ROI easily,
+but in Python a Thread is not executed on a different machine processor so this is not working: the camera thread
+is monopolise the process, thus the system is not able to receive mqtt updates. 

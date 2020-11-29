@@ -13,9 +13,9 @@ class SeverityChoice(models.TextChoices):
 
 
 class DeviceType(models.Model):
-    '''
+    """
     RaspberryPI4, zero w, zero, arduino uno, esp8266...
-    '''
+    """
     type = models.CharField(primary_key=True, max_length=100)
 
     def __str__(self):
@@ -32,7 +32,7 @@ class Device(models.Model):
     device_type = models.ForeignKey(DeviceType, on_delete=models.PROTECT)
 
     def __str__(self):
-        return '{0}_{1}'.format(self.name, self.device_type)
+        return '{0}_{1}_{2}'.format(self.name, self.device_type, self.device_id)
 
 
 # class SensorInformation(models.Model):

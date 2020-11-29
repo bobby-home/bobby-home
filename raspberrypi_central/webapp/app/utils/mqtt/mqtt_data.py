@@ -8,7 +8,8 @@ import struct
 _LOGGER = logging.getLogger(__name__)
 
 
-PublishPayloadType = Union[str, bytes, int, float, None]
+PublishPayloadType = Union[str, bytes, int, float, dict, None]
+
 
 @dataclass
 class MqttConfig:
@@ -47,10 +48,10 @@ class MqttTopicSubscription(Subscription):
     qos: int = 1
 
     def _log_error(self, message: MqttMessage):
+        # TODO: see #102
         _LOGGER.exception(
             f"Can't perform payload transform: on {message}"
         )
-
 
     def callback(self, message: MqttMessage):
         self._callback(message)
@@ -65,7 +66,6 @@ class MqttTopicFilterSubscription(Subscription):
     and then add callbacks for motion/camera, motion/picture, ...
     -> this is done by adding MqttTopicSubscription in the "topics" list.
     """
-    topic: str
     topics: List[MqttTopicSubscription]
     qos: int = 1
 

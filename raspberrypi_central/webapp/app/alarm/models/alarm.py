@@ -1,12 +1,36 @@
-import uuid 
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
+import json
+import uuid
+
 from django.db import models
-from house.models import House
-from . import tasks
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
+
 from devices.models import Device
+from house.models import House
+
+
+class AlarmStatusManager(models.Manager):
+    def get_status(self):
+        # TODO: we will remove this for issue #103
+        return self.all().first()
+
+
+class AlarmStatus(models.Model):
+    objects = AlarmStatusManager()
+
+    running = models.BooleanField()
+    device = models.OneToOneField(Device, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        from alarm.communication.out_alarm import notify_alarm_status_factory
+        notify_alarm_status_factory().publish_status_changed(self.device_id, self.running)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'Status is {self.running} for {self.device}'
 
 
 class AlarmSchedule(models.Model):
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     hour_start = models.IntegerField()
     minute_start = models.IntegerField()
 
@@ -21,9 +45,26 @@ class AlarmSchedule(models.Model):
     saturday  = models.BooleanField()
     sunday    = models.BooleanField()
 
-    turn_on_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_on')
-    turn_off_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_off')
+    is_disabled_by_system = models.BooleanField(default=False)
 
+    turn_on_task = models.OneToOneField(
+        PeriodicTask,
+        blank=True, null=True,
+        on_delete=models.CASCADE,
+        related_name='alarm_schedule_on'
+    )
+
+    turn_off_task = models.OneToOneField(
+        PeriodicTask,
+        blank=True, null=True,
+        on_delete=models.CASCADE,
+        related_name='alarm_schedule_off'
+    )
+
+    alarm_statuses = models.ManyToManyField(
+        AlarmStatus,
+        related_name='alarm_schedules'
+    )
 
     def save(self, *args, **kwargs):
         days = []
@@ -39,7 +80,7 @@ class AlarmSchedule(models.Model):
             for day_int, day_str in enumerate(possible_days, start=0):
                 if getattr(self, day_str):
                     days.append(str(day_int))
-        
+
             # Celery crontab want a list as str, ex: "monday,tuesday,..."
             cron_days = ','.join(days)
 
@@ -48,7 +89,7 @@ class AlarmSchedule(models.Model):
         cron_days = model_boolean_fields_to_cron_days()
 
         house_timezone = House.objects.get_system_house().timezone
-        uid = uuid.uuid4()
+        self.uuid = str(uuid.uuid4())
 
         if self._state.adding is True:
             schedule_turn_on_alarm = CrontabSchedule.objects.create(
@@ -59,9 +100,10 @@ class AlarmSchedule(models.Model):
             )
 
             self.turn_on_task = PeriodicTask.objects.create(
-                name=f'Turn on alarm {uid}',
+                name=f'Turn on alarm {self.uuid}',
                 task='alarm.set_alarm_on',
-                crontab=schedule_turn_on_alarm
+                crontab=schedule_turn_on_alarm,
+                args=json.dumps([self.uuid])
             )
 
             schedule_turn_off_alarm = CrontabSchedule.objects.create(
@@ -72,9 +114,10 @@ class AlarmSchedule(models.Model):
             )
 
             self.turn_off_task = PeriodicTask.objects.create(
-                name=f'Turn off alarm {uid}',
+                name=f'Turn off alarm {self.uuid}',
                 task='alarm.set_alarm_off',
-                crontab=schedule_turn_off_alarm
+                crontab=schedule_turn_off_alarm,
+                args=json.dumps([self.uuid])
             )
 
         else:
@@ -93,40 +136,3 @@ class AlarmSchedule(models.Model):
             off_crontab.save()
 
         super().save(*args, **kwargs)
-
-
-class AlarmStatusManager(models.Manager):
-    def get_status(self):
-        # TODO: we will remove this for issue #86
-        return self.all().first()
-
-
-class AlarmStatus(models.Model):
-    objects = AlarmStatusManager()
-
-    running = models.BooleanField()
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
-
-    # only one row can be created, otherwise: IntegrityError is raised.
-    # from https://books.agiliq.com/projects/django-orm-cookbook/en/latest/singleton.html
-    # TODO: we will remove this for issue #86
-    def save(self, *args, **kwargs):
-        if self.__class__.objects.count():
-            self.pk = self.__class__.objects.first().pk
-
-        tasks.alarm_status_changed.delay(self.device_id, self.running)
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f'Status is {self.running} for {self.device}'
-
-
-class CameraMotionDetected(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
-
-
-class CameraMotionDetectedPicture(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    picture_path = models.CharField(max_length=100, blank=True, null=True)

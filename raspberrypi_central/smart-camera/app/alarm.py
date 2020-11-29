@@ -1,37 +1,19 @@
 import os
-from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
-from thread.thread_manager import ThreadManager
-from camera.camera_factory import camera_factory
-from camera.play_sound import PlaySound
-from mqtt.mqtt_client import get_mqtt_client
-from camera.videostream import VideoStream
 
+from camera.run_camera import run_smart_camera_factory
+from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
+from sound.run_sound import run_sound_factory
+from thread.thread_manager import ThreadManager
+from mqtt.mqtt_client import get_mqtt
 
 device_id = os.environ['DEVICE_ID']
 
-mqtt_client = get_mqtt_client(f"{device_id}-rpi4-alarm-motion")
+mqtt_client = get_mqtt(f"{device_id}-rpi4-alarm-motion")
 
+camera_manager = ThreadManager(run_smart_camera_factory())
+mqtt_status_manage_thread_factory(device_id, 'camera', mqtt_client, camera_manager, status_json=True)
 
-def run():
-    camera = camera_factory(get_mqtt_client)
+sound_manager = ThreadManager(run_sound_factory())
+mqtt_status_manage_thread_factory(device_id, 'speaker', mqtt_client, sound_manager, status_json=False)
 
-    CAMERA_WIDTH = 640
-    CAMERA_HEIGHT = 480
-
-    # TODO: see issue #78
-    VideoStream(camera.processFrame, resolution=(
-        CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, usePiCamera=False)
-
-
-manager = ThreadManager(run)
-mqtt_status_manage_thread_factory(device_id, 'camera', mqtt_client, manager)
-
-
-def run_sound():
-    PlaySound()
-
-
-sound_manager = ThreadManager(run_sound)
-mqtt_status_manage_thread_factory(device_id, 'speaker', mqtt_client, sound_manager)
-
-mqtt_client.loop_forever()
+mqtt_client.client.loop_forever()

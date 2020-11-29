@@ -8,7 +8,7 @@ class HouseManager(models.Manager):
     The system is designed to have only one House.
     """
     def get_system_house(self):
-        return self.get(pk=1)
+        return self.all().first()
 
 
 class House(models.Model):

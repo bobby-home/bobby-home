@@ -51,14 +51,15 @@ class Assets(Extension):
 
         to_inject = ''
 
-        if (self._is_hmr_injected is False and settings.DEBUG):
-            to_inject += self._add_hmr_script()
+        # It seems that Vite does this for us.
+        # if self._is_hmr_injected is False and settings.DEBUG:
+        #     to_inject += self._add_hmr_script()
 
         name, ext = filename.split('.')
         if ext == 'css':
             to_inject += '<link rel="stylesheet" href="{}">'.format(path)
         
         if ext == 'js':
-            to_inject += '<script type="module" defer src="{}"></script>'.format(path)
+            to_inject += '<script type="module" src="{}"></script>'.format(path)
 
         return to_inject

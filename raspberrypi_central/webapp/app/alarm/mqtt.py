@@ -1,99 +1,133 @@
-import uuid
 import logging
-from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, MqttMessage
+
+from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
+    MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from functools import partial
-from alarm.models import AlarmStatus
-from .messaging import alarm_messaging_factory, speaker_messaging_factory
 
+from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
+from .communication.out_alarm import notify_alarm_status_factory
+from .messaging import speaker_messaging_factory
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def split_camera_topic(topic: str):
+def split_camera_topic(topic: str, is_event_ref = False):
     data = topic.split('/')
 
-    return {
+    r_data = {
         'type': data[0],
         'service': data[1],
         'device_id': data[2]
     }
 
+    if is_event_ref:
+        r_data['event_ref'] = data[3]
+        r_data['status'] = data[4]
 
-def on_motion_camera(client: MQTT, message: MqttMessage):
+    return r_data
+
+
+def on_motion_camera(message: MqttMessage):
     topic = split_camera_topic(message.topic)
+    payload = message.payload
 
-    if message.payload is True:
-        data = {
-            'device_id': topic['device_id']
-        }
+    print(f'on_motion_camera payload={payload}')
+
+    data = {
+        'device_id': topic['device_id'],
+        'event_ref': payload['event_ref'],
+        'status': payload['status'],
+        'seen_in': {},
+    }
+
+    if data['status'] is True:
+        data['seen_in'] = payload['seen_in']
+
+    if data['event_ref'] != '0':
+        # 0 = initialization
         camera_motion_detected.apply_async(kwargs=data)
-    else:
-        speaker = speaker_messaging_factory(client)
-        speaker.publish_speaker_status(topic['device_id'], False)
 
 
 def on_motion_picture(message: MqttMessage):
-    topic = split_camera_topic(message.topic)
+    topic = split_camera_topic(message.topic, True)
 
-    random = uuid.uuid4()
-    file_name = f'{random}.jpg'
+    event_ref = topic['event_ref']
+    status = topic['status']
+
+    print(f'on_motion_picture even_ref={event_ref}')
+
+    if event_ref == "0":
+        # Initialization: no motion
+        return
+
+    file_name = f'{event_ref}.jpg'
 
     # Remember: image is bytearray
     image = message.payload
 
+    """
+    Warning: hacky thing.
+    - We need to save the file here because we cannot send it to a Task (memory consumption!).
+    - So we save manually the file to the disk at the right place for Django.
+    - But we can't use model.file.save('name.jpg', content, True) because we do not have the model instance here this is the task job.
+    - So we go with low-level API.
+    - at the end, picture_path is an absolute path e.g: "/usr/src/app/media/1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg"
+    """
     filename = default_storage.save(file_name, ContentFile(image))
     picture_path = default_storage.path(filename)
 
     data = {
         'device_id': topic['device_id'],
-        'picture_path': picture_path
+        'picture_path': picture_path,
+        'event_ref': event_ref,
+        'status': status,
     }
 
     camera_motion_picture.apply_async(kwargs=data)
 
 
-def on_connected_speaker(client: MQTT, message: MqttMessage):
-    topic = split_camera_topic(message.topic)
-    device_id = topic['device_id']
+class OnConnectedCameraHandler(OnConnectedHandler):
 
-    if message.payload is True:
-        speaker_messaging_factory(client).publish_speaker_status(topic['device_id'], False)
-    else:
-        _LOGGER.error(f'We lost the mqtt connection with {device_id}')
+    def on_connected(self, device_id: str) -> None:
+        print('on connected camera')
+        mx = notify_alarm_status_factory(self.get_client)
+        mx.publish_device_connected(device_id)
 
 
-def on_connected_camera(client: MQTT, message: MqttMessage):
-    topic = split_camera_topic(message.topic)
-    device_id = topic['device_id']
+class OnConnectedSpeakerHandler(OnConnectedHandler):
 
-    if message.payload is True:
-        device_status = AlarmStatus.objects.get(device__device_id=device_id)
-        alarm_messaging_factory(client).publish_alarm_status(device_status.device.device_id, device_status.running)
-    else:
-        _LOGGER.error(f'We lost the mqtt connection with {device_id}')
+    def on_connected(self, device_id: str) -> None:
+        pass
+        # speaker_messaging_factory(self._client).publish_speaker_status(device_id, False)
+
+
+def bind_on_connected(service_name: str, handler_instance) -> MqttTopicSubscriptionBoolean:
+    on_status = OnStatus(handler_instance)
+
+    return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
 
 
 def register(mqtt: MQTT):
+    on_connected_speaker = OnConnectedSpeakerHandler(mqtt)
+    on_connected_camera = OnConnectedCameraHandler(mqtt)
+
+    speaker = bind_on_connected('speaker', on_connected_speaker)
+    camera = bind_on_connected('camera', on_connected_camera)
+
+
+
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(
             topic='motion/#',
             qos=1,
             topics=[
-                MqttTopicSubscriptionBoolean('motion/camera/+', partial(on_motion_camera, mqtt)),
-                # encoding is set to None because this topic receives a picture as bytes -> decode utf-8 on it will raise an Exception.
-                MqttTopicSubscription('motion/picture/+', on_motion_picture),
+                MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
+                MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
             ],
         ),
-        MqttTopicFilterSubscription(
-            topic='connected/camera/+',
-            qos=1,
-            topics=[
-                MqttTopicSubscriptionBoolean('connected/camera/+', partial(on_connected_camera, mqtt)),
-                MqttTopicSubscriptionBoolean('connected/speaker/+', partial(on_connected_speaker, mqtt)),
-            ]
-        )
+        camera,
+        speaker
     ])

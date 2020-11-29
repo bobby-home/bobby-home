@@ -1,6 +1,5 @@
 import '../css/app.scss'
-import {jsonFetch} from "../js/ajaxify"
-console.log('hello world')
+import {jsonFetch} from '../js/ajaxify'
 
 
 const form = document.querySelector('.ajaxify')
@@ -11,11 +10,10 @@ if (form) {
         e.preventDefault()
         const data = new FormData(form)
 
-        // const running = data.set('running', 1)
-        // console.log({running})
-
         jsonFetch(form.action, CSRF, {
             body: data
+        }).then(() => {
+          console.log('Request has been made - ok.')
         })
     })
 

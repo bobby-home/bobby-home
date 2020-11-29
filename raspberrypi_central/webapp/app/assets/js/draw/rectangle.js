@@ -11,7 +11,6 @@ export class RectangleTool {
     // This is called when you start holding down the mouse button.
     // This starts the pencil drawing.
     mousedown(e) {
-        console.log('rectangle mousedown')
         this.started = true
         this.x0 = e.offsetX
         this.y0 = e.offsetY

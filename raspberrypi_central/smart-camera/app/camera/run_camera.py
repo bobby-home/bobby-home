@@ -1,13 +1,13 @@
 from typing import List, Callable
 
 from camera.camera import Camera
+from camera.camera_config import camera_config
 from camera_analyze.camera_analyzer import Consideration, CameraAnalyzer
 from camera.camera_factory import camera_factory
 from camera.videostream import VideoStream
 from camera_analyze.all_analyzer import NoAnalyzer
 from camera_analyze.rectangle_roi_analyzer import CameraAnalyzerRectangleROI
 from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer
-from image_processing.scale import scale_point
 from mqtt.mqtt_client import get_mqtt_client
 from object_detection.detect_people_utils import bounding_box_from_point_and_size, resize_bounding_box
 from object_detection.model import BoundingBoxPointAndSize
@@ -15,8 +15,8 @@ from roi.roi import RectangleROI
 from service_manager.service_manager import RunService
 
 
-CAMERA_WIDTH = 640
-CAMERA_HEIGHT = 480
+CAMERA_WIDTH = camera_config.camera_width
+CAMERA_HEIGHT = camera_config.camera_height
 
 
 def roi_camera_from_args(data = None) -> CameraAnalyzer:

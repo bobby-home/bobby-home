@@ -1,23 +1,7 @@
-import {RectangleTool} from "../js/draw/rectangle"
-import {jsonFetch} from "../js/ajaxify"
+import {RectangleTool} from '../js/draw/rectangle'
+import {jsonFetch} from '../js/ajaxify'
 import '../css/draw-shape.scss'
 
-console.log({fileUrl: FILE_URL})
-
-console.log('draw shape.js :)')
-
-function readTheFile(file) {
-  const reader = new FileReader()
-
-  return new Promise((resolve) => {
-    reader.onload = (event) => {
-      console.log('resolve:', event.target.result)
-      resolve(event.target.result)
-    }
-
-    // reader.readAsDataURL(file)
-  })
-}
 
 function drawImage(canvas, image, resizeCanvas, callback) {
   const img = new Image()
@@ -26,7 +10,7 @@ function drawImage(canvas, image, resizeCanvas, callback) {
   img.onload = function () {
     const context = canvas.getContext('2d')
 
-      // we need to resize our canvas before drawing.
+    // we need to resize our canvas before drawing.
     resizeCanvas(img.width, img.height)
 
     context.clearRect(0, 0, img.width, img.height)
@@ -39,8 +23,6 @@ function drawImage(canvas, image, resizeCanvas, callback) {
 class Drawing {
 
   constructor(initialShapes, image) {
-    console.log('drawing constructor')
-
     this.shapes = []
     this.initialShapes = initialShapes
     this.image = image
@@ -48,8 +30,6 @@ class Drawing {
     for (const init of initialShapes) {
       this.shapes.push(init)
     }
-
-    console.log(this.shapes, this.initialShapes)
 
     const {mainCanvas, tmpCanvas} = prepareDOM()
 
@@ -121,13 +101,6 @@ function resizeCanvas(canvas, width, height) {
   }
 }
 
-function loadAndDrawImage(canvas, resizeCanvas, callback, file) {
-  // const file = [...event.target.files].pop()
-  drawImage(canvas, file, resizeCanvas, callback)
-  // readTheFile(file)
-  //   .then((image) => drawImage(canvas, image, resizeCanvas, callback))
-}
-
 
 function prepareDOM() {
   const mainCanvas = document.querySelector('#imageView')
@@ -178,6 +151,8 @@ form.addEventListener('submit', e => {
 
   jsonFetch(form.action, CSRF, {
       body: formData
+  }).then(() => {
+    console.log('Request has been made - ok.')
   })
 
 })

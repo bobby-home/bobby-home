@@ -7,6 +7,8 @@ from alarm.messaging import alarm_messaging_factory, AlarmMessaging
 from devices.models import Device
 from utils.mqtt import MQTT
 from utils.mqtt import mqtt_factory
+from alarm.models import CameraRectangleROI, CameraROI
+from alarm.models import AlarmStatus
 
 
 class NotifyAlarmStatus:
@@ -34,7 +36,6 @@ class NotifyAlarmStatus:
 
 
     def publish_roi_changed(self, device_pk: int, camera_roi, rectangle_rois):
-        from alarm.models import AlarmStatus
         device_status = AlarmStatus.objects.get(device_id=device_pk)
         running = device_status.running
 
@@ -49,8 +50,6 @@ class NotifyAlarmStatus:
         device_rois = []
 
         if running:
-            from alarm.models import CameraRectangleROI, CameraROI
-
             try:
                 camera_roi = CameraROI.objects.get(device_id=device_pk)
                 device_roi_querysets = list(CameraRectangleROI.actives.filter(camera_roi__device_id=device_pk))
@@ -67,7 +66,6 @@ class NotifyAlarmStatus:
 
 
     def publish_device_connected(self, device_id: str):
-        from alarm.models import AlarmStatus
         device_status = AlarmStatus.objects.get(device__device_id=device_id)
         device = device_status.device
 

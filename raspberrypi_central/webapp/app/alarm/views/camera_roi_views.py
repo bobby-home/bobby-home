@@ -6,22 +6,21 @@ from django.views.generic import UpdateView, ListView
 from django.views.generic.edit import FormView, DeleteView
 from django.forms.models import model_to_dict
 
-from alarm.communication.out_alarm import NotifyAlarmStatus, notify_alarm_status_factory
+from alarm.communication.out_alarm import notify_alarm_status_factory
 from alarm.forms import CameraRectangleROIFormSet, CameraROIForm, CameraROIUpdateForm
 from alarm.models import CameraRectangleROI, CameraMotionDetectedPicture, CameraROI
 from utils.django.json_view import JsonableResponseMixin
 from utils.json.decimal_encoder import DecimalEncoder
-from utils.mqtt import mqtt_factory
+
+
+def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
+    notify_alarm_status_factory().publish_roi_changed(device_id, camera_roi, rectangle_rois)
 
 
 class CameraROIList(ListView):
     queryset = CameraROI.objects.all()
     template_name = 'alarm/camera_roi_list.html'
     context_object_name = 'rois'
-
-
-def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
-    notify_alarm_status_factory().publish_roi_changed(device_id, camera_roi, rectangle_rois)
 
 
 class CameraROIDelete(DeleteView):
@@ -31,7 +30,7 @@ class CameraROIDelete(DeleteView):
 
     def delete(self, request, *args, **kwargs):
         camera_roi = self.get_object()
-        notify_alarm_status_factory().publish_roi_changed(camera_roi.device_id, None)
+        notify_alarm_status_factory().publish_roi_changed(camera_roi.device_id, camera_roi=None)
 
         return super().delete(request, *args, **kwargs)
 
@@ -42,22 +41,6 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
     form_class = CameraROIUpdateForm
     success_url = reverse_lazy('alarm:camera_roi-list')
 
-    # def get_object(self, queryset=None):
-    #     print(f'querset = {queryset}')
-    #
-    #     if queryset is None:
-    #         queryset = self.get_queryset()
-    #
-    #     pk = self.kwargs.get(self.pk_url_kwarg)
-    #
-    #     try:
-    #         # Get the single item from the filtered queryset
-    #         obj = queryset.get(pk=pk)
-    #     except queryset.model.DoesNotExist:
-    #         raise Http404(_("No %(verbose_name)s found matching the query") %
-    #                       {'verbose_name': queryset.model._meta.verbose_name})
-    #
-    #     return obj
 
     def get_context_data(self, **kwargs):
         context = super(CameraROIUpdate, self).get_context_data(**kwargs)
@@ -85,7 +68,6 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
                 form.save(commit=False)
 
                 camera_roi_pk = camera_roi.pk
-                # The UI doesn't allow the user to modify a Rectangle. So we delete them all to recreate them.
                 CameraRectangleROI.objects.filter(camera_roi=camera_roi_pk, disabled=False).update(disabled=True)
 
                 instances = formset.save(commit=False)
@@ -100,7 +82,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
             return super().form_valid(form)
 
-        print('no valid, what do we do here :)')
+        # @TODO: form no valid, what do we do?
         return super().form_invalid(formset.errors)
 
 
@@ -153,23 +135,5 @@ class CameraROICreate(JsonableResponseMixin, FormView):
 
             return super().form_valid(form)
 
-        # @TODO
-        print('no valid, what do we do here :)')
+        # @TODO: form no valid, what do we do?
         return super().form_invalid(formset.errors)
-
-
-# class CameraRectangleROICreate(CreateView):
-#     model = CameraRectangleROI
-#     form_class = CameraRectangleROIForm
-
-
-# class CameraRectangleROIUpdate(UpdateView):
-#     template_name = 'alarm/camera_roi_form.html'
-#     model = CameraRectangleROI
-#     form_class = CameraRectangleROIForm
-#
-#
-# class CameraRectangleROIList(ListView):
-#     queryset = CameraRectangleROI.objects.all()
-#     template_name = 'alarm/camera_roi_list.html'
-#     context_object_name = 'rois'

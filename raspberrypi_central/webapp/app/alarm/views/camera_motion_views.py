@@ -1,6 +1,6 @@
 import json
 from django.views.generic import ListView, DetailView
-from alarm.models import CameraMotionDetected, CameraMotionDetectedPicture, CameraRectangleROI
+from alarm.models import CameraMotionDetected, CameraMotionDetectedPicture
 from utils.json.decimal_encoder import DecimalEncoder
 
 
@@ -20,7 +20,6 @@ class CameraMotionDetectedDetail(DetailView):
         camera_motion_detected: CameraMotionDetected = context[self.context_object_name]
 
         camera_roi = list(camera_motion_detected.in_rectangle_roi.all().values())
-        # camera_roi = list(camera_motion_detected.device.cameraroi.camerarectangleroi_set.all().values())
 
         bounding_boxes = list(camera_motion_detected.cameramotiondetectedboundingbox_set.all().values())
         context['bounding_boxes'] = json.dumps(bounding_boxes, cls=DecimalEncoder)

@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from camera.camera_config import camera_config
 from camera_analyze.camera_analyzer import Consideration
 from camera.run_camera import roi_camera_from_args, RunSmartCamera
 from camera_analyze.all_analyzer import NoAnalyzer
@@ -65,8 +66,8 @@ class ROICameraFromData(TestCase):
                     {"id": 3, "x": 5, "y": 7, "w": 10, "h": 20},
                     {"id": 4, "x": 50, "y": 70, "w": 100, "h": 200},
                 ],
-                'definition_width': 300,
-                'definition_height': 300
+                'definition_width': camera_config.camera_width,
+                'definition_height': camera_config.camera_height
             }
         }
 
@@ -91,9 +92,8 @@ class ROICameraFromData(TestCase):
             expected = {
                 'bounding_box': bounding_box,
                 'consideration': consideration,
-                'definition_width': payload['rois']['definition_width'],
-                'definition_height': payload['rois']['definition_height'],
             }
+
             expected.pop('id', None)
 
             self.assertEqual(analyzer._roi.__dict__, expected)

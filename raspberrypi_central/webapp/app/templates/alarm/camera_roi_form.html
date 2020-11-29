@@ -8,7 +8,6 @@
     <main class="l-container">
         <div class="box">
             <div class="box__body">
-{#                <img src="{{ motion_picture.url }}" alt="">#}
                 <form action="" method="post" class="form-ajax">
                     {{ csrf_input }}
                     {{ form }}
@@ -18,8 +17,8 @@
                         <canvas id="imageView" width="400" height="300"></canvas>
                     </div>
 
-                    <input type="submit" value="Submit">
-                    <button id="clean">Clean</button>
+                    <button type="submit">Submit</button>
+                    <button type="button" id="clean">Clean</button>
                 </form>
             </div>
         </div>

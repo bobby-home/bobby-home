@@ -15,7 +15,6 @@ class MqttBooleanStatus:
         self._mqtt_client.publish(topic, status_bytes, qos=1, retain=True)
 
 
-
 class MqttJsonStatus:
     def __init__(self, mqtt_client: MQTT):
         self._mqtt_client = mqtt_client
@@ -26,10 +25,6 @@ class MqttJsonStatus:
             'data': data
         }
 
-        print(f'payload={payload}')
-
         encoded_data = json.dumps(payload, cls=DecimalEncoder)
-
-        print(encoded_data)
 
         self._mqtt_client.publish(topic, encoded_data, qos=1, retain=True)

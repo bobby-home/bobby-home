@@ -83,6 +83,9 @@ class TestCamera(TestCase):
 
 
     def test_first_considered_motion(self):
+        self.bounding_box_point_and_size = bounding_box_size(self.bounding_box)
+
+
         consideration1 = Consideration(type='rectangle', id=1)
         consideration2 = Consideration(type='rectangle', id=2)
 
@@ -114,6 +117,7 @@ class TestCamera(TestCase):
             call(self.motion_topic, json.dumps(payload), retain=True, qos=1),
             call(f'{self.picture_topic}/{event_ref}/1', [], qos=1)
         ]
+
         self.mqtt_mock.publish.assert_has_calls(calls)
 
     def test_motion_with_all_consideration(self):
@@ -138,17 +142,16 @@ class TestCamera(TestCase):
             "seen_in": {
                 "all": {
                     'ids': [None],
-                    'bounding_box': dataclasses.asdict(self.people.bounding_box)
+                    'bounding_box': dataclasses.asdict(self.bounding_box_point_and_size)
                 }
             }
         }
-
-        print(f'payload = {payload}')
 
         calls = [
             call(self.motion_topic, json.dumps(payload), retain=True, qos=1),
             call(f'{self.picture_topic}/{event_ref}/1', [], qos=1)
         ]
+
         self.mqtt_mock.publish.assert_has_calls(calls)
 
     def test_motion_no_more_motion(self):

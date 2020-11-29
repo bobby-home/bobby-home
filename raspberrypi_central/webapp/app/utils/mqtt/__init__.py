@@ -4,24 +4,21 @@ from typing import List
 import logging
 import utils.date as dt_utils
 from utils.mqtt.mqtt_data import MqttConfig, Subscription, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
+import paho.mqtt.client as mqtt
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MQTT():
-    def __init__(self, config: MqttConfig):
+class MQTT:
+    def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
+        self._mqtt_client_constructor = mqtt_client_constructor
         self._init_mqtt_client()
 
     def _init_mqtt_client(self):
         config = self._config
-        # We don't import on the top because some integrations
-        # should be able to optionally rely on MQTT.
-        # pylint: disable=import-outside-toplevel
-        import paho.mqtt.client as mqtt
-
-        client = mqtt.Client(client_id=config.client_id, clean_session=config.clean_session)
+        client: mqtt.Client = self._mqtt_client_constructor(client_id=config.client_id, clean_session=config.clean_session)
 
         if config.user is not None and config.password is not None:
             client.username_pw_set(config.user, config.password)
@@ -46,13 +43,17 @@ class MQTT():
             )
             return
 
+    @staticmethod
+    def _wrap_subscription_callback(subscription: MqttTopicSubscription):
+        return partial(MQTT._mqtt_on_message_wrapper, subscription)
+
     def add_subscribe(self, subscriptions: List[Subscription]):
+
+        def _mqtt_add_callback(subscription: MqttTopicSubscription):
+            subscription_callback = self._wrap_subscription_callback(subscription)
+            self._client.message_callback_add(subscription.topic, subscription_callback)
+
         for subscription in subscriptions:
-
-            def _mqtt_addCallback(subscription: MqttTopicSubscription):
-                subscription_callback = partial(self._mqtt_on_message_wrapper, subscription)
-                self._client.message_callback_add(subscription.topic, subscription_callback)
-
             """
             Subscribe strategy:
             - use paho mqtt .subscribe() with .add_callback
@@ -70,11 +71,12 @@ class MQTT():
 
             if isinstance(subscription, MqttTopicFilterSubscription):
                 for sub in subscription.topics:
-                    _mqtt_addCallback(sub)
+                    _mqtt_add_callback(sub)
             else:
-                _mqtt_addCallback(sub)
+                _mqtt_add_callback(subscription)
 
-    def _mqtt_on_message_wrapper(self, subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
+    @staticmethod
+    def _mqtt_on_message_wrapper(subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
         timestamp = dt_utils.utcnow()
 
         subscription.callback(MqttMessage(
@@ -103,4 +105,4 @@ def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
         port=int(os.environ['MQTT_PORT'])
     )
 
-    return MQTT(mqttConfig)
+    return MQTT(mqttConfig, mqtt.Client)

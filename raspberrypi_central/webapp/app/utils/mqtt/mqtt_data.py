@@ -66,7 +66,6 @@ class MqttTopicFilterSubscription(Subscription):
     and then add callbacks for motion/camera, motion/picture, ...
     -> this is done by adding MqttTopicSubscription in the "topics" list.
     """
-    topic: str
     topics: List[MqttTopicSubscription]
     qos: int = 1
 

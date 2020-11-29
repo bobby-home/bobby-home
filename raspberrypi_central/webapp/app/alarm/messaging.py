@@ -6,7 +6,7 @@ class SpeakerMessaging:
         self._mqtt_status = mqtt_status
 
     def publish_speaker_status(self, device_id: str, status: bool):
-        self._mqtt_status.publish(f'status/speaker/{device_id}', status, )
+        self._mqtt_status.publish(f'status/speaker/{device_id}', status)
 
 
 class AlarmMessaging:

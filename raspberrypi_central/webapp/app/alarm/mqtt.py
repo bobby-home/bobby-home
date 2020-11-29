@@ -9,7 +9,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
-from .communication.out_alarm import NotifyAlarmStatus, notify_alarm_status_factory
+from .communication.out_alarm import notify_alarm_status_factory
 from .messaging import speaker_messaging_factory
 
 _LOGGER = logging.getLogger(__name__)
@@ -93,6 +93,7 @@ def on_motion_picture(message: MqttMessage):
 class OnConnectedCameraHandler(OnConnectedHandler):
 
     def on_connected(self, device_id: str) -> None:
+        print('on connected camera')
         mx = notify_alarm_status_factory(self.get_client)
         mx.publish_device_connected(device_id)
 
@@ -100,7 +101,8 @@ class OnConnectedCameraHandler(OnConnectedHandler):
 class OnConnectedSpeakerHandler(OnConnectedHandler):
 
     def on_connected(self, device_id: str) -> None:
-        speaker_messaging_factory(self._client).publish_speaker_status(device_id, False)
+        pass
+        # speaker_messaging_factory(self._client).publish_speaker_status(device_id, False)
 
 
 def bind_on_connected(service_name: str, handler_instance) -> MqttTopicSubscriptionBoolean:
@@ -116,6 +118,8 @@ def register(mqtt: MQTT):
     speaker = bind_on_connected('speaker', on_connected_speaker)
     camera = bind_on_connected('camera', on_connected_camera)
 
+
+
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(
             topic='motion/#',
@@ -125,11 +129,6 @@ def register(mqtt: MQTT):
                 MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
             ],
         ),
-        MqttTopicFilterSubscription(
-            topic='connected/camera/+',
-            qos=1,
-            topics=[
-                speaker, camera
-            ]
-        )
+        camera,
+        speaker
     ])

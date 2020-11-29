@@ -32,7 +32,7 @@ class ThreadManager:
             self._start_process(data)
         else:
             # TODO: see #102
-            print("Didn't restart because the configuration remains the same.")
+            print(f"Dit not restart because the configuration remains the same for {self._run_service}")
 
     def _stop_process(self):
         if self._process:

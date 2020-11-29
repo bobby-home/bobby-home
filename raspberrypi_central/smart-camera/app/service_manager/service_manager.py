@@ -11,6 +11,7 @@ class RunService(ABC):
     def run(self, *args) -> None:
         pass
 
+    @abstractmethod
     def is_restart_necessary(self, data) -> bool:
         pass
 

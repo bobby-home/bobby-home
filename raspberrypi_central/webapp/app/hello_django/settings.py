@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'alerts',
     'house',
     'notification',
+    'mqtt_services',
 
     # third parties
     'django_extensions',

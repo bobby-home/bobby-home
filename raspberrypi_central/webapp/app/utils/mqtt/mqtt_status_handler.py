@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import logging
 
+from mqtt_services.models import MqttServicesConnectionStatusLogs
 from utils.mqtt import MQTT, MqttMessage
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,15 +18,29 @@ def split_camera_topic(topic: str):
 
 
 class OnConnectedHandler(ABC):
-    def __init__(self, client: MQTT):
+    def __init__(self, service_name: str, client: MQTT):
         self._client = client
+        self._service_name = service_name
+
 
     def get_client(self):
         return self._client
 
     @abstractmethod
-    def on_connected(self, device_id: str) -> None:
+    def on_connect(self, device_id: str) -> None:
         pass
+
+    @abstractmethod
+    def on_disconnect(self, device_id: str) -> None:
+        pass
+
+
+class OnConnectedHandlerLog(OnConnectedHandler):
+    def on_connect(self, device_id: str) -> None:
+        MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=True, service_name=self._service_name)
+
+    def on_disconnect(self, device_id: str) -> None:
+        MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=False, service_name=self._service_name)
 
 
 class OnStatus:
@@ -37,6 +52,6 @@ class OnStatus:
         device_id = topic['device_id']
 
         if message.payload is True:
-            self._handler.on_connected(device_id)
+            self._handler.on_connect(device_id)
         else:
-            _LOGGER.error(f'We lost the mqtt connection with {device_id}')
+            self._handler.on_disconnect(device_id)

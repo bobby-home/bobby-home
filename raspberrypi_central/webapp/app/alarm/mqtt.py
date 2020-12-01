@@ -1,4 +1,5 @@
 import logging
+from typing import Callable
 
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
@@ -7,7 +8,7 @@ from alarm.tasks import camera_motion_picture, camera_motion_detected
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus
+from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
 from .communication.out_alarm import notify_alarm_status_factory
 from .messaging import speaker_messaging_factory
 
@@ -89,35 +90,30 @@ def on_motion_picture(message: MqttMessage):
     camera_motion_picture.apply_async(kwargs=data)
 
 
-class OnConnectedCameraHandler(OnConnectedHandler):
+class OnConnectedCameraHandler(OnConnectedHandlerLog):
 
     def on_connected(self, device_id: str) -> None:
         print('on connected camera')
         mx = notify_alarm_status_factory(self.get_client)
         mx.publish_device_connected(device_id)
 
-
-class OnConnectedSpeakerHandler(OnConnectedHandler):
-
-    def on_connected(self, device_id: str) -> None:
-        pass
-        # speaker_messaging_factory(self._client).publish_speaker_status(device_id, False)
+        return super().on_connected(device_id)
 
 
-def bind_on_connected(service_name: str, handler_instance) -> MqttTopicSubscriptionBoolean:
+class OnConnectedSpeakerHandler(OnConnectedHandlerLog):
+    pass
+
+
+def bind_on_connected(mqtt, service_name: str, handler_constructor: Callable[[str, MQTT], OnConnectedHandler]) -> MqttTopicSubscriptionBoolean:
+    handler_instance = handler_constructor(service_name, mqtt)
     on_status = OnStatus(handler_instance)
 
     return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
 
 
 def register(mqtt: MQTT):
-    on_connected_speaker = OnConnectedSpeakerHandler(mqtt)
-    on_connected_camera = OnConnectedCameraHandler(mqtt)
-
-    speaker = bind_on_connected('speaker', on_connected_speaker)
-    camera = bind_on_connected('camera', on_connected_camera)
-
-
+    speaker = bind_on_connected(mqtt, 'speaker', OnConnectedSpeakerHandler)
+    camera = bind_on_connected(mqtt, 'camera', OnConnectedCameraHandler)
 
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(

@@ -27,4 +27,6 @@ class MqttJsonStatus:
 
         encoded_data = json.dumps(payload, cls=DecimalEncoder)
 
+        print(f'mqtt json status: {payload} {topic}')
+
         self._mqtt_client.publish(topic, encoded_data, qos=1, retain=True)

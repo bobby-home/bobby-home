@@ -27,6 +27,7 @@ class UserTelegramBotChatId(models.Model):
     def __str__(self):
         return f'Configuration for {self.user.__str__()}'
 
+
 class UserSetting(models.Model):
     # @TODO ?: validation only one of these fields can be non null.
     free_carrier = models.ForeignKey(UserFreeCarrier, on_delete=models.PROTECT, blank=True, null=True)

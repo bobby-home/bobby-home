@@ -92,12 +92,11 @@ def on_motion_picture(message: MqttMessage):
 
 class OnConnectedCameraHandler(OnConnectedHandlerLog):
 
-    def on_connected(self, device_id: str) -> None:
-        print('on connected camera')
+    def on_connect(self, device_id: str) -> None:
         mx = notify_alarm_status_factory(self.get_client)
         mx.publish_device_connected(device_id)
 
-        return super().on_connected(device_id)
+        return super().on_connect(device_id)
 
 
 class OnConnectedSpeakerHandler(OnConnectedHandlerLog):

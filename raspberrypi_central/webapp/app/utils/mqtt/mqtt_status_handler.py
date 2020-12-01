@@ -27,7 +27,7 @@ class OnConnectedHandler(ABC):
         return self._client
 
     @abstractmethod
-    def on_connected(self, device_id: str) -> None:
+    def on_connect(self, device_id: str) -> None:
         pass
 
     @abstractmethod
@@ -36,7 +36,7 @@ class OnConnectedHandler(ABC):
 
 
 class OnConnectedHandlerLog(OnConnectedHandler):
-    def on_connected(self, device_id: str) -> None:
+    def on_connect(self, device_id: str) -> None:
         MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=True, service_name=self._service_name)
 
     def on_disconnect(self, device_id: str) -> None:
@@ -52,6 +52,6 @@ class OnStatus:
         device_id = topic['device_id']
 
         if message.payload is True:
-            self._handler.on_connected(device_id)
+            self._handler.on_connect(device_id)
         else:
             self._handler.on_disconnect(device_id)

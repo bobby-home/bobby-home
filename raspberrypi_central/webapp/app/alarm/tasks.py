@@ -2,8 +2,8 @@ import os
 from typing import List
 
 from celery import shared_task
-from devices.models import Device
-from notification.tasks import send_message
+from devices.models import Device, SeverityChoice
+from notification.tasks import send_message, create_and_send_notification
 from utils.mqtt import mqtt_factory
 from alarm.communication.in_motion import save_motion
 from .messaging import speaker_messaging_factory
@@ -58,6 +58,8 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
         message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
 
     kwargs = {
+        'severity': SeverityChoice.HIGH,
+        'device_id': device_id,
         'message': message
     }
 
@@ -69,7 +71,7 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
     If something goes wrong in this function after the real send notification, then
     it will retry it -> notify the user multiple times.
     """
-    send_message.apply_async(kwargs=kwargs)
+    create_and_send_notification.apply_async(kwargs=kwargs)
 
     # We do it in this task for now.
     # play_sound.apply_async(kwargs={'device_id': device_id})

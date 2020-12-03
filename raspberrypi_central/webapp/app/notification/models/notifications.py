@@ -4,6 +4,11 @@ from django.db import models
 
 from devices.models import Device
 
+"""
+This model is removed and might be used later.
+It is not used yet because we have models like CameraMotionDetectedPicture.
+But the design of this Model remains good.
+"""
 # class Attachment(models.Model):
 #     S3 = 0
 #
@@ -20,6 +25,7 @@ from devices.models import Device
 #     def __str__(self):
 #         return '{0}_{1}_{2}'.format(self.bucket_name, self.object_name, self.storage_type)
 
+
 class SeverityChoice(models.TextChoices):
     LOW = 'low'
     MODERATE = 'moderate'
@@ -32,7 +38,6 @@ class SystemNotification(models.Model):
     message = models.TextField()
     severity = models.CharField(max_length=60, choices=SeverityChoice.choices)
 
-    # attachments = models.ManyToManyField(Attachment, blank=True)
     devices = models.ManyToManyField(Device, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

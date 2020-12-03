@@ -2,25 +2,25 @@ from celery import shared_task
 
 from devices.models import Device
 from .models import SeverityChoice, SystemNotification
-from notification.out.messaging import Messaging
+from notification.out.messaging import messaging_factory
 
 
 @shared_task
 def send_message(*args, **kwargs):
-    messaging = Messaging()
+    messaging = messaging_factory()
     messaging.send_message(*args, **kwargs)
 
 
-@shared_task()
+@shared_task
 def send_alert_notification(pk: int) -> None:
     alert = SystemNotification.objects.get(pk=pk)
-    messaging = Messaging()
+    messaging = messaging_factory()
     messaging.send_message(message=alert.message)
 
 
 @shared_task
-def create_and_send_notification(device_id: str, message: str):
-    alert = SystemNotification.objects.create(message=message, severity=SeverityChoice.HIGH)
+def create_and_send_notification(severity: SeverityChoice, device_id: str, message: str) -> None:
+    alert = SystemNotification.objects.create(message=message, severity=severity)
 
     device = Device.objects.get(device_id=device_id)
     alert.devices.add(device.pk)

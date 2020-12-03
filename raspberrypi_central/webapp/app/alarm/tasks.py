@@ -2,7 +2,7 @@ import os
 from typing import List
 
 from celery import shared_task
-from devices.models import Device
+from devices.models import Device, SeverityChoice
 from notification.tasks import send_message, create_and_send_notification
 from utils.mqtt import mqtt_factory
 from alarm.communication.in_motion import save_motion
@@ -58,6 +58,7 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
         message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
 
     kwargs = {
+        'severity': SeverityChoice.HIGH,
         'device_id': device_id,
         'message': message
     }

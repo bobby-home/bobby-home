@@ -27,8 +27,8 @@
 
     <script>
         const FILE_URL = "{{ picture.picture.url }}"
-        const BOUNDING_BOXES = JSON.parse({{ bounding_boxes|tojson }})
-        const CAMERA_ROI = JSON.parse({{ camera_roi|tojson }})
+        const BOUNDING_BOXES = JSON.parse({{ bounding_boxes | safe }})
+        const CAMERA_ROI = JSON.parse({{ camera_roi | safe }})
     </script>
 
     {% assets 'entrypoints/motion-detected.js' %}

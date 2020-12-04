@@ -13,7 +13,7 @@
                 <ul>
                     {% for status in statuses %}
                         <li>
-                            <a href="{{ url('alarm:status-edit', kwargs={'pk': status.pk} )}}">{{ status }}</a></li>
+                            <a href="{% url 'alarm:status-edit' status.pk %}">{{ status }}</a></li>
                     {% endfor %}
                 </ul>
             </div>

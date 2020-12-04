@@ -27,7 +27,7 @@
     <script>
         const FILE_URL = "{{ motion_picture.url }}"
         {% if camera_roi_rectangles %}
-            window.RECTANGLES = JSON.parse({{ camera_roi_rectangles|tojson }})
+            window.RECTANGLES = JSON.parse({{ camera_roi_rectangles | safe }})
         {% endif %}
     </script>
 

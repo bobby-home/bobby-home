@@ -1,18 +1,20 @@
-<div class="header">
-    <div class="topbar">
-        <nav
-          class="topbar__nav l-container"
-          role="navigation"
-          aria-label="Menu principal">
-    
-          <ul class="topbar__nav__menu">
+<div class="topbar">
+    <nav class="topbar__nav l-container" role="navigation" aria-label="Menu principal">
+        <ul class="topbar__nav__list">
             <li>
-              <a href="#">Home</a>
+                <a href="#">{% svg_icon 'home' %} Accueil</a>
             </li>
             <li>
-                <a href="#">Schedule alarm</a>
+                <a href="#">{% svg_icon 'shield' %} Alarme</a>
             </li>
-          </ul>
-        </nav>
-    </div>
+        </ul>
+
+        <ul class="topbar__nav__side">
+            {% if request.user.is_authenticated %}
+                {{ request.user.first_name }}
+            {% else %}
+                Please login
+            {% endif %}
+        </ul>
+    </nav>
 </div>

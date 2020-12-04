@@ -12,8 +12,9 @@ ENV PYTHONUNBUFFERED 1
 
 # netcat is not required for alpine images, but debian based yes.
 # otherwise "nc" command not found.
+# gettext is used by django to extract texts to translate: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#message-files
 RUN apt-get update \
-    && apt-get install -y pipenv netcat
+    && apt-get install -y pipenv netcat gettext
 
 # install dependencies
 RUN pip install --upgrade pip

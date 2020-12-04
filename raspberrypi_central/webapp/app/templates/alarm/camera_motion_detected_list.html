@@ -1,5 +1,7 @@
 {% extends '_layout.html' %}
 
+{% load i18n %}
+
 {% block header %}
     <h1 class="h3">Camera motion list</h1>
 
@@ -10,10 +12,16 @@
         <div class="box">
             <div class="box__body">
                 <h2>Camera motion list</h2>
+                {{ get_current_language }}
+
+                {% language 'fr' %}
+                    {% trans "This is the title." %}
+                {% endlanguage %}
+
                 <ul>
                     {% for motion in motions %}
                         <li>
-                            <a href="{{ url('alarm:camera_motion_detected-detail', kwargs={'pk': motion.pk} )}}">
+                            <a href="{% url 'alarm:camera_motion_detected-detail' motion.pk %}">
                                 {{ motion.pk }} {{ motion.created_at }}
                             </a>
                         </li>

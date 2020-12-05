@@ -21,7 +21,11 @@ services:
         #     timeout: 10s
         #     retries: 5
     rabbit_worker:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django worker --loglevel=info"
         volumes:
             - ./app/:/usr/src/app/
@@ -34,7 +38,11 @@ services:
                 ipv4_address: "172.19.0.100"
 
     celery_beat:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         volumes:
             - ./app/:/usr/src/app/
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
@@ -46,7 +54,11 @@ services:
             webapp_backend:
 
     web:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python manage.py runserver 0.0.0.0:8000"
         volumes:
           - ./app/:/usr/src/app/
@@ -85,7 +97,11 @@ services:
                 ipv4_address: "172.19.0.51"
 
     python_process_mqtt:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         env_file:
             - .env
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python standalone/mqtt/mqtt_run.py"
@@ -95,11 +111,13 @@ services:
             rabbitmq:
             webapp_backend:
             backend_mqtt:
-        env_file:
-            - .env
 
     telegram_bot:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         env_file:
             - .env
         command: python standalone/telegram_bot/bot.py
@@ -109,8 +127,6 @@ services:
             rabbitmq:
             webapp_backend:
             backend_mqtt:
-        env_file:
-            - .env
 
 networks:
     rabbitmq:

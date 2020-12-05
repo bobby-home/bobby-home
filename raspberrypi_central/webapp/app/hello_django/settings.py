@@ -71,6 +71,10 @@ REST_FRAMEWORK = {
     # )
 }
 
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, "locale"),
+)
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 
@@ -81,6 +85,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'django.middleware.locale.LocaleMiddleware'
 ]
 
 
@@ -92,24 +98,14 @@ ROOT_URLCONF = 'hello_django.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.jinja2.Jinja2',
-        # Jinja2 handle my templates
+        # @see: https://docs.djangoproject.com/en/3.1/topics/templates/#django.template.backends.django.DjangoTemplates
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
-            # add basic django tags and django view environment.
-            'environment': 'hello_django.jinja2.environment',
-            'extensions': [
-                'jdj_tags.tag_assets.Assets',
-            ]
-        }
-    },
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # let Jinja2 handle my templates
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
+            'builtins': [
+                'template_addons.tags'
+            ],
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -173,8 +169,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    f"{BASE_DIR}/static",
+]
 
 if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')

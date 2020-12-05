@@ -10,11 +10,11 @@
         <div class="box">
             <div class="box__body">
                 <h2>Alarm roi list</h2>
-                <a href="{{ url('alarm:camera_roi-add') }}">Add a new ROI to a camera</a>
+                <a href="{% url 'alarm:camera_roi-add' %}">Add a new ROI to a camera</a>
                 <ul>
                     {% for roi in rois %}
                         <li>
-                            <a href="{{ url('alarm:camera_roi-edit', kwargs={'pk': roi.pk} )}}">{{ roi }}</a></li>
+                            <a href="{% url 'alarm:camera_roi-edit' roi.pk %}">{{ roi }}</a></li>
                     {% endfor %}
                 </ul>
             </div>

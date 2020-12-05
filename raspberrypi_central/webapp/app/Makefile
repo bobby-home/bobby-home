@@ -43,8 +43,8 @@ createapp:
 db-login:
 	$(de) $(db_image) psql -U hello_django -d hello_django_dev
 
-.PHONY: locale
-locale:
+.PHONY: makemessages
+makemessages:
 	$(de) $(web_image) django-admin makemessages -l fr
 
 .PHONY: compilemessages

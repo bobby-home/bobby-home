@@ -30,7 +30,7 @@ body {
 }
 
 .title, %headings {
-  color: color('grey', 'darken-1');
+  color: var(--titleColor);
   font-weight: 700;
   & > .title-small {
     font-size: .8em;

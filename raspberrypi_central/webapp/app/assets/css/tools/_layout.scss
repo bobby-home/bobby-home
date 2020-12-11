@@ -1,4 +1,5 @@
 @import "../helpers/space";
+@import "../tools/_responsive.scss";
 
 html {
   /* border-box box model allows us to add padding and border to our elements
@@ -16,26 +17,38 @@ html {
   box-sizing: inherit;
 }
 
-/**
- * Containers
- */
+.l-row {
+  --rowLayoutGapLarge: 2;
 
-:root {
-  --container-padding: 20px;
-  --container-width: calc(100vw - var(--container-padding) * 2);
+  display: grid;
+  grid: auto/minmax(0, 1fr);
+  row-gap: calc(var(--rowLayoutGapLarge) * var(--space));
 }
+
+@include up($medium) {
+  .l-row {
+    --rowLayoutGapLarge: 4;
+  }
+}
+
+@include up($large) {
+  .l-row {
+    --rowLayoutGapLarge: 5;
+  }
+}
+
 
 .l-container {
   width: 100%;
-  padding-left: var(--container-padding);
-  padding-right: var(--container-padding);
+  padding-left: var(--columnPaddingNormal);
+  padding-right: var(--columnPaddingNormal);
 
   /**
-   * Comming from Foundation framework.
+   * Idea taken from Foundation framework.
    * Thanks to this, I don't have to create many breakpoints to
    * size my container.
    */
-  max-width: 75rem;
+  max-width: 72rem;
   margin: 0 auto;
 }
 
@@ -43,22 +56,16 @@ html {
  * Stacks
  */
 %l-stack,
-.l-stack,
-.l-stack-large,
-.l-stack-separated {
-  --gap: 2;
+.l-stack {
   display: grid;
   grid-template-columns: 1fr;
   align-content: flex-start;
-  grid-gap: calc(var(--gap) * var(--space));
+  gap: calc(var(--gap) * var(--space));
 }
-.l-stack-large {
-  --gap: 4;
-}
-.l-stack-separated {
-  --gap: 4;
-  --gap-separated: var(--gap);
-  grid-gap: calc(var(--gap) * var(--space) * 2);
+
+.l-section {
+    --gap: 5;
+    margin: calc(var(--gap) * var(--space)) 0;
 }
 
 /**

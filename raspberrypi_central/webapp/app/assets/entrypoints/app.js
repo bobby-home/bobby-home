@@ -1,20 +1,18 @@
 import '../css/app.scss'
-import {jsonFetch} from '../js/ajaxify'
+
+import {createApp} from 'vue'
+import App from '../App.vue'
+import {DialogManager} from '../state/dialog-state'
+import {FormHandler} from "../js/form/form-handler";
+
+const app = createApp(App)
+const mounted = app.mount('#app')
+
+const dialogManager = new DialogManager(mounted)
 
 
-const form = document.querySelector('.ajaxify')
+const forms = document.querySelectorAll('form.ajaxify')
 
-if (form) {
-
-    form.addEventListener('submit', e => {
-        e.preventDefault()
-        const data = new FormData(form)
-
-        jsonFetch(form.action, CSRF, {
-            body: data
-        }).then(() => {
-          console.log('Request has been made - ok.')
-        })
-    })
-
-}
+forms.forEach(form => {
+  new FormHandler(form, dialogManager)
+})

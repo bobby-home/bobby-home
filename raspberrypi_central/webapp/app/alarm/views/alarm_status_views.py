@@ -18,6 +18,11 @@ class AlarmStatusUpdate(JsonableResponseMixin, UpdateView):
     template_name = 'alarm/status_form.html'
     success_url = reverse_lazy('alarm:status-list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        print(context)
+        return context
+
 
 class AlarmStatusList(ListView):
     queryset = AlarmStatus.objects.all()

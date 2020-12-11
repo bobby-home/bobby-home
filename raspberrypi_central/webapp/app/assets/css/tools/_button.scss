@@ -11,21 +11,20 @@
   overflow: hidden;
   padding: space(1.5) space(3);
 
-  background-color: color('mx-purple', 'base');
+  background-color: var(--buttonBackground);
 
-  border: 1px solid;
-  border-color: transparent;
+  border: 1px solid var(--buttonBackground);
   border-radius: var(--border-radius);
 
-  // box-shadow: $small-shadow;
+  box-shadow: var(--buttonShadow);
 
-  color: #fff;
+  color: var(--buttonColor);
   text-align: center;
 
   transition: .25s background-color;
 
   &:hover {
-    background-color: color('mx-purple', 'dark');
+    filter: brightness(90%);
   }
 
   .icon {
@@ -33,70 +32,13 @@
   }
 }
 
-.hover\:bgc\:transparent:hover {
-  background-color: transparent;
-}
-
-.btn--flat {
-  background-color: transparent;
-  color: hsl(253, 26%, 60%);
-  border: 2px solid hsl(253, 26%, 80%);
-  box-shadow: none;
-  &:hover {
-    background-color: transparent;
-  }
+.btn-transparent {
+  --buttonBackground: transparent;
+  --buttonColor: var(--accentColor);
 }
 
 
 .btn--small {
   padding: space(1) space(2);
   font-size: .9rem;
-}
-
-.btn--white {
-  color: color('mx-purple', 'dark');
-  background-color: #fff;
-  border-color: color('mx-purple', 'base');
-
-  &:hover {
-    color: #fff;
-    background-color: $accent-color;
-  }
-}
-
-.btn--green {
-  border-color: color('green', 'base');
-  background-color: color('green', 'base');
-
-  &:hover {
-    color: color('green', 'base');
-    border-color: color('green', 'base');
-    background-color: #fff;
-  }
-}
-
-.btn--transparent {
-  background-color: transparent;
-  border-color: color('mx-purple', 'base');
-  color: color('mx-purple', 'dark');
-  &:hover {
-    background-color: color('mx-purple', 'base');
-    border-color: color('mx-purple', 'base');
-    color: #fff;
-  }
-}
-
-.btn--transparent--green {
-  border-color: color('green', 'base');
-  color: color('green', 'base');
-  &:hover {
-    background-color: color('green', 'base');
-    border-color: color('green', 'base');
-    color: #fff;
-  }
-}
-
-.btn--transparent--white {
-  border-color: #fff;
-  color: #fff;
 }

@@ -1,19 +1,30 @@
 {% extends '_layout.html' %}
 
+{% load i18n %}
+
+
 {% block header %}
     <h1 class="h3">Alarm ROI</h1>
-
 {% endblock header %}
 
 {% block body %}
+
     <main class="l-container">
-        <div class="box">
-            <div class="box__body">
-                <form action="" method="post" class="ajaxify">
-                    {{ form }}
-                    <input type="submit" value="Submit">
-                </form>
+        <div class="l-section">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body">
+                    {{ alarmstatus.device.location }}
+                    <form action="" method="post" class="ajaxify"
+                          data-dialog=""
+                          data-dialog-title="{% trans 'Do you really want to change the status of your alarm?' %}"
+                          data-dialog-content="{% trans 'This will stop or run your alarm immediately!' %}"
+                    >
+                        {{ form }}
+                        <input type="submit" value="Submit">
+                    </form>
+                </div>
             </div>
         </div>
     </main>
+
 {% endblock body %}

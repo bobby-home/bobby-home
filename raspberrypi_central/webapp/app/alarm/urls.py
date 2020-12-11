@@ -3,6 +3,7 @@ from django.urls import include, path
 from alarm.views.alarm_status_views import AlarmStatusList, AlarmStatusUpdate, AlarmStatusCreate
 from alarm.views.camera_motion_views import CameraMotionDetectedList, CameraMotionDetectedDetail
 from alarm.views.camera_roi_views import CameraROICreate, CameraROIUpdate, CameraROIList, CameraROIDelete
+from alarm.views.home import AlarmHome
 
 app_name = 'alarm'
 
@@ -25,6 +26,7 @@ motions_pattern = [
 ]
 
 urlpatterns = [
+    path('', AlarmHome.as_view(), name='home'),
     path('status/', include(status_patterns)),
     path('camera_roi/', include(roi_patterns)),
     path('camera_motion/', include(motions_pattern)),

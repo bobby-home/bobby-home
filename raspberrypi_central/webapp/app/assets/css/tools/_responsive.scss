@@ -1,3 +1,5 @@
+@import 'functions';
+
 $small: "576px";
 $medium: "768px";
 $large: "992px";
@@ -56,6 +58,25 @@ $extra-large: "1280px";
 
   @include emix-breakpoint(XL) {
     width: map-get($map, XL);
+  }
+}
+
+@mixin up($size) {
+  @media (min-width: $size) {
+    @content;
+  }
+}
+@mixin down($size) {
+  @media (max-width: $size) {
+    @content;
+  }
+}
+
+@mixin between($down, $up) {
+  //$down: strip-unit($down);
+  $up: strip-unit($up);
+  @media (min-width: $down * 1px) and (max-width: $up * 1px) {
+    @content;
   }
 }
 

@@ -8,11 +8,13 @@
 </head>
 <body>
     {% include "partials/_topbar.html" %}
-    <div class="l-stack-large">
+    <div>
         {% block body %}{% endblock %}
     </div>
-    {% assets 'entrypoints/app.js' %}
 
+    <div id="app"></div>
+
+    {% assets 'entrypoints/app.js' %}
     <script>
         window.CSRF = "{{ csrf_token }}"
     </script>

@@ -10,7 +10,9 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "vue": "^3.0.4"
+  },
   "devDependencies": {
     "rollup": "^2.23.0",
     "@babel/core": "^7.10.4",
@@ -23,6 +25,7 @@
     "sass": "^1.26.5",
     "@koa/cors": "^3.1.0",
     "vite": "^1.0.0-rc.9",
-    "@prefresh/vite": "^0.9.0"
+    "@prefresh/vite": "^0.9.0",
+    "@vue/compiler-sfc": "^3.0.4"
   }
 }

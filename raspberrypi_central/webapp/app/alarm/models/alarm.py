@@ -1,9 +1,11 @@
 import json
 import uuid
 
+from django.utils import timezone
 from django.db import models
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
+from alarm.business.alarm import get_next_off_schedule, get_next_on_schedule
 from devices.models import Device
 from house.models import House
 
@@ -29,13 +31,21 @@ class AlarmStatus(models.Model):
         return f'Status is {self.running} for {self.device}'
 
 
-class AlarmSchedule(models.Model):
-    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
-    hour_start = models.IntegerField()
-    minute_start = models.IntegerField()
+class AlarmScheduleManager(models.Manager):
+    def get_next_off(self):
+        return get_next_off_schedule(timezone.now(), self)
 
-    hour_end = models.IntegerField()
-    minute_end = models.IntegerField()
+    def get_next_on(self):
+        return get_next_on_schedule(timezone.now(), self)
+
+
+class AlarmSchedule(models.Model):
+    objects = AlarmScheduleManager()
+
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+
+    start_time = models.TimeField()
+    end_time = models.TimeField()
 
     monday    = models.BooleanField()
     tuesday   = models.BooleanField()
@@ -93,8 +103,8 @@ class AlarmSchedule(models.Model):
 
         if self._state.adding is True:
             schedule_turn_on_alarm = CrontabSchedule.objects.create(
-                minute=self.minute_start,
-                hour=self.hour_start,
+                minute=self.start_time.minute,
+                hour=self.start_time.hour,
                 day_of_week=cron_days,
                 timezone=house_timezone
             )
@@ -107,8 +117,8 @@ class AlarmSchedule(models.Model):
             )
 
             schedule_turn_off_alarm = CrontabSchedule.objects.create(
-                minute=self.minute_end,
-                hour=self.hour_end,
+                minute=self.end_time.minute,
+                hour=self.end_time.hour,
                 day_of_week=cron_days,
                 timezone=house_timezone
             )
@@ -124,12 +134,14 @@ class AlarmSchedule(models.Model):
             on_crontab = self.turn_on_task.crontab
             off_crontab = self.turn_off_task.crontab
 
-            on_crontab.minute = self.minute_start
-            on_crontab.hour = self.hour_start
+
+
+            on_crontab.minute = self.start_time.minute
+            on_crontab.hour = self.start_time.hour
             on_crontab.day_of_week = cron_days
 
-            off_crontab.minute = self.minute_end
-            off_crontab.hour = self.hour_end
+            off_crontab.minute = self.end_time.minute
+            off_crontab.hour = self.end_time.hour
             off_crontab.day_of_week = cron_days
 
             on_crontab.save()

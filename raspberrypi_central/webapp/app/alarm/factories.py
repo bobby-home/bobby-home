@@ -21,12 +21,6 @@ class AlarmScheduleFactory(factory.DjangoModelFactory):
     class Meta:
         model = AlarmSchedule
 
-    hour_start = 5
-    minute_start = 5
-
-    hour_end = 5
-    minute_end = 6
-
     monday    = factory.Faker('pybool')
     tuesday   = factory.Faker('pybool')
     wednesday = factory.Faker('pybool')

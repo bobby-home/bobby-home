@@ -1,6 +1,7 @@
 import logging
 from typing import Callable
 
+from hello_django.loggers import MQTT_LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
@@ -35,7 +36,7 @@ def on_motion_camera(message: MqttMessage):
     topic = split_camera_topic(message.topic)
     payload = message.payload
 
-    print(f'on_motion_camera payload={payload}')
+    MQTT_LOGGER.info(f'on_motion_camera payload={payload}')
 
     data = {
         'device_id': topic['device_id'],
@@ -58,7 +59,7 @@ def on_motion_picture(message: MqttMessage):
     event_ref = topic['event_ref']
     status = topic['status']
 
-    print(f'on_motion_picture even_ref={event_ref}')
+    MQTT_LOGGER.info(f'on_motion_picture even_ref={event_ref}')
 
     if event_ref == "0":
         # Initialization: no motion

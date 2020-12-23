@@ -92,5 +92,9 @@ class RunSmartCamera(RunService):
     def stop(self, *args) -> None:
         pass
 
+    def __str__(self):
+        return 'run-smart-camera'
+
+
 def run_smart_camera_factory():
     return RunSmartCamera(camera_factory, VideoStream)

@@ -1,6 +1,6 @@
 import os
 
-from camera.run_camera import run_smart_camera_factory
+from service_manager.run_camera import run_smart_camera_factory
 from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
 from thread.thread_manager import ThreadManager
 from mqtt.mqtt_client import get_mqtt

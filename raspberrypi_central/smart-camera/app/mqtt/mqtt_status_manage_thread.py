@@ -1,5 +1,6 @@
 import struct
 
+from loggers import MQTT_STATUS_MANAGE_THREAD_LOGGER
 from mqtt.mqtt_client import MqttClient
 from thread.thread_manager import ThreadManager
 import logging
@@ -32,15 +33,28 @@ class MqttStatusManageThread:
         message = msg.payload
         data = None
 
-        # TODO: #102 handle errors! Don't let the software crashes.
         if self._status_json is True:
-            message = json.loads(message)
+            try:
+                message = json.loads(message)
+            except json.JSONDecodeError:
+                MQTT_STATUS_MANAGE_THREAD_LOGGER.critical(f'Cannot decode json {message} for service {self._service_name}')
+                return
+
             status = message['status']
             data = message['data']
         else:
-            status = struct.unpack('?', message)[0]
+            try:
+                # unpack always return a tuple (False,) or (True,) because we pack only one value.
+                status = struct.unpack('?', message)
+                if len(status) != 1:
+                    raise TypeError(f'{message} should be of size one when unpacked but got {status}')
+                else:
+                    status = status[0]
+            except (struct.error, TypeError):
+                MQTT_STATUS_MANAGE_THREAD_LOGGER.critical(f'Cannot decode binary {message} for service {self._service_name}')
+                return
 
-        print(f'Receive status {status} for {self._service_name} with data {data}')
+        MQTT_STATUS_MANAGE_THREAD_LOGGER.info(f'Receive status {status} for {self._service_name} with data {data}')
 
         if status:
             self._thread_manager.run(True, data=data)

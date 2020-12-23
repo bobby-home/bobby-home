@@ -1,4 +1,5 @@
 import re
+from io import BytesIO
 from typing import List, Tuple
 import numpy as np
 from PIL import Image
@@ -21,7 +22,8 @@ class DetectPeople:
         self.interpreter.allocate_tensors()
         _, self.input_height, self.input_width, _ = self.interpreter.get_input_details()[0]['shape']
 
-    def _load_labels(self, path):
+    @staticmethod
+    def _load_labels(path):
         """Loads the labels file. Supports files with or without index numbers."""
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
@@ -36,13 +38,15 @@ class DetectPeople:
 
         return labels
 
-    def _set_input_tensor(self, interpreter, image):
+    @staticmethod
+    def _set_input_tensor(interpreter, image):
         """Sets the input tensor."""
         tensor_index = interpreter.get_input_details()[0]['index']
         input_tensor = interpreter.tensor(tensor_index)()[0]
         input_tensor[:, :] = image
 
-    def _get_output_tensor(self, interpreter, index):
+    @staticmethod
+    def _get_output_tensor(interpreter, index):
         """Returns the output tensor at the given index."""
         output_details = interpreter.get_output_details()[index]
         tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
@@ -94,13 +98,8 @@ class DetectPeople:
 
         return results
 
-    def process_frame(self, stream) -> Tuple[List[People], Image.Image]:
-        """
-        From Tensorflow examples, we have .convert('RGB') before the resize.
-        We removed it because the RGB is created at the stream level (opencv or picamera).
-        And actually it didn't transform the stream to RGB.
-        """
-        image = Image.fromarray(stream).resize(
+    def process_frame(self, stream: BytesIO) -> Tuple[List[People], Image.Image]:
+        image = Image.open(stream).convert('RGB').resize(
             (self.input_width, self.input_height), Image.ANTIALIAS)
 
         results = self._detect_objects(

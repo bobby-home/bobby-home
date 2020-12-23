@@ -1,42 +1,33 @@
+import io
+
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 
 class PiVideoStream:
-    def __init__(self, processFrame, resolution, framerate, **kwargs):
-        self.processFrame = processFrame
+    def __init__(self, process_frame, resolution, framerate, **kwargs):
+        self.process_frame = process_frame
+        self.resolution = resolution
+        self.framerate = framerate
+        self.kwargs = kwargs
 
-        self.camera = PiCamera()
+        self._run()
 
-        # set camera parameters
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
+    def _run(self):
+       with PiCamera() as camera:
+            camera.resolution = self.resolution
+            camera.framerate = self.framerate
 
-        # set optional camera parameters (refer to PiCamera docs)
-        for (arg, value) in kwargs.items():
-            setattr(self.camera, arg, value)
+            # set optional camera parameters (refer to PiCamera docs)
+            for (arg, value) in self.kwargs.items():
+                setattr(camera, arg, value)
 
-        # initialize the stream
-        self.rawCapture = PiRGBArray(self.camera, size=resolution)
-        self.stream = self.camera.capture_continuous(self.rawCapture, format='jpeg', use_video_port=True)
+            rawCapture = io.BytesIO()
+            for _ in camera.capture_continuous(rawCapture, format='jpeg'):
+                rawCapture.seek(0)
 
-        self._update()
+                self.process_frame(rawCapture)
 
-    def _update(self):
-        for f in self.stream:
-            # grab the frame from the stream and clear the stream in
-            # preparation for the next frame
-            frame = f.array
-            self.processFrame(frame)
-            # grab the frame from the stream and clear the stream in
-            # preparation for the next frame
-            frame = f.array
-            self.processFrame(frame)
-            self.rawCapture.truncate(0)
-
-            # TODO issue #79: release resources when turning off the camera.
-            # if self.stopped:
-            # 	self.stream.close()
-            # 	self.rawCapture.close()
-            # 	self.camera.close()
-            # 	return
+                # "Rewind" the stream to the beginning so we can read its content
+                rawCapture.seek(0)
+                rawCapture.truncate()

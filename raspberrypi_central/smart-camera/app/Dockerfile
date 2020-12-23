@@ -22,6 +22,7 @@ RUN pip install --requirement /tmp/requirements.txt
 RUN dpkgArch="$(dpkg --print-architecture)"; \
     case "${dpkgArch##*-}" in \
         armv7) tfLiteRuntime='https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_armv7l.whl';; \
+        armhf) tfLiteRuntime='https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_armv7l.whl';; \
         amd64) tfLiteRuntime='https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl';; \
         *) echo >&2; echo >&2 "error: current architecture ($dpkgArch) is not supported." ;; \
     esac; \

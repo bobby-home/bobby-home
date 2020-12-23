@@ -1,5 +1,4 @@
 import io
-import cv2
 import numpy as np
 from PIL.Image import Image
 
@@ -13,6 +12,8 @@ def pil_image_to_byte_array(image: Image, img_format='jpeg') -> bytes:
 
 
 def cv2_image_to_byte_array(image: np.ndarray, img_format='jpg') -> bytes:
+    import cv2
+
     # encode the Numpy ndarray in the specified format.
     # im_buf is the the encoded image in an one-dimension Numpy array.
     is_success, im_buf_arr = cv2.imencode(f".{img_format}", image)

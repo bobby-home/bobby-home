@@ -1,9 +1,11 @@
+import io
+
 import cv2
 
 
 class WebcamVideoStream:
-    def __init__(self, processFrame, resolution, framerate, src=0):
-        self.processFrame = processFrame
+    def __init__(self, process_frame, resolution, framerate, src=0):
+        self.process_frame = process_frame
 
         self.stream = cv2.VideoCapture(src)
 
@@ -33,6 +35,7 @@ class WebcamVideoStream:
             if frame is None:
                 continue
 
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.processFrame(frame)
-            # TODO issue #79: self.stream.release() to release resources when turning off the camera.
+            is_success, im_buf_arr = cv2.imencode(".jpg", frame)
+            io_buf = io.BytesIO(im_buf_arr)
+
+            self.process_frame(io_buf)

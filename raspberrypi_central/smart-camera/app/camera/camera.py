@@ -1,9 +1,9 @@
 import dataclasses
 import json
 from collections import defaultdict
+from io import BytesIO
 from typing import List, Callable
 
-import cv2
 import paho.mqtt.client as mqtt
 
 from attr import dataclass
@@ -14,8 +14,6 @@ from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import People, PeopleAllData
 from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 import datetime
-from PIL import Image
-from image_processing.bin_image import pil_image_to_byte_array
 import uuid
 
 
@@ -106,11 +104,13 @@ class Camera:
         return object_considerations
 
     @staticmethod
-    def _transform_image_to_publish(image):
-        return pil_image_to_byte_array(Image.fromarray(image))
+    def _transform_image_to_publish(image: BytesIO):
+        return image.getvalue()
 
     @staticmethod
     def _visualize_contours(frame, considered_peoples):
+        import cv2
+
         """
         This method is here to debug and develop the system.
         We draw considered_peoples contours thanks to OpenCV to the frame.
@@ -124,7 +124,7 @@ class Camera:
 
         return frame
 
-    def process_frame(self, frame):
+    def process_frame(self, frame: BytesIO):
         peoples, image = self.detect_people.process_frame(frame)
 
         considered_peoples = self._considered_peoples(peoples)

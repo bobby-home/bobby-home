@@ -2,11 +2,9 @@ from dataclasses import dataclass
 from typing import Callable, List, Optional, Union
 import datetime
 import json
-import logging
 import struct
 
-_LOGGER = logging.getLogger(__name__)
-
+from hello_django.loggers import LOGGER
 
 PublishPayloadType = Union[str, bytes, int, float, dict, None]
 
@@ -47,9 +45,10 @@ class MqttTopicSubscription(Subscription):
     _callback: MessageCallbackType
     qos: int = 1
 
-    def _log_error(self, message: MqttMessage):
+    @staticmethod
+    def _log_error(message: MqttMessage):
         # TODO: see #102
-        _LOGGER.exception(
+        LOGGER.critical(
             f"Can't perform payload transform: on {message}"
         )
 

@@ -8,6 +8,7 @@ import paho.mqtt.client as mqtt
 
 from attr import dataclass
 
+from loggers import LOGGER
 from object_detection.detect_people import DetectPeople
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import People, PeopleAllData
@@ -83,7 +84,9 @@ class Camera:
         payload = self._publish_motion_payload(event_ref, object_link_considerations)
 
         mqtt_payload = json.dumps(payload)
-        print(f'publish motion {mqtt_payload}')
+
+        LOGGER.info(f'publish motion {mqtt_payload}')
+
         self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
 
@@ -136,9 +139,8 @@ class Camera:
             # self._visualize_contours(frame, considered_peoples)
 
             byte_arr = self._transform_image_to_publish(frame)
-
-            print(f'publish picture {self.event_ref}')
-            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/1',byte_arr, qos=1)
+            LOGGER.info(f'publish picture {self.event_ref}')
+            self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/1', byte_arr, qos=1)
 
         if is_any_considered_object:
             self._last_time_people_detected = datetime.datetime.now()
@@ -148,7 +150,7 @@ class Camera:
                 'event_ref': self.event_ref,
             }
 
-            print(f'no more motion {payload}')
+            LOGGER.info(f'no more motion {payload}')
 
             mqtt_payload = json.dumps(payload)
             self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)

@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
-import logging
 
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 from utils.mqtt import MQTT, MqttMessage
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def split_camera_topic(topic: str):

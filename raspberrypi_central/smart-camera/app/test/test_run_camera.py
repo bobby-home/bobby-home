@@ -3,12 +3,12 @@ from unittest.mock import Mock
 
 from camera.camera_config import camera_config
 from camera_analyze.camera_analyzer import Consideration
-from camera.run_camera import roi_camera_from_args, RunSmartCamera
+from service_manager.run_camera import roi_camera_from_args, RunSmartCamera
 from camera_analyze.all_analyzer import NoAnalyzer
 from camera_analyze.rectangle_roi_analyzer import CameraAnalyzerRectangleROI
 from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer
 from object_detection.detect_people_utils import bounding_box_from_point_and_size
-from object_detection.model import BoundingBox, BoundingBoxPointAndSize
+from object_detection.model import BoundingBoxPointAndSize
 from roi.roi import RectangleROI
 
 

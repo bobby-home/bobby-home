@@ -1,8 +1,8 @@
 import struct
 
+from loggers import LOGGER
 from mqtt.mqtt_client import MqttClient
 from thread.thread_manager import ThreadManager
-import logging
 import json
 
 
@@ -11,8 +11,7 @@ class MqttStatusManageThread:
     This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
     """
-    def __init__(self, logger: logging, device_id: str, service_name: str, mqtt_client: MqttClient, thread_manager: ThreadManager, status_json = False):
-        self._logger = logger
+    def __init__(self, device_id: str, service_name: str, mqtt_client: MqttClient, thread_manager: ThreadManager, status_json = False):
         self._thread_manager = thread_manager
         self._service_name = service_name
         self._status_json = status_json
@@ -32,15 +31,28 @@ class MqttStatusManageThread:
         message = msg.payload
         data = None
 
-        # TODO: #102 handle errors! Don't let the software crashes.
         if self._status_json is True:
-            message = json.loads(message)
+            try:
+                message = json.loads(message)
+            except json.JSONDecodeError:
+                LOGGER.critical(f'Cannot decode json {message} for service {self._service_name}')
+                return
+
             status = message['status']
             data = message['data']
         else:
-            status = struct.unpack('?', message)[0]
+            try:
+                # unpack always return a tuple (False,) or (True,) because we pack only one value.
+                status = struct.unpack('?', message)
+                if len(status) != 1:
+                    raise TypeError(f'{message} should be of size one when unpacked but got {status}')
+                else:
+                    status = status[0]
+            except (struct.error, TypeError):
+                LOGGER.critical(f'Cannot decode binary {message} for service {self._service_name}')
+                return
 
-        print(f'Receive status {status} for {self._service_name} with data {data}')
+        LOGGER.info(f'Receive status {status} for {self._service_name} with data {data}')
 
         if status:
             self._thread_manager.run(True, data=data)
@@ -49,7 +61,7 @@ class MqttStatusManageThread:
 
 
 def mqtt_status_manage_thread_factory(*args, **kwargs):
-    return MqttStatusManageThread(logging, *args, **kwargs)
+    return MqttStatusManageThread(*args, **kwargs)
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

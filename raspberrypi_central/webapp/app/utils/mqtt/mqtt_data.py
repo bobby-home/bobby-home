@@ -4,7 +4,7 @@ import datetime
 import json
 import struct
 
-from hello_django.loggers import MQTT_DATA_LOGGER
+from hello_django.loggers import LOGGER
 
 PublishPayloadType = Union[str, bytes, int, float, dict, None]
 
@@ -48,7 +48,7 @@ class MqttTopicSubscription(Subscription):
     @staticmethod
     def _log_error(message: MqttMessage):
         # TODO: see #102
-        MQTT_DATA_LOGGER.critical(
+        LOGGER.critical(
             f"Can't perform payload transform: on {message}"
         )
 

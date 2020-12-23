@@ -1,8 +1,9 @@
 import logging
+import sys
 
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.DEBUG)
 
-THREAD_MANAGER_LOGGER = logging.getLogger('smart-camera.thread_manager')
-
-MQTT_STATUS_MANAGE_THREAD_LOGGER = logging.getLogger('smart-camera.mqtt_status_manage_thread')
-
-CAMERA_LOGGER = logging.getLogger('smart-camera.camera')
+LOGGER = logging.getLogger('mx')
+LOGGER.addHandler(handler)
+LOGGER.setLevel(logging.DEBUG)

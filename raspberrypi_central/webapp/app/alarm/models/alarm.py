@@ -11,10 +11,7 @@ from house.models import House
 
 
 class AlarmStatusManager(models.Manager):
-    def get_status(self):
-        # TODO: we will remove this for issue #103
-        return self.all().first()
-
+    pass
 
 class AlarmStatus(models.Model):
     objects = AlarmStatusManager()

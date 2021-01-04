@@ -7,8 +7,8 @@ from django.views.generic.edit import FormView, DeleteView
 from django.forms.models import model_to_dict
 
 from alarm.communication.out_alarm import notify_alarm_status_factory
-from alarm.forms import CameraRectangleROIFormSet, CameraROIForm, CameraROIUpdateForm
-from alarm.models import CameraRectangleROI, CameraMotionDetectedPicture, CameraROI
+from camera.forms import CameraROIForm, CameraROIUpdateForm, CameraRectangleROIFormSet
+from camera.models import CameraROI, CameraRectangleROI, CameraMotionDetectedPicture
 from utils.django.json_view import JsonableResponseMixin
 from utils.json.decimal_encoder import DecimalEncoder
 
@@ -19,13 +19,13 @@ def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
 
 class CameraROIList(ListView):
     queryset = CameraROI.objects.all()
-    template_name = 'alarm/camera_roi_list.html'
+    template_name = 'camera/camera_roi_list.html'
     context_object_name = 'rois'
 
 
 class CameraROIDelete(DeleteView):
     model = CameraROI
-    success_url = reverse_lazy('alarm:camera_roi-list')
+    success_url = reverse_lazy('camera:camera_roi-list')
 
 
     def delete(self, request, *args, **kwargs):
@@ -36,10 +36,10 @@ class CameraROIDelete(DeleteView):
 
 
 class CameraROIUpdate(JsonableResponseMixin, UpdateView):
-    template_name = 'alarm/camera_roi_form.html'
+    template_name = 'camera/camera_roi_form.html'
     model = CameraROI
     form_class = CameraROIUpdateForm
-    success_url = reverse_lazy('alarm:camera_roi-list')
+    success_url = reverse_lazy('camera:camera_roi-list')
 
 
     def get_context_data(self, **kwargs):
@@ -88,10 +88,10 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
 
 class CameraROICreate(JsonableResponseMixin, FormView):
-    template_name = 'alarm/camera_roi_form.html'
+    template_name = 'camera/camera_roi_form.html'
     model = CameraROI
     form_class = CameraROIForm
-    success_url = reverse_lazy('alarm:camera_roi-list')
+    success_url = reverse_lazy('camera:camera_roi-list')
 
 
     def get_context_data(self, **kwargs):

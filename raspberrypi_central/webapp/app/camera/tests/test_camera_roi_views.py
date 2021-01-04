@@ -9,7 +9,8 @@ from django.urls import reverse_lazy
 from alarm.communication.out_alarm import NotifyAlarmStatus
 from alarm.factories import AlarmStatusFactory, CameraROIFactory, CameraMotionDetectedPictureFactory, \
     CameraRectangleROIFactory
-from alarm.models import AlarmStatus, CameraROI, CameraRectangleROI
+from alarm.models import AlarmStatus
+from camera.models import CameraROI, CameraRectangleROI
 
 
 class CameraROIViewsTestCase(TransactionTestCase):
@@ -40,7 +41,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
         }
 
         with patch.object(NotifyAlarmStatus, 'publish_roi_changed', return_value=None) as mock:
-            response = self.client.post(reverse_lazy('alarm:camera_roi-add'), payload)
+            response = self.client.post(reverse_lazy('camera:camera_roi-add'), payload)
 
             self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
@@ -64,7 +65,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
         CameraRectangleROIFactory(camera_roi=self.camera_roi)
 
         with patch.object(NotifyAlarmStatus, 'publish_roi_changed', return_value=None) as mock:
-            response = self.client.post(reverse_lazy('alarm:camera_roi-delete', kwargs={'pk': self.camera_roi.id}))
+            response = self.client.post(reverse_lazy('camera:camera_roi-delete', kwargs={'pk': self.camera_roi.id}))
             self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
             camera_rois = CameraROI.objects.filter(device=self.device)
@@ -97,7 +98,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
         with patch.object(NotifyAlarmStatus, 'publish_roi_changed', return_value=None) as mock:
             response = self.client.post(
-                reverse_lazy('alarm:camera_roi-edit', kwargs={'pk': self.camera_roi.id}),
+                reverse_lazy('camera:camera_roi-edit', kwargs={'pk': self.camera_roi.id}),
                 payload)
 
             camera_rois = CameraROI.objects.filter(device=self.device)

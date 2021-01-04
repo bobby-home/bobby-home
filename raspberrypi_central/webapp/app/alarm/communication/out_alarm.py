@@ -4,10 +4,10 @@ from django.forms import model_to_dict
 
 from alarm.communication.alarm_consts import ROITypes
 from alarm.messaging import alarm_messaging_factory, AlarmMessaging
+from camera.models import CameraROI, CameraRectangleROI
 from devices.models import Device
 from utils.mqtt import MQTT
 from utils.mqtt import mqtt_factory
-from alarm.models import CameraRectangleROI, CameraROI
 from alarm.models import AlarmStatus
 
 

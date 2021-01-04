@@ -8,6 +8,7 @@ urlpatterns = [
     path(r'admin/', admin.site.urls),
     path('device/', include('devices.urls')),
     path('alarm/', include('alarm.urls', namespace='alarm')),
+    path('camera/', include('camera.urls', namespace='camera')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 

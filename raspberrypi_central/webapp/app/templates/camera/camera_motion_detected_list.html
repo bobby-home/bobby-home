@@ -21,7 +21,7 @@
                 <ul>
                     {% for motion in motions %}
                         <li>
-                            <a href="{% url 'alarm:camera_motion_detected-detail' motion.pk %}">
+                            <a href="{% url 'camera:camera_motion_detected-detail' motion.pk %}">
                                 {{ motion.pk }} {{ motion.created_at }}
                             </a>
                         </li>

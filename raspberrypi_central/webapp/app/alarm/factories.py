@@ -6,8 +6,9 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from faker import Factory
 
+from camera.models import CameraMotionDetectedPicture, CameraROI, CameraRectangleROI
 from devices.factories import DeviceFactory
-from .models import CameraRectangleROI, AlarmStatus, CameraROI, CameraMotionDetectedPicture, AlarmSchedule
+from .models import AlarmStatus, AlarmSchedule
 
 faker = Factory.create()
 

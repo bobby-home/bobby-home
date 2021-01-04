@@ -2,12 +2,14 @@ import os
 from typing import List
 
 from celery import shared_task
+
+from camera.models import CameraMotionDetectedPicture
 from devices.models import Device, SeverityChoice
 from notification.tasks import send_message, create_and_send_notification
 from utils.mqtt import mqtt_factory
 from alarm.communication.in_motion import save_motion
 from .messaging import speaker_messaging_factory
-from alarm.models import AlarmSchedule, CameraMotionDetectedPicture, AlarmStatus
+from alarm.models import AlarmSchedule, AlarmStatus
 
 
 @shared_task(name="security.play_sound")

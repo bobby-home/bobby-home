@@ -3,8 +3,7 @@ from typing import List, Dict
 from django.db import IntegrityError
 
 from alarm.communication.alarm_consts import ROITypes
-from alarm.models import CameraMotionDetected
-from alarm.models.camera import CameraMotionDetectedBoundingBox
+from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected
 from devices import models as device_models
 from hello_django.loggers import LOGGER
 

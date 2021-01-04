@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'api_keys',
     'devices',
     'alarm',
+    'camera',
     'house',
     'notification',
     'mqtt_services',

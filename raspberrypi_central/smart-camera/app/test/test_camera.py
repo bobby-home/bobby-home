@@ -3,7 +3,7 @@ import json
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from camera.camera import Camera
+from camera.models import Camera
 from camera_analyze.camera_analyzer import Consideration
 from object_detection.detect_people_utils import bounding_box_from_point_and_size, bounding_box_size
 from object_detection.model import BoundingBox, BoundingBoxPointAndSize, BoundingBoxWithContours, People

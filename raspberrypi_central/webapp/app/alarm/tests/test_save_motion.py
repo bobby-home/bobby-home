@@ -7,8 +7,8 @@ from django.test import TestCase
 from alarm.communication.alarm_consts import ROITypes
 from alarm.communication.in_motion import save_motion
 from alarm.factories import AlarmStatusFactory, CameraROIFactory, CameraRectangleROIFactory
-from alarm.models import AlarmStatus, CameraMotionDetected, CameraRectangleROI
-from alarm.models.camera import CameraMotionDetectedBoundingBox
+from alarm.models import AlarmStatus
+from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected, CameraRectangleROI
 from devices.models import Device
 
 

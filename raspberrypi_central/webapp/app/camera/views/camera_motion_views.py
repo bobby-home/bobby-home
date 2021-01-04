@@ -1,18 +1,19 @@
 import json
 from django.views.generic import ListView, DetailView
-from alarm.models import CameraMotionDetected, CameraMotionDetectedPicture
+
+from camera.models import CameraMotionDetected, CameraMotionDetectedPicture
 from utils.json.decimal_encoder import DecimalEncoder
 
 
 class CameraMotionDetectedList(ListView):
-    template_name = 'alarm/camera_motion_detected_list.html'
+    template_name = 'camera/camera_motion_detected_list.html'
     queryset = CameraMotionDetected.objects.order_by('-created_at')
     context_object_name = 'motions'
 
 
 class CameraMotionDetectedDetail(DetailView):
     model = CameraMotionDetected
-    template_name = 'alarm/camera_motion_detected_detail.html'
+    template_name = 'camera/camera_motion_detected_detail.html'
     context_object_name = 'motion'
 
     def get_context_data(self, **kwargs):

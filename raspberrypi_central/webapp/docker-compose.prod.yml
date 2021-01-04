@@ -15,6 +15,9 @@ services:
     celery_beat:
         logging: *loki-logging
 
+    telegram_bot:
+        logging: *loki-logging
+
     web:
         command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
         ports:

@@ -2,7 +2,7 @@ version: "3.8"
 
 
 services:
-    py:
+    camera:
         build: ./app
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python alarm.py"
         env_file:
@@ -21,6 +21,16 @@ services:
 
         devices:
                 - "/dev/vchiq:/dev/vchiq"
+
+    sound:
+        build: ./app
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python sound.py"
+        env_file:
+            - .env
+        networks:
+            - backend_mqtt
+            - motion
+
 
 networks:
     motion:

@@ -42,6 +42,9 @@ mqtt-services:
 build-docker:
 	$(dc) build
 
+.PHONY: test
+test:
+	$(manage) test
 
 .PHONY: migrations
 migrations:

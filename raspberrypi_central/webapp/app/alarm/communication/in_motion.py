@@ -6,6 +6,8 @@ from alarm.communication.alarm_consts import ROITypes
 from alarm.models import CameraMotionDetected
 from alarm.models.camera import CameraMotionDetectedBoundingBox
 from devices import models as device_models
+from hello_django.loggers import LOGGER
+
 
 def _save_bounding_box(data, motion: CameraMotionDetected):
     bounding_box = data['bounding_box']
@@ -34,6 +36,6 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
 
         _save_bounding_box(full, motion)
     else:
-        raise ValueError(f'{seen_in} is not understandable by our system.')
+        LOGGER.error(f'{seen_in} is not understandable by our system.')
 
     return device, motion

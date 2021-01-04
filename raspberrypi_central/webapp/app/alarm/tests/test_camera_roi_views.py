@@ -75,7 +75,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
             mock.assert_called_once()
 
-            expected_call = [call(self.alarm_status.pk, None)]
+            expected_call = [call(self.alarm_status.pk, camera_roi=None)]
             mock.assert_has_calls(expected_call)
 
 

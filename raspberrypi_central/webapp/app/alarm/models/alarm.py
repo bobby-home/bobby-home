@@ -10,12 +10,7 @@ from devices.models import Device
 from house.models import House
 
 
-class AlarmStatusManager(models.Manager):
-    pass
-
 class AlarmStatus(models.Model):
-    objects = AlarmStatusManager()
-
     running = models.BooleanField()
     device = models.OneToOneField(Device, on_delete=models.CASCADE)
 

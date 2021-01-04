@@ -1,7 +1,9 @@
 import uuid
+from datetime import timedelta
 
 import factory
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from faker import Factory
 
 from devices.factories import DeviceFactory
@@ -20,6 +22,9 @@ class AlarmStatusFactory(factory.DjangoModelFactory):
 class AlarmScheduleFactory(factory.DjangoModelFactory):
     class Meta:
         model = AlarmSchedule
+
+    start_time = factory.LazyFunction(timezone.now)
+    end_time = factory.LazyAttribute(lambda _: timezone.now() + timedelta(hours=9))
 
     monday    = factory.Faker('pybool')
     tuesday   = factory.Faker('pybool')

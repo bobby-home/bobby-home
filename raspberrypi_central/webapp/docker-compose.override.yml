@@ -1,0 +1,22 @@
+version: '3.7'
+
+x-env: &env
+    env_file:
+        - .env
+
+services:
+    rabbit_worker:
+        <<: *env
+
+    celery_beat:
+        <<: *env
+
+    web:
+        <<: *env
+
+    python_process_mqtt:
+        <<: *env
+
+
+    telegram_bot:
+        <<: *env

@@ -1,10 +1,11 @@
 from typing import List, Callable
 
-from camera.models import Camera
+from camera.camera import Camera
 from camera.camera_config import camera_config
+
+from camera.videostream import VideoStream
 from camera_analyze.camera_analyzer import Consideration, CameraAnalyzer
 from camera.camera_factory import camera_factory
-from camera.videostream import VideoStream
 from camera_analyze.all_analyzer import NoAnalyzer
 from camera_analyze.rectangle_roi_analyzer import CameraAnalyzerRectangleROI
 from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer
@@ -83,7 +84,7 @@ class RunSmartCamera(RunService):
 
         # TODO: see issue #78
         self._stream = self.video_stream(self._camera.process_frame, resolution=(
-            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, pi_camera=True)
+            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=1, pi_camera=False)
 
     def is_restart_necessary(self, data = None) -> bool:
         new_roi = roi_camera_from_args(data)

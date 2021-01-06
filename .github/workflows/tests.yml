@@ -1,15 +1,15 @@
-name: Run tests
-on: [push]
-jobs:
-  test:
-    name: Run django tests
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: raspberrypi_central/webapp
-    steps:
-      - uses: actions/checkout@master
-      - name: test
-        run: |
-          bash docker-network.sh -xe
-          make test
+#name: Run tests
+#on: [push]
+#jobs:
+#  test:
+#    name: Run django tests
+#    runs-on: ubuntu-20.04
+#    defaults:
+#      run:
+#        working-directory: raspberrypi_central/webapp
+#    steps:
+#      - uses: actions/checkout@master
+#      - name: test
+#        run: |
+#          bash docker-network.sh -xe
+#          make test

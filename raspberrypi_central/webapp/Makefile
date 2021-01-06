@@ -11,6 +11,12 @@ db_image=database
 
 manage := $(de) $(web_image) python manage.py
 
+.PHONY: create-folders
+create-folders:
+	mkdir -p mosquitto-data && sudo chown -R 1883:1883 mosquitto-data
+	mkdir -p psql-data
+
+
 .PHONY: stop-all
 stop-all:
 	docker stop $(docker ps -aq)

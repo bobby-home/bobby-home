@@ -86,7 +86,7 @@ services:
             - '5432:5432'
 
     mqtt:
-        image: eclipse-mosquitto
+        image: eclipse-mosquitto:2.0.4
         volumes:
             - ./config/mosquitto:/mosquitto/config
             - ./mosquitto-data:/mosquitto/data

@@ -25,6 +25,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
+TESTING = int(os.environ.get("TESTING", default=0))
+
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
 # For example: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
 
@@ -170,12 +172,15 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    f"{BASE_DIR}/static",
-]
 
-if DEBUG:
+STATIC_URL = '/static/'
+
+if not TESTING:
+    STATICFILES_DIRS = [
+        f"{BASE_DIR}/static",
+    ]
+
+if DEBUG and not TESTING:
     INSTALLED_APPS.append('debug_toolbar')
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 

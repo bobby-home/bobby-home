@@ -4,7 +4,7 @@ version: "3.8"
 services:
     camera:
         build: ./app
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python alarm.py"
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt_broker:8883 -- python alarm.py"
         env_file:
             - .env
         networks: 
@@ -24,7 +24,7 @@ services:
 
     sound:
         build: ./app
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python sound.py"
+        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt_broker:8883 -- python sound.py"
         env_file:
             - .env
         networks:

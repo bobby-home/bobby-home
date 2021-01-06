@@ -1,9 +1,5 @@
 version: "3.7"
 
-# https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields
-x-env: &env
-    env_file:
-        - .env.yolo
 
 services:
     rabbit:
@@ -15,10 +11,9 @@ services:
         ports:
             - "5672:5672"
             - "15672:15672"
-#        networks:
-#            rabbitmq:
-#            backend_mqtt:
-#                ipv4_address: "172.19.0.101"
+        networks:
+            - rabbitmq
+            - backend_mqtt
 
     database:
         image: postgres:12.3-alpine
@@ -30,20 +25,20 @@ services:
           - POSTGRES_PASSWORD=hello_django
         ports:
             - '5432:5432'
-#        networks:
-#            - webapp_backend
+        networks:
+            - webapp_backend
 
     mqtt_broker:
-        image: eclipse-mosquitto
+        image: eclipse-mosquitto:2.0.4
         volumes:
             - ./config/mosquitto:/mosquitto/config
             - ./mosquitto-data:/mosquitto/data
         ports:
             - "8883:8883"
-#        networks:
-#            webapp_backend:
-#            backend_mqtt:
-#                ipv4_address: "172.19.0.102"
+        networks:
+            webapp_backend:
+            backend_mqtt:
+                ipv4_address: 172.19.0.100
 
     rabbit_worker:
         build:
@@ -54,11 +49,10 @@ services:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
             - ./app/:/usr/src/app/
-#        networks:
-#            webapp_backend:
-#            rabbitmq:
-#            backend_mqtt:
-#                ipv4_address: "172.19.0.100"
+        networks:
+            - webapp_backend
+            - rabbitmq
+            - backend_mqtt
 
     celery_beat:
         build:
@@ -69,10 +63,10 @@ services:
         volumes:
             - ./app/:/usr/src/app/
         command: bash -c "celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
-#        networks:
-#            rabbitmq:
-#            backend_mqtt:
-#            webapp_backend:
+        networks:
+            - rabbitmq
+            - backend_mqtt
+            - webapp_backend
 
     web:
         build:
@@ -86,15 +80,14 @@ services:
         ports:
           - 8000:8000
         depends_on:
-            - rabbit
             - database
             - mqtt_broker
+            - rabbit
             - rabbit_worker
-#        networks:
-#            rabbitmq:
-#            webapp_backend:
-#            backend_mqtt:
-#                ipv4_address: "172.19.0.103"
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
 
     python_process_mqtt:
         build:
@@ -105,10 +98,10 @@ services:
         command: bash -c "python standalone/mqtt/mqtt_run.py"
         volumes:
             - ./app/:/usr/src/app/
-#        networks:
-#            rabbitmq:
-#            webapp_backend:
-#            backend_mqtt:
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
 
     telegram_bot:
         build:
@@ -119,16 +112,16 @@ services:
         command: python standalone/telegram_bot/bot.py
         volumes:
             - ./app/:/usr/src/app/
-#        networks:
-#            rabbitmq:
-#            webapp_backend:
-#            backend_mqtt:
+        networks:
+            - rabbitmq
+            - webapp_backend
+            - backend_mqtt
 
-#networks:
-#    rabbitmq:
-#    webapp_backend:
-#    backend_mqtt:
-##        external: true
+networks:
+    rabbitmq:
+    webapp_backend:
+    backend_mqtt:
+        external: true
 
 volumes:
     psql-data:

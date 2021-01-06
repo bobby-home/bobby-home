@@ -11,5 +11,5 @@ jobs:
       - uses: actions/checkout@master
       - name: test
         run: |
-          docker system prune
+          bash docker-network.sh -xe
           make test

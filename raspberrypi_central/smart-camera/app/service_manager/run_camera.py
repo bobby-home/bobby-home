@@ -1,6 +1,6 @@
 from typing import List, Callable
 
-from camera.models import Camera
+from camera.camera import Camera
 from camera.camera_config import camera_config
 from camera_analyze.camera_analyzer import Consideration, CameraAnalyzer
 from camera.camera_factory import camera_factory

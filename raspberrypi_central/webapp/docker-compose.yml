@@ -1,5 +1,6 @@
 version: "3.7"
 
+
 services:
     rabbit:
         hostname: rabbit
@@ -11,66 +12,8 @@ services:
             - "5672:5672"
             - "15672:15672"
         networks:
-            rabbitmq:
-            backend_mqtt:
-                ipv4_address: "172.19.0.101"
-
-        # healthcheck:
-        #     test: ["CMD", "wget", "-qO-", "http://localhost:15672"]
-        #     interval: 30s
-        #     timeout: 10s
-        #     retries: 5
-    rabbit_worker:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django worker --loglevel=info"
-        volumes:
-            - ./app/:/usr/src/app/
-        env_file:
-            - .env
-        networks:
-            webapp_backend:
-            rabbitmq:
-            backend_mqtt:
-                ipv4_address: "172.19.0.100"
-
-    celery_beat:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        volumes:
-            - ./app/:/usr/src/app/
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
-        env_file:
-            - .env
-        networks:
-            rabbitmq:
-            backend_mqtt:
-            webapp_backend:
-
-    web:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python manage.py runserver 0.0.0.0:8000"
-        volumes:
-          - ./app/:/usr/src/app/
-        ports:
-          - 8000:8000
-        networks:
-            rabbitmq:
-            webapp_backend:
-            backend_mqtt:
-                ipv4_address: "172.19.0.50"
-        env_file:
-            - .env
+            - rabbitmq
+            - backend_mqtt
 
     database:
         image: postgres:12.3-alpine
@@ -80,12 +23,12 @@ services:
           - POSTGRES_DB=hello_django_dev
           - POSTGRES_USER=hello_django
           - POSTGRES_PASSWORD=hello_django
-        networks:
-          - webapp_backend
         ports:
             - '5432:5432'
+        networks:
+            - webapp_backend
 
-    mqtt:
+    mqtt_broker:
         image: eclipse-mosquitto:2.0.4
         volumes:
             - ./config/mosquitto:/mosquitto/config
@@ -93,8 +36,58 @@ services:
         ports:
             - "8883:8883"
         networks:
+            webapp_backend:
             backend_mqtt:
-                ipv4_address: "172.19.0.51"
+                ipv4_address: 172.19.0.100
+
+    rabbit_worker:
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
+        command: bash -c "celery -A hello_django worker --loglevel=info"
+        volumes:
+            - ./app/:/usr/src/app/
+        networks:
+            - webapp_backend
+            - rabbitmq
+            - backend_mqtt
+
+    celery_beat:
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
+        volumes:
+            - ./app/:/usr/src/app/
+        command: bash -c "celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
+        networks:
+            - rabbitmq
+            - backend_mqtt
+            - webapp_backend
+
+    web:
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
+        command: bash -c "python manage.py runserver 0.0.0.0:8000"
+        volumes:
+          - ./app/:/usr/src/app/
+        ports:
+          - 8000:8000
+        depends_on:
+            - database
+            - mqtt_broker
+            - rabbit
+            - rabbit_worker
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
 
     python_process_mqtt:
         build:
@@ -102,9 +95,7 @@ services:
             args:
                 USER_ID: ${USER_ID}
                 GROUP_ID: ${GROUP_ID}
-        env_file:
-            - .env
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 rabbit:5672 -- python standalone/mqtt/mqtt_run.py"
+        command: bash -c "python standalone/mqtt/mqtt_run.py"
         volumes:
             - ./app/:/usr/src/app/
         networks:
@@ -118,15 +109,13 @@ services:
             args:
                 USER_ID: ${USER_ID}
                 GROUP_ID: ${GROUP_ID}
-        env_file:
-            - .env
         command: python standalone/telegram_bot/bot.py
         volumes:
             - ./app/:/usr/src/app/
         networks:
-            rabbitmq:
-            webapp_backend:
-            backend_mqtt:
+            - rabbitmq
+            - webapp_backend
+            - backend_mqtt
 
 networks:
     rabbitmq:

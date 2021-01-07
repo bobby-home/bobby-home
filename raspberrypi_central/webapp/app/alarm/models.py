@@ -102,9 +102,10 @@ class AlarmSchedule(models.Model):
         cron_days = model_boolean_fields_to_cron_days()
 
         house_timezone = House.objects.get_system_house().timezone
-        self.uuid = str(uuid.uuid4())
 
         if self._state.adding is True:
+            self.uuid = str(uuid.uuid4())
+
             schedule_turn_on_alarm = CrontabSchedule.objects.create(
                 minute=self.start_time.minute,
                 hour=self.start_time.hour,

@@ -8,7 +8,7 @@ from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from alarm.business.alarm import get_next_off_schedule, get_next_on_schedule
 from devices.models import Device
 from house.models import House
-
+from django.db import transaction
 
 class AlarmStatus(models.Model):
     running = models.BooleanField()
@@ -51,15 +51,15 @@ class AlarmSchedule(models.Model):
 
     turn_on_task = models.OneToOneField(
         PeriodicTask,
-        blank=True, null=True,
-        on_delete=models.CASCADE,
+        editable=False,
+        on_delete=models.PROTECT,
         related_name='alarm_schedule_on'
     )
 
     turn_off_task = models.OneToOneField(
         PeriodicTask,
-        blank=True, null=True,
-        on_delete=models.CASCADE,
+        editable=False,
+        on_delete=models.PROTECT,
         related_name='alarm_schedule_off'
     )
 
@@ -67,6 +67,17 @@ class AlarmSchedule(models.Model):
         AlarmStatus,
         related_name='alarm_schedules'
     )
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            super().delete(*args, **kwargs)
+
+            if self.turn_off_task:
+                self.turn_off_task.delete()
+
+            if self.turn_on_task:
+                self.turn_on_task.delete()
+
 
     def save(self, *args, **kwargs):
         days = []
@@ -125,8 +136,6 @@ class AlarmSchedule(models.Model):
         else:
             on_crontab = self.turn_on_task.crontab
             off_crontab = self.turn_off_task.crontab
-
-
 
             on_crontab.minute = self.start_time.minute
             on_crontab.hour = self.start_time.hour

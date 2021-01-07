@@ -7,11 +7,23 @@ from alarm.factories import AlarmScheduleFactory
 from alarm.models import AlarmSchedule
 from house.factories import HouseFactory
 from datetime import time
+from django_celery_beat.models import PeriodicTask
 
 
 class AlarmScheduleTestCase(TestCase):
     def setUp(self) -> None:
         HouseFactory()
+
+    def test_delete_task(self):
+        schedule = AlarmScheduleFactory()
+        tasks = PeriodicTask.objects.all()
+
+        self.assertEquals(len(tasks), 2)
+
+        schedule.delete()
+        tasks = PeriodicTask.objects.all()
+        self.assertEquals(len(tasks), 0)
+
 
     @freeze_time("2020-12-21 03:21:00")
     def test_get_next_on(self):

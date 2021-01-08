@@ -58,5 +58,14 @@ services:
 
     grafana:
         image: grafana/grafana:7.1.3
+        # run grafana with this user (host user), so we don't have any right conflict.
+        # https://grafana.com/docs/grafana/latest/administration/configure-docker/#run-grafana-container-using-bind-mounts
+        user: ${USER_ID}
         ports:
             - "3000:3000"
+        volumes:
+            - grafana-data:/var/lib/grafana
+
+volumes:
+    grafana-data:
+        driver: local

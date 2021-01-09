@@ -30,6 +30,10 @@ services:
         networks:
             - backend_mqtt
             - motion
+        # Give access to the rpi audio device. Otherwise it cannot play sound! see issue #126
+        privileged: true
+        volumes:
+            - ./app/:/usr/src/app/
 
 
 networks:

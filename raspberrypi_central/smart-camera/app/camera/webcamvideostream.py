@@ -21,12 +21,11 @@ class WebcamVideoStream:
 
         # read the first frame from the stream
         _ = self.stream.read()
-        self._update()
 
     def __del__(self):
         self.stream.release()
 
-    def _update(self):
+    def run(self):
         # keep looping infinitely until the thread is stopped
         while True:
             (_, frame) = self.stream.read()

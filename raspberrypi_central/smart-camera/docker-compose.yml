@@ -3,7 +3,11 @@ version: "3.8"
 
 services:
     camera:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt_broker:8883 -- python alarm.py"
         env_file:
             - .env
@@ -23,7 +27,11 @@ services:
                 - "/dev/vchiq:/dev/vchiq"
 
     sound:
-        build: ./app
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
         command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt_broker:8883 -- python sound.py"
         env_file:
             - .env

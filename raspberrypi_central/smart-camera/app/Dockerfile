@@ -1,5 +1,14 @@
 FROM mxmaxime/rpi4-opencv:0.0.2
 
+ARG USER_ID
+ARG GROUP_ID
+
+RUN groupadd -f --gid $GROUP_ID user
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
+RUN usermod -aG video user
+RUN usermod -aG audio user
+
+
 # set work directory
 WORKDIR /usr/src/app
 
@@ -16,8 +25,13 @@ RUN pip install --upgrade pip
 
 ENV READTHEDOCS True
 
+USER user
+
+# add pip dependencies folder to PATH
+ENV PATH="/home/user/.local/bin:${PATH}"
+
 COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
+RUN pip install --user --requirement /tmp/requirements.txt
 
 RUN dpkgArch="$(dpkg --print-architecture)"; \
     case "${dpkgArch##*-}" in \

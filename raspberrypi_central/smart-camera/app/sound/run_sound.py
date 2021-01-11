@@ -13,9 +13,6 @@ class RunSound(RunService):
     def run(self, *args) -> None:
         Sound().alarm()
 
-    def stop(self, *args) -> None:
-        pass
-
 
 def run_sound_factory():
     return RunSound()

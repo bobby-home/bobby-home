@@ -39,12 +39,10 @@ class PiVideoStream:
 
     def start_recording(self, video_ref):
         if self._record is False:
-            print('start record')
             self._record = True
             self.camera.start_recording(f'videos/{video_ref}.h264')
 
     def stop_recording(self):
         if self._record is True:
-            print('stop record')
             self.camera.stop_recording()
             self._record = False

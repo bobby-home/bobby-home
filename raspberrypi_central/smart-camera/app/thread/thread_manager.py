@@ -35,7 +35,6 @@ class ThreadManager:
     def _stop_process(self):
         if self._process:
             LOGGER.info(f'Stop process for {self._run_service}')
-            self._run_service.stop()
             self._process.terminate()
             self._process = None
 

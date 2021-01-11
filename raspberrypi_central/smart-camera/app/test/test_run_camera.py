@@ -3,7 +3,8 @@ from unittest.mock import Mock
 
 from camera.camera_config import camera_config
 from camera_analyze.camera_analyzer import Consideration
-from service_manager.run_camera import roi_camera_from_args, RunSmartCamera
+from service_manager.run_camera import RunSmartCamera
+from service_manager.roi_camera_from_args import roi_camera_from_args
 from camera_analyze.all_analyzer import NoAnalyzer
 from camera_analyze.rectangle_roi_analyzer import CameraAnalyzerRectangleROI
 from camera_analyze.considered_by_any_analyzer import ConsideredByAnyAnalyzer

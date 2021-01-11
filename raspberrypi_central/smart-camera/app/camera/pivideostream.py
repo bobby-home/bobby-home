@@ -1,4 +1,5 @@
 import io
+import time
 
 from picamera.array import PiRGBArray
 from picamera import PiCamera
@@ -11,23 +12,37 @@ class PiVideoStream:
         self.framerate = framerate
         self.kwargs = kwargs
 
-        self._run()
+        self.camera = None
+        self._record = False
 
-    def _run(self):
-       with PiCamera() as camera:
-            camera.resolution = self.resolution
-            camera.framerate = self.framerate
+    def run(self):
+        self.camera = PiCamera()
 
-            # set optional camera parameters (refer to PiCamera docs)
-            for (arg, value) in self.kwargs.items():
-                setattr(camera, arg, value)
+        camera = self.camera
 
-            rawCapture = io.BytesIO()
-            for _ in camera.capture_continuous(rawCapture, format='jpeg'):
-                rawCapture.seek(0)
+        camera.resolution = self.resolution
+        camera.framerate = self.framerate
 
-                self.process_frame(rawCapture)
+        # set optional camera parameters (refer to PiCamera docs)
+        for (arg, value) in self.kwargs.items():
+            setattr(camera, arg, value)
 
-                # "Rewind" the stream to the beginning so we can read its content
-                rawCapture.seek(0)
-                rawCapture.truncate()
+        raw_capture = io.BytesIO()
+        for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
+            raw_capture.seek(0)
+
+            self.process_frame(raw_capture)
+
+            # "Rewind" the stream to the beginning so we can read its content
+            raw_capture.seek(0)
+            raw_capture.truncate()
+
+    def start_recording(self, video_ref):
+        if self._record is False:
+            self._record = True
+            self.camera.start_recording(f'videos/{video_ref}.h264')
+
+    def stop_recording(self):
+        if self._record is True:
+            self.camera.stop_recording()
+            self._record = False

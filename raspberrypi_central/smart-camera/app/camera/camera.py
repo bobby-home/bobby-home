@@ -8,6 +8,8 @@ import paho.mqtt.client as mqtt
 
 from attr import dataclass
 
+from camera.camera_record import CameraRecorder
+from camera.pivideostream import PiVideoStream
 from loggers import LOGGER
 from object_detection.detect_people import DetectPeople
 from object_detection.detect_people_utils import bounding_box_size
@@ -31,6 +33,7 @@ class Camera:
     EVENT_REF_NO_MOTION = '0'
 
     def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt_client: Callable[[any], mqtt.Client], device_id):
+        self._camera_recorder = None
         self._analyze_motion = analyze_motion
         self._device_id = device_id
         self.get_mqtt_client = get_mqtt_client
@@ -134,6 +137,11 @@ class Camera:
             self._initialize = False
 
             self.event_ref = self.generate_event_ref()
+
+            if self._camera_recorder:
+                LOGGER.info('start recording')
+                self._camera_recorder.start_recording(self.event_ref)
+
             self._publish_motion(considered_peoples, self.event_ref)
 
             # self._visualize_contours(frame, considered_peoples)
@@ -152,6 +160,10 @@ class Camera:
 
             LOGGER.info(f'no more motion {payload}')
 
+            if self._camera_recorder:
+                LOGGER.info('stop recording')
+                self._camera_recorder.stop_recording()
+
             mqtt_payload = json.dumps(payload)
             self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
@@ -161,3 +173,11 @@ class Camera:
     @staticmethod
     def generate_event_ref():
         return str(uuid.uuid4())
+
+    @property
+    def camera_recorder(self) -> CameraRecorder:
+        return self._camera_recorder
+
+    @camera_recorder.setter
+    def camera_recorder(self, value: CameraRecorder):
+        self._camera_recorder = value

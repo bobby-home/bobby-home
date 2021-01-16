@@ -2,10 +2,12 @@ from urllib import parse
 
 import requests
 
+from notification.models import UserFreeCarrier
+
 
 class FreeCarrierMessaging:
 
-    def send_message(self, credential, message, *args):
+    def send_message(self, credential: UserFreeCarrier, message, *args):
         if message is None:
             return
 

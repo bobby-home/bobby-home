@@ -23,8 +23,16 @@ class MessagingTestCase(TestCase):
         telegram_mock = Mock()
 
         messaging = Messaging(telegram_mock, free_carrier_mock)
-        msg = '3.14 - hello world'
-        messaging.send_message(msg)
 
-        free_carrier_mock.send_message.assert_called_once_with(free_carrier, msg, None)
-        telegram_mock.send_message.assert_called_once_with(telegram, msg, None)
+        msg = '3.14 - hello world'
+        picture_path = 'some_fake_picture_path'
+        video_path = 'some_fake_video_path'
+        messaging.send_message(msg)
+        messaging.send_picture(picture_path)
+        messaging.send_video(video_path)
+
+        free_carrier_mock.send_message.assert_called_once_with(free_carrier, msg)
+        telegram_mock.send_message.assert_called_once_with(telegram, msg)
+
+        telegram_mock.send_picture.assert_called_once_with(telegram, picture_path)
+        telegram_mock.send_video.assert_called_once_with(telegram, video_path)

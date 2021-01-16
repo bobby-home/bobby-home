@@ -1,8 +1,9 @@
 import io
 import multiprocessing as mp
 from queue import Empty, Full
-
 from utils.rate_limit import rate_limited
+
+from camera.camera_record import CameraRecord
 
 
 class FrameProducer:
@@ -15,13 +16,17 @@ class FrameProducer:
     def set_camera_steam(self, camera_stream):
         self.camera_stream = camera_stream
 
-    def _manage_record(self):
+    def _manage_record(self) -> None:
         try:
-            record_event_ref = self.camera_record_queue.get_nowait()
+            record_event_ref = self.camera_record_queue.get(block=True, timeout=0.001)
         except Empty:
             pass
         else:
-            self.camera_stream.start_recording(record_event_ref)
+            split_recording_video_ref = CameraRecord.is_split_recording_task(record_event_ref)
+            if split_recording_video_ref:
+                self.camera_stream.split_recording(split_recording_video_ref)
+            else:
+                self.camera_stream.start_recording(record_event_ref)
 
         if not self.camera_record_event.is_set():
             self.camera_stream.stop_recording()

@@ -20,8 +20,9 @@ ENV PYTHONUNBUFFERED 1
 # otherwise "nc" command not found.
 # gettext is used by django to extract texts to translate: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#message-files
 # libpq-dev is used for psycopg2-binary, see: https://stackoverflow.com/a/12037133
+# gpac is used to convert PiCamera videos h264 to mp4
 RUN apt-get update \
-    && apt-get install -y libpq-dev netcat gettext
+    && apt-get install -y libpq-dev netcat gettext gpac
 
 # upgrade python with root user
 RUN pip install --upgrade pip

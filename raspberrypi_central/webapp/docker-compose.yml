@@ -5,6 +5,8 @@ services:
     rabbit:
         hostname: rabbit
         image: rabbitmq:3.8-management-alpine
+        volumes:
+            - ../smart-camera/videos/:/usr/src/videos
         environment:
             - RABBITMQ_DEFAULT_USER=admin
             - RABBITMQ_DEFAULT_PASS=mypass
@@ -49,10 +51,15 @@ services:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
             - ./app/:/usr/src/app/
+            - ../smart-camera/videos/:/usr/src/videos
         networks:
             - webapp_backend
             - rabbitmq
             - backend_mqtt
+        depends_on:
+            - rabbit
+            - database
+            - mqtt_broker
 
     celery_beat:
         build:
@@ -67,6 +74,10 @@ services:
             - rabbitmq
             - backend_mqtt
             - webapp_backend
+        depends_on:
+            - rabbit
+            - database
+            - mqtt_broker
 
     web:
         build:

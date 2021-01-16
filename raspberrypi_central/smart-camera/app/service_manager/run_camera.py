@@ -29,6 +29,7 @@ class RunSmartCamera(RunService):
 
         self.capture_proc = None
         self.consumer_proc = None
+        self.camera_record = None
 
     def prepare_run(self, data = None) -> None:
         self._camera_analyze_object = roi_camera_from_args(data)
@@ -36,6 +37,7 @@ class RunSmartCamera(RunService):
         self._camera = self.camera_factory(get_mqtt_client, self._camera_analyze_object)
 
     def _exit_gracefully(self, signum, frame):
+        self.camera_record.stop_recording()
         self.capture_proc.terminate()
         self.consumer_proc.terminate()
 
@@ -57,6 +59,7 @@ class RunSmartCamera(RunService):
         camera_consumer = FrameIAConsumer(self._camera)
 
         camera_record = CameraRecord(camera_record_event, camera_record_queue)
+        self.camera_record = camera_record
         self._camera.camera_recorder = camera_record
 
         # TODO: see issue #78

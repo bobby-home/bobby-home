@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 from typing import List
 
@@ -11,6 +12,8 @@ from alarm.communication.in_motion import save_motion
 from .messaging import speaker_messaging_factory
 from alarm.models import AlarmSchedule, AlarmStatus
 
+
+LOGGER = logging.getLogger(__name__)
 
 def h264_to_mp4(input_path, output_path = None) -> str:
     if output_path is None:
@@ -41,7 +44,7 @@ def process_video(video_path: str):
         raise FileNotFoundError(f'{video_path} does not exist.')
 
     output_path = h264_to_mp4(video_path)
-    print(f'video to mp4 ok - {output_path}')
+    LOGGER.info(f'video to mp4 ok - {output_path}')
 
     kwargs = {
         'video_path': output_path

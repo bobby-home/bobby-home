@@ -29,8 +29,6 @@ class Messaging:
                 func = getattr(class_ref, method_name, None)
                 if callable(func):
                     func(*[user_setting_conf], *args, **kwargs)
-                else:
-                    print(f'class_ref={class_ref} does not have method {method_name}')
 
     def send_message(self, message: str):
         self._s('send_message', message)

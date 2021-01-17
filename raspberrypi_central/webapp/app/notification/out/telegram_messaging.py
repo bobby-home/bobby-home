@@ -11,24 +11,11 @@ class TelegramMessaging:
         updater = Updater(self.token, use_context=True)
         self.bot = updater.bot
 
-
-    def send_message(self, chat_id: UserTelegramBotChatId, *args, **kwargs):
-        message = args[0]
-        print(f'send_message: {chat_id} message={message}')
-
+    def send_message(self, chat_id: UserTelegramBotChatId, message: str):
         self.bot.send_message(chat_id=chat_id.chat_id, text=message)
 
-
-    def send_picture(self, chat_id: UserTelegramBotChatId, *args, **kwargs):
-        picture_path = args[0]
-
-        print(f'send_picture: {chat_id} picture_path={picture_path}')
-
+    def send_picture(self, chat_id: UserTelegramBotChatId, picture_path: str):
         self.bot.send_photo(chat_id=chat_id.chat_id, photo=open(picture_path, 'rb'))
 
-    def send_video(self, chat_id: UserTelegramBotChatId, *args, **kwargs):
-        video_path = args[0]
-
-        print(f'send_video: {chat_id} picture_path={video_path}')
-
+    def send_video(self, chat_id: UserTelegramBotChatId, video_path: str):
         self.bot.send_video(chat_id=chat_id.chat_id, video=open(video_path, 'rb'))

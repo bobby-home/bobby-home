@@ -8,28 +8,36 @@ class Messaging:
         self.telegram_messaging = telegram
         self.free_carrier_messaging = free_carrier
 
-
-    def send_message(self, message = None, picture_path = None):
-        if message is None and picture_path is None:
-            raise ValueError(f'message and picture_path not set. At least one of them is required to send a message.')
-
+    def _s(self, method_name: str, *args, **kwargs):
         """
         mapping between field: function to call.
         Fields are the fields defined in UserSetting model.
         """
         configurations = {
-            'free_carrier': self.free_carrier_messaging.send_message,
-            'telegram_chat': self.telegram_messaging.send_message
+            'free_carrier': self.free_carrier_messaging,
+            'telegram_chat': self.telegram_messaging
         }
 
         user_settings = UserSetting.objects.all()
         for user_setting in user_settings:
-            for field, function in configurations.items():
+            for field, class_ref in configurations.items():
                 user_setting_conf = getattr(user_setting, field)
 
-                if user_setting_conf:
-                    function(*[user_setting_conf, message, picture_path])
+                if not user_setting_conf:
+                    continue
 
+                func = getattr(class_ref, method_name, None)
+                if callable(func):
+                    func(*[user_setting_conf], *args, **kwargs)
+
+    def send_message(self, message: str):
+        self._s('send_message', message)
+
+    def send_picture(self, picture_path: str):
+        self._s('send_picture', picture_path)
+
+    def send_video(self, video_path: str):
+        self._s('send_video', video_path)
 
 def messaging_factory() -> Messaging:
     return Messaging(TelegramMessaging(), FreeCarrierMessaging())

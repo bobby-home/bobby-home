@@ -21,6 +21,7 @@ services:
                 - LD_LIBRARY_PATH=/opt/vc/lib
         volumes:
             - ./app/:/usr/src/app/
+            - ./videos/:/usr/src/videos/
             - /opt/vc:/opt/vc
 
         devices:

@@ -5,14 +5,15 @@ from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
-from alarm.tasks import camera_motion_picture, camera_motion_detected
+from alarm.tasks import camera_motion_picture, camera_motion_detected, process_video
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
 from .communication.out_alarm import notify_alarm_status_factory
-from .messaging import speaker_messaging_factory
+import os
 
+DEVICE_ID = os.environ['DEVICE_ID']
 
 def split_camera_topic(topic: str, is_event_ref = False):
     data = topic.split('/')
@@ -25,7 +26,9 @@ def split_camera_topic(topic: str, is_event_ref = False):
 
     if is_event_ref:
         r_data['event_ref'] = data[3]
-        r_data['status'] = data[4]
+
+        if len(data) == 5:
+            r_data['status'] = data[4]
 
     return r_data
 
@@ -50,6 +53,21 @@ def on_motion_camera(message: MqttMessage):
         # 0 = initialization
         camera_motion_detected.apply_async(kwargs=data)
 
+
+def on_motion_video(message: MqttMessage):
+    topic = split_camera_topic(message.topic, True)
+    LOGGER.info(f'on_motion_video: topic={topic} {message.topic}')
+
+    data = {
+        'device_id': topic['device_id'],
+        'event_ref': topic['event_ref'],
+    }
+
+    if data['device_id'] == DEVICE_ID:
+        video_path = f'videos/{data["event_ref"]}.h264'
+        # The system has some latency to save the video,
+        # so we add a little countdown so the video will more likely be available after x seconds.
+        process_video.apply_async(kwargs={'video_path': video_path}, countdown=3)
 
 def on_motion_picture(message: MqttMessage):
     topic = split_camera_topic(message.topic, True)
@@ -120,6 +138,7 @@ def register(mqtt: MQTT):
             topics=[
                 MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
                 MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
+                MqttTopicSubscription('motion/video/+/+', on_motion_video),
             ],
         ),
         camera,

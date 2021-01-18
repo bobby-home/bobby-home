@@ -22,6 +22,7 @@ services:
         volumes:
             - ./app/:/usr/src/app/
             - ./videos/:/usr/src/videos/
+            - ./tf-models/:/usr/src/tf-models
             - /opt/vc:/opt/vc
 
         devices:

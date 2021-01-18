@@ -4,21 +4,18 @@ from typing import List, Tuple
 import numpy as np
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
-
 from object_detection.model import BoundingBox, People
 
 
 class DetectPeople:
 
-    def __init__(self):
-        self.args = {
-            'model': 'tensorflow-object-detection/data/detect.tflite',
-            'labels': 'tensorflow-object-detection/data/coco_labels.txt',
-            'threshold': 0.5
-        }
+    def __init__(self, tflite_file: str, labels_file: str):
+        self.model_file = tflite_file
+        self.labels_file = labels_file
+        self.threshold = 0.5
 
-        self.labels = self._load_labels(self.args['labels'])
-        self.interpreter = Interpreter(self.args['model'])
+        self.labels = self._load_labels(self.labels_file)
+        self.interpreter = Interpreter(self.model_file)
         self.interpreter.allocate_tensors()
         _, self.input_height, self.input_width, _ = self.interpreter.get_input_details()[0]['shape']
 
@@ -103,7 +100,7 @@ class DetectPeople:
             (self.input_width, self.input_height), Image.ANTIALIAS)
 
         results = self._detect_objects(
-            self.interpreter, image, self.args['threshold'])
+            self.interpreter, image, self.threshold)
 
         peoples = []
 

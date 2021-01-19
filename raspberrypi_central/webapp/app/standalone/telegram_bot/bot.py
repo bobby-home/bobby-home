@@ -7,12 +7,9 @@ sys.path.append('/usr/src/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
 django.setup()
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler
 from registered_bots import BOTS
 from house.models import TelegramBot
-
-
 
 
 def help(update, context):

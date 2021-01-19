@@ -1,13 +1,11 @@
 from django.utils import timezone
 from mqtt_services.models import MqttServicesConnectionStatusLogs
-import os
 
 
 def is_in_status_since(device_id: str, service_name: str, status: bool, since_time) -> bool:
     """
         Check if the service_name is asked status since the time asked.
-        The service_name has to have at least one asked status,
-        AND no opposite asked status.
+        -> If the last registered status is `status` then the function returns True.
     """
     now = timezone.now()
 

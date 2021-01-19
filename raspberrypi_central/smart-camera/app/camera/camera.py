@@ -1,17 +1,19 @@
 import dataclasses
 import datetime
 import json
+import os
+import struct
 import uuid
 from collections import defaultdict
 from io import BytesIO
 from typing import List, Callable
 
-import paho.mqtt.client as mqtt
 from attr import dataclass
 
 from camera.camera_record import CameraRecorder
 from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 from loggers import LOGGER
+from mqtt.mqtt_client import MqttClient
 from object_detection.detect_people import DetectPeople
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import People, PeopleAllData
@@ -25,6 +27,9 @@ class ObjectLinkConsiderations:
 
 class Camera:
 
+    SERVICE_NAME = 'object_detection'
+    DEVICE_ID = os.environ['DEVICE_ID']
+
     SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 10
     SECONDS_FIRST_MOTION_VIDEO = 10
     MOTION = 'motion/camera'
@@ -32,11 +37,11 @@ class Camera:
     VIDEO = 'motion/video'
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt_client: Callable[[any], mqtt.Client], device_id):
+    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id):
         self._camera_recorder = None
         self._analyze_motion = analyze_motion
         self._device_id = device_id
-        self.get_mqtt_client = get_mqtt_client
+        self.get_mqtt = get_mqtt
         self._last_time_people_detected = None
 
         self._initialize = True
@@ -49,8 +54,12 @@ class Camera:
         self._record_video_number = 0
 
     def start(self) -> None:
-        self.mqtt_client = self.get_mqtt_client(client_name=f'{self._device_id}-rpi4-alarm-motion-DETECT')
-        self.mqtt_client.loop_start()
+        mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{Camera.SERVICE_NAME}')
+        mqtt_client.client.will_set(f'connected/{Camera.SERVICE_NAME}/{Camera.DEVICE_ID}', payload=struct.pack('?', False), qos=1, retain=True)
+        mqtt_client.connect()
+        mqtt_client.client.loop_start()
+        mqtt_client.client.publish(f'connected/{Camera.SERVICE_NAME}/{Camera.DEVICE_ID}', payload=struct.pack('?', True), qos=1, retain=True)
+        self.mqtt_client = mqtt_client.client
 
     def _need_to_publish_no_motion(self) -> bool:
         if self._initialize is True:

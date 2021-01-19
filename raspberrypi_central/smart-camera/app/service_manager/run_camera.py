@@ -8,7 +8,7 @@ from camera.camera_record import CameraRecord
 
 from camera.camera_factory import camera_factory
 from camera.videostream import video_stream_factory
-from mqtt.mqtt_client import get_mqtt_client
+from mqtt.mqtt_client import get_mqtt
 from service_manager.roi_camera_from_args import roi_camera_from_args
 from service_manager.service_manager import RunService
 
@@ -34,7 +34,7 @@ class RunSmartCamera(RunService):
     def prepare_run(self, data = None) -> None:
         self._camera_analyze_object = roi_camera_from_args(data)
 
-        self._camera = self.camera_factory(get_mqtt_client, self._camera_analyze_object)
+        self._camera = self.camera_factory(get_mqtt, self._camera_analyze_object)
 
     def _exit_gracefully(self, signum, frame):
         self.camera_record.stop_recording()

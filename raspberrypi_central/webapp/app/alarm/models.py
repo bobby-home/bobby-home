@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db import models
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
-from alarm.business.alarm import get_next_off_schedule, get_next_on_schedule
+from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_schedule
 from devices.models import Device
 from house.models import House
 from django.db import transaction

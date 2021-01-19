@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
+from alarm.business.alarm import is_status_exists
+from alarm.models import AlarmStatus
 from mqtt_services.models import MqttServicesConnectionStatusLogs
+from mqtt_services.tasks import mqtt_status_does_not_match_database
 from utils.mqtt import MQTT, MqttMessage
 
 
@@ -32,11 +35,32 @@ class OnConnectedHandler(ABC):
         pass
 
 
+checkers = {
+    'camera': {
+        'model': AlarmStatus
+    }
+}
+
+
 class OnConnectedHandlerLog(OnConnectedHandler):
     def on_connect(self, device_id: str) -> None:
         MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=True, service_name=self._service_name)
 
     def on_disconnect(self, device_id: str) -> None:
+        if self._service_name in checkers:
+            checker = checkers[self._service_name]
+            model = checker['model']
+
+            if not is_status_exists(model_ref=model, device_id=device_id, running=False):
+                kwargs = {
+                    'model_ref': model,
+                    'device_id': device_id,
+                    'received_status': False,
+                    'service_name': self._service_name,
+                }
+
+                mqtt_status_does_not_match_database.apply_async(kwargs=kwargs)
+
         MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=False, service_name=self._service_name)
 
 

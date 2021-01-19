@@ -141,4 +141,3 @@ def set_alarm_off(alarm_status_uui):
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on(alarm_status_uui):
     set_alarm_status(alarm_status_uui, True)
-

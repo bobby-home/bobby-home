@@ -1,4 +1,7 @@
+from django.utils import timezone
+
 from utils.mqtt.mqtt_status import MqttBooleanStatus, MqttJsonStatus
+from mqtt_services.tasks import verify_service_status
 
 
 class SpeakerMessaging:
@@ -17,6 +20,15 @@ class AlarmMessaging:
 
     def publish_alarm_status(self, device_id: str, status: bool, data = None):
         self._mqtt_status.publish(f'status/camera/{device_id}', status, data)
+
+        kwargs = {
+            'device_id': device_id,
+            'service_name': 'camera',
+            'status': status,
+            'since_time': timezone.now()
+        }
+
+        verify_service_status.apply_async(kwargs=kwargs, countdown=5)
 
         if status is False:
             self._speaker_messaging.publish_speaker_status(device_id, False)

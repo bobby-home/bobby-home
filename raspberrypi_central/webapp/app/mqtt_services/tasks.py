@@ -3,7 +3,6 @@ from celery import shared_task
 from mqtt_services.business.mqtt_services import is_in_status_since
 from notification.tasks import send_message
 from django.utils.translation import gettext as _
-from django.db import models
 
 
 @shared_task(

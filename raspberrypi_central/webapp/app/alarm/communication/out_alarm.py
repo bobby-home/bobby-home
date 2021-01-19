@@ -66,6 +66,7 @@ class NotifyAlarmStatus:
 
 
     def publish_device_connected(self, device_id: str):
+        """When an alarm device connects, send everything it needs to run."""
         device_status = AlarmStatus.objects.get(device__device_id=device_id)
         device = device_status.device
 

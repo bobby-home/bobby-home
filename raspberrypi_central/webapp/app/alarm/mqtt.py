@@ -131,6 +131,8 @@ def register(mqtt: MQTT):
     speaker = bind_on_connected(mqtt, 'speaker', OnConnectedSpeakerHandler)
     camera = bind_on_connected(mqtt, 'camera', OnConnectedCameraHandler)
 
+    object_detection = bind_on_connected(mqtt, 'object_detection', OnConnectedHandlerLog)
+
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(
             topic='motion/#',
@@ -142,5 +144,6 @@ def register(mqtt: MQTT):
             ],
         ),
         camera,
-        speaker
+        speaker,
+        object_detection,
     ])

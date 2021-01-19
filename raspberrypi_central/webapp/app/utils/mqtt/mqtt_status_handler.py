@@ -36,35 +36,47 @@ class OnConnectedHandler(ABC):
 
 
 checkers = {
-    'camera': {
+    'object_detection': {
         'model': AlarmStatus
     }
 }
 
 
 class OnConnectedHandlerLog(OnConnectedHandler):
-    def on_connect(self, device_id: str) -> None:
-        MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=True, service_name=self._service_name)
 
-    def on_disconnect(self, device_id: str) -> None:
+    def __init__(self, service_name: str, client: MQTT):
+        super().__init__(service_name, client)
+
+    def _is_status_exist(self, device_id: str, status: bool):
         if self._service_name in checkers:
             checker = checkers[self._service_name]
-            model = checker['model']
+            model_ref = checker['model']
 
-            if not is_status_exists(model_ref=model, device_id=device_id, running=False):
+            if not is_status_exists(model_ref=model_ref, device_id=device_id, running=False):
                 kwargs = {
-                    'model_ref': model,
                     'device_id': device_id,
-                    'received_status': False,
+                    'received_status': status,
                     'service_name': self._service_name,
                 }
 
                 mqtt_status_does_not_match_database.apply_async(kwargs=kwargs)
 
+    def on_connect(self, device_id: str) -> None:
+        self._is_status_exist(device_id, True)
+        MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=True, service_name=self._service_name)
+
+    def on_disconnect(self, device_id: str) -> None:
+        self._is_status_exist(device_id, False)
         MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=False, service_name=self._service_name)
 
 
 class OnStatus:
+    """
+    Class to call the appropriate method on the handler
+    depending on the mqtt payload with the extracted device_id from the mqtt topic.
+    This helps to keep all mqtt services implementation the same.
+    """
+
     def __init__(self, handler: OnConnectedHandler):
         self._handler = handler
 

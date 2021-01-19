@@ -1,5 +1,3 @@
-from django.db.models.base import ModelBase
-
 from devices.models import Device
 from django.db.models import Model
 

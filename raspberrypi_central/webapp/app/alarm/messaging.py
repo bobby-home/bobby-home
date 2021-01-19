@@ -23,7 +23,7 @@ class AlarmMessaging:
 
         kwargs = {
             'device_id': device_id,
-            'service_name': 'camera',
+            'service_name': 'object_detection',
             'status': status,
             'since_time': timezone.now()
         }

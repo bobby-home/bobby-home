@@ -1,16 +1,11 @@
 from celery import shared_task
-
 from devices.models import Device
 from mqtt_services.business.mqtt_services import is_in_status_since
 from notification.tasks import send_message
 from django.utils.translation import gettext as _
 
 
-@shared_task(
-    autoretry_for=(Exception,),
-    retry_kwargs={'max_retries': 5},
-    default_retry_delay=5
-)
+@shared_task()
 def verify_service_status(device_id: str, service_name: str, status: bool, since_time) -> None:
     if not is_in_status_since(device_id, service_name, status, since_time):
         device = Device.objects.with_location().get(device_id=device_id)

@@ -10,6 +10,8 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from alarm.models import AlarmStatus
 from notification.models import UserTelegramBotChatId
+from django.utils.translation import gettext as _
+
 
 class BotData(Enum):
     OFF = 'off'
@@ -22,6 +24,10 @@ class AlarmStatusRepository:
 
     @staticmethod
     def set_status(new_status: bool):
+        """
+        When the user decide to change the status of the alarm,
+        the system do it for every device (alarm status).
+        """
         for status in AlarmStatus.objects.all():
             status: AlarmStatus
             status.running = new_status
@@ -54,15 +60,15 @@ class AlarmStatusBot:
                 running = status.running
 
                 if running is True:
-                    text = f"Votre alarme {status.device.location} est activée."
+                    text = _('Your alarm %(alarm)s is on.') % {'alarm': status.device.location}
                     texts.append(text)
                 elif running is False:
-                    text = f"Votre alarme {status.device.location} est désactivée."
+                    text = _('Your alarm %(alarm)s is off.') % {'alarm': status.device.location}
                     texts.append(text)
 
             keyboard = [
-                InlineKeyboardButton("Tout désactiver", callback_data=BotData.OFF.value),
-                InlineKeyboardButton("Tout activer", callback_data=BotData.ON.value)]
+                InlineKeyboardButton(_('Deactivate all'), callback_data=BotData.OFF.value),
+                InlineKeyboardButton(_('Activate all'), callback_data=BotData.ON.value)]
 
             update.message.reply_text('\n'.join(texts), reply_markup=InlineKeyboardMarkup([keyboard]))
 
@@ -72,15 +78,15 @@ class AlarmStatusBot:
 
         if status == BotData.ON.value:
             self.repository.set_status(True)
-            text = "Toutes vos alarmes sont désormais actives."
+            text = _('All of your alarms are on.')
             return query.edit_message_text(text)
 
         if status == BotData.OFF.value:
             self.repository.set_status(False)
-            text = "Toutes vos alarmes sont désormais désactivées."
+            text = _('All of your alarms are off.')
             return query.edit_message_text(text)
 
-        query.edit_message_text("Un problème technique est arrivé.")
+        query.edit_message_text(_('Something went wrong.'))
 
 
     def _register_commands(self, update):

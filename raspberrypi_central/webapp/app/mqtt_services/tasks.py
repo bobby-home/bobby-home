@@ -22,12 +22,11 @@ def verify_service_status(device_id: str, service_name: str, status: bool, since
             text = on_text
 
         send_message(
-            _("Your service %(service)s, on the device %(device)s in %(location)s, should %(status_text)s but the system did not receive any sign of life. Something is wrong.") % {
+            _('Your service %(service)s, on the device %(device)s in %(location)s, should %(status_text)s but the system did not receive any sign of life. Something is wrong.') % {
                 'service': service_name,
                 'device': device.name,
                 'location': device.location,
-                'status_text': text
-            }
+                'status_text': text }
         )
 
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-19 21:48+0000\n"
+"POT-Creation-Date: 2021-01-20 10:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,48 +18,76 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: mqtt_services/tasks.py:15
+#: alarm/telegram/alarm_status.py:63
+#, python-format
+msgid "Your alarm %(alarm)s is on."
+msgstr "Votre alarme %(alarm)s est allumée."
+
+#: alarm/telegram/alarm_status.py:66
+#, python-format
+msgid "Your alarm %(alarm)s is off."
+msgstr "Votre alarme %(alarm)s est éteinte."
+
+#: alarm/telegram/alarm_status.py:70
+msgid "Deactivate all"
+msgstr "Tout désactiver"
+
+#: alarm/telegram/alarm_status.py:71
+msgid "Activate all"
+msgstr "Tout activer"
+
+#: alarm/telegram/alarm_status.py:81
+msgid "All of your alarms are on."
+msgstr "Toutes vos alarmes sont allumées."
+
+#: alarm/telegram/alarm_status.py:86
+msgid "All of your alarms are off."
+msgstr "Toutes vos alarmes sont éteintes."
+
+#: alarm/telegram/alarm_status.py:89
+msgid "Something went wrong."
+msgstr "Nous avons rencontré un problème technique."
+
+#: mqtt_services/tasks.py:18
 msgid "turn on"
 msgstr "s'allumer"
 
-#: mqtt_services/tasks.py:16
+#: mqtt_services/tasks.py:19
 msgid "turn off"
 msgstr "s'éteindre"
 
-#: mqtt_services/tasks.py:22
+#: mqtt_services/tasks.py:25
 #, python-format
 msgid ""
-"Your service %(service)s should %(status_text)s but the system did not "
-"receive any sign of life. Something is wrong."
+"Your service %(service)s, on the device %(device)s in %(location)s, should "
+"%(status_text)s but the system did not receive any sign of life. Something "
+"is wrong."
 msgstr ""
-"Le service %(service)s devrait %(status_text)s mais le système n'a pas reçu "
-"signe de vie. Il doit y avoir un problème."
+"Le service %(service)s, sur l'appareil %(device)s dans %(location)s, devrait "
+"%(status_text)s mais le système n'a pas reçu signe de vie. Il doit y avoir "
+"un problème."
 
-#: mqtt_services/tasks.py:30
-#, fuzzy
-#| msgid "turn on"
+#: mqtt_services/tasks.py:35
 msgid "has turned on"
 msgstr "s'allumer"
 
-#: mqtt_services/tasks.py:31
-#, fuzzy
-#| msgid "turn off"
+#: mqtt_services/tasks.py:36
 msgid "has turned off"
 msgstr "s'éteindre"
 
-#: mqtt_services/tasks.py:32
+#: mqtt_services/tasks.py:37
 msgid "off"
 msgstr "éteint"
 
-#: mqtt_services/tasks.py:33
+#: mqtt_services/tasks.py:38
 msgid "on"
 msgstr "allumé"
 
-#: mqtt_services/tasks.py:43
+#: mqtt_services/tasks.py:48
 #, fuzzy, python-format
 #| msgid ""
-#| "Your service %(service)s should %(status_text)s but the system did not "
-#| "receive any sign of life. Something is wrong."
+#| "Your service %(service)s on device %(device_id)s %(turn)s but it should "
+#| "be %(status)s. Something is wrong."
 msgid ""
 "Your service %(service)s on device %(device_id)s %(turn)s but it should be "
 "%(status)s. Something is wrong."

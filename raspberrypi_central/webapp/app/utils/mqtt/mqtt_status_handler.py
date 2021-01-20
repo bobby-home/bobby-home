@@ -52,7 +52,7 @@ class OnConnectedHandlerLog(OnConnectedHandler):
             checker = checkers[self._service_name]
             model_ref = checker['model']
 
-            if not is_status_exists(model_ref=model_ref, device_id=device_id, running=False):
+            if not is_status_exists(model_ref=model_ref, device_id=device_id, running=status):
                 kwargs = {
                     'device_id': device_id,
                     'received_status': status,

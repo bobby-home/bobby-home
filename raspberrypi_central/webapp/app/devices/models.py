@@ -22,12 +22,18 @@ class DeviceType(models.Model):
         return self.type
 
 
+class DeviceManager(models.Manager):
+    def with_location(self):
+        return self.select_related('location')
+
 class Device(models.Model):
+    objects = DeviceManager()
+
     device_id = models.CharField(max_length=8, unique=True)
 
     name = models.CharField(max_length=100, unique=True, blank=True)
 
-    # When we're installing the system, location may not be known at the begining.
+    # When we're installing the system, location may be unknown at the beginning.
     location = models.ForeignKey(Location, blank=True, on_delete=models.PROTECT)
     device_type = models.ForeignKey(DeviceType, on_delete=models.PROTECT)
 

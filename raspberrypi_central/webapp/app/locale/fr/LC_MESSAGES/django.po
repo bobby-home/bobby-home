@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-04 15:55+0000\n"
+"POT-Creation-Date: 2021-01-19 21:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,55 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: templates/alarm/camera_motion_detected_list.html:15
+#: mqtt_services/tasks.py:15
+msgid "turn on"
+msgstr "s'allumer"
+
+#: mqtt_services/tasks.py:16
+msgid "turn off"
+msgstr "s'éteindre"
+
+#: mqtt_services/tasks.py:22
+#, python-format
+msgid ""
+"Your service %(service)s should %(status_text)s but the system did not "
+"receive any sign of life. Something is wrong."
+msgstr ""
+"Le service %(service)s devrait %(status_text)s mais le système n'a pas reçu "
+"signe de vie. Il doit y avoir un problème."
+
+#: mqtt_services/tasks.py:30
+#, fuzzy
+#| msgid "turn on"
+msgid "has turned on"
+msgstr "s'allumer"
+
+#: mqtt_services/tasks.py:31
+#, fuzzy
+#| msgid "turn off"
+msgid "has turned off"
+msgstr "s'éteindre"
+
+#: mqtt_services/tasks.py:32
+msgid "off"
+msgstr "éteint"
+
+#: mqtt_services/tasks.py:33
+msgid "on"
+msgstr "allumé"
+
+#: mqtt_services/tasks.py:43
+#, fuzzy, python-format
+#| msgid ""
+#| "Your service %(service)s should %(status_text)s but the system did not "
+#| "receive any sign of life. Something is wrong."
+msgid ""
+"Your service %(service)s on device %(device_id)s %(turn)s but it should be "
+"%(status)s. Something is wrong."
+msgstr ""
+"Le service %(service)s devrait %(status_text)s mais le système n'a pas reçu "
+"signe de vie. Il doit y avoir un problème."
+
+#: templates/camera/camera_motion_detected_list.html:18
 msgid "This is the title."
 msgstr "C'est un titre"

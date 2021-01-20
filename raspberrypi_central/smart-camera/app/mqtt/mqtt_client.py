@@ -1,4 +1,6 @@
 import os
+import struct
+
 import paho.mqtt.client as mqtt
 
 
@@ -16,6 +18,15 @@ class MqttClient:
         self.mqtt_port = mqtt_port
 
         self.client = client
+
+    def connect_keep_status(self, service_name: str, device_id: str):
+        """
+        Connect to the mqtt broker with information needed to keep track of the service/device_id status (on/off).
+        """
+        # Will message has to be set before we connect.
+        self.client.will_set(f'connected/{service_name}/{device_id}', payload=struct.pack('?', False), qos=1, retain=True)
+        self.connect()
+        self.client.publish(f'connected/{service_name}/{device_id}', payload=struct.pack('?', True), qos=1, retain=True)
 
     def connect(self):
         self.client.connect(self.mqtt_hostname, int(self.mqtt_port), keepalive=120)

@@ -52,13 +52,11 @@ class Camera:
         self.start_recording_time = None
         self.recording_first_video = False
         self._record_video_number = 0
+        self.mqtt_client = None
 
     def start(self) -> None:
         mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{Camera.SERVICE_NAME}')
-        mqtt_client.client.will_set(f'connected/{Camera.SERVICE_NAME}/{Camera.DEVICE_ID}', payload=struct.pack('?', False), qos=1, retain=True)
-        mqtt_client.connect()
-        mqtt_client.client.loop_start()
-        mqtt_client.client.publish(f'connected/{Camera.SERVICE_NAME}/{Camera.DEVICE_ID}', payload=struct.pack('?', True), qos=1, retain=True)
+        mqtt_client.connect_keep_status(Camera.SERVICE_NAME, Camera.DEVICE_ID)
         self.mqtt_client = mqtt_client.client
 
     def _need_to_publish_no_motion(self) -> bool:

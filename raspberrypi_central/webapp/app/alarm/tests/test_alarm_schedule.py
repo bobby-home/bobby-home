@@ -2,7 +2,7 @@ from freezegun import freeze_time
 from django.test import TestCase
 from django.utils import timezone
 
-from alarm.business.alarm import get_current_day
+from alarm.business.alarm_schedule import get_current_day
 from alarm.factories import AlarmScheduleFactory
 from alarm.models import AlarmSchedule
 from house.factories import HouseFactory

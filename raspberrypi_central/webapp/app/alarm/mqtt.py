@@ -120,16 +120,17 @@ class OnConnectedSpeakerHandler(OnConnectedHandlerLog):
     pass
 
 
-def bind_on_connected(mqtt, service_name: str, handler_constructor: Callable[[str, MQTT], OnConnectedHandler]) -> MqttTopicSubscriptionBoolean:
-    handler_instance = handler_constructor(service_name, mqtt)
+def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:
     on_status = OnStatus(handler_instance)
 
     return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
 
 
 def register(mqtt: MQTT):
-    speaker = bind_on_connected(mqtt, 'speaker', OnConnectedSpeakerHandler)
-    camera = bind_on_connected(mqtt, 'camera', OnConnectedCameraHandler)
+    speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
+    camera = bind_on_connected('camera', OnConnectedCameraHandler(mqtt))
+
+    object_detection = bind_on_connected('object_detection', OnConnectedHandlerLog(mqtt))
 
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(
@@ -142,5 +143,6 @@ def register(mqtt: MQTT):
             ],
         ),
         camera,
-        speaker
+        speaker,
+        object_detection,
     ])

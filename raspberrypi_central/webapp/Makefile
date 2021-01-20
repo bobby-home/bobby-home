@@ -5,6 +5,7 @@ de := docker-compose exec
 
 dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
 drtest := $(dc) -f docker-compose.yml -f docker-compose.test.yml run --rm
+dr := $(dc) run --rm
 
 web_image=web
 db_image=database
@@ -33,17 +34,17 @@ dev-up:
 monitoring:
 	$(dc-prod) up -d loki promtail grafana
 
-.PHONY: rabbit-services
-rabbit-services:
-	$(dc-prod) up -d rabbit rabbit_worker
+.PHONY: workers
+workers:
+	$(dc-prod) up -d rabbit_worker celery_beat
 
 .PHONY: web-services
 web-services:
-	$(dc-prod) up -d database celery_beat web telegram_bot
+	$(dc-prod) up -d web telegram_bot
 
 .PHONY: mqtt-services
 mqtt-services:
-	$(dc-prod) up -d mqtt python_process_mqtt
+	$(dc-prod) up -d python_process_mqtt
 
 .PHONY: build-docker
 build-docker:
@@ -78,10 +79,10 @@ createapp:
 db-login:
 	$(de) $(db_image) psql -U hello_django -d hello_django_dev
 
-.PHONY: makemessages
-makemessages:
-	$(de) $(web_image) django-admin makemessages -l fr
+.PHONY: messages
+messages:
+	$(dr) $(web_image) django-admin makemessages -l fr
 
-.PHONY: compilemessages
-compilemessages:
-	$(de) $(web_image) django-admin compilemessages
+.PHONY: compile-messages
+compile-messages:
+	$(dr) $(web_image) django-admin compilemessages

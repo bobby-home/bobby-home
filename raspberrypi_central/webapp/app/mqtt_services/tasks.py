@@ -33,7 +33,7 @@ def verify_service_status(device_id: str, service_name: str, status: bool, since
 @shared_task()
 def mqtt_status_does_not_match_database(device_id: str, received_status: bool, service_name: str):
     """
-    Task to tells that the system received a mqtt status that does not match to the database status.
+    Task to react when the system received a mqtt status that does not match to the database status.
     For example, in the database the alarm status is on and the system receives a mqtt message that indicates a disconnect
     from the alarm.
     That indicates a failure in the system.

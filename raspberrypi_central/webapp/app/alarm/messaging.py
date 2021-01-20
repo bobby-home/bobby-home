@@ -22,7 +22,7 @@ class AlarmMessaging:
         self._mqtt_status.publish(f'status/camera/{device_id}', status, data)
 
         """
-        When the system turn on the camera, the object_detection should be up.
+        When the system turns on the camera, the object_detection should be up a bit later.
         """
         kwargs = {
             'device_id': device_id,

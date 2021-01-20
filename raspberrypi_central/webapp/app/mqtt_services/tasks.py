@@ -7,6 +7,11 @@ from django.utils.translation import gettext as _
 
 @shared_task()
 def verify_service_status(device_id: str, service_name: str, status: bool, since_time) -> None:
+    """
+    Task to verify if a service has turned `status` since a given time.
+    Usage: when the system sends a mqtt message to change the status of a service and it want to check if the status of the service actually changed.
+    Generally, it is used with a countdown of some seconds to let the service the time to change.
+    """
     if not is_in_status_since(device_id, service_name, status, since_time):
         device = Device.objects.with_location().get(device_id=device_id)
 
@@ -27,6 +32,12 @@ def verify_service_status(device_id: str, service_name: str, status: bool, since
 
 @shared_task()
 def mqtt_status_does_not_match_database(device_id: str, received_status: bool, service_name: str):
+    """
+    Task to tells that the system received a mqtt status that does not match to the database status.
+    For example, in the database the alarm status is on and the system receives a mqtt message that indicates a disconnect
+    from the alarm.
+    That indicates a failure in the system.
+    """
     device = Device.objects.with_location().get(device_id=device_id)
 
     turn_on = _('has turned on')

@@ -7,8 +7,8 @@ import paho.mqtt.client as mqtt
 class MqttClient:
     """Little wrapper around paho mqtt mqtt.
 
-    Centralize the initialization of a new paho mqtt client.
-    It does not connect directly to allow to set a will_message for example.
+    Centralize the initialization of a new paho mqtt client and add some common methods.
+    Keep it little as possible.
     """
     def __init__(self, client_name: str, mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str):
         client = mqtt.Client(client_id=client_name, clean_session=False)

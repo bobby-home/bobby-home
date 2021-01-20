@@ -27,22 +27,25 @@ def verify_service_status(device_id: str, service_name: str, status: bool, since
 
 @shared_task()
 def mqtt_status_does_not_match_database(device_id: str, received_status: bool, service_name: str):
+    device = Device.objects.with_location().get(device_id=device_id)
+
     turn_on = _('has turned on')
     turn_off = _('has turned off')
     off = _('off')
     on = _('on')
 
     turn = turn_off
-    status = off
+    status = on
 
     if received_status is True:
         turn = turn_on
-        status = on
+        status = off
 
     send_message(
-        _('Your service %(service)s on device %(device_id)s %(turn)s but it should be %(status)s. Something is wrong.') % {
+        _('Your service %(service)s, on the device %(device)s in %(location)s, %(turn)s but it should be %(status)s. Something is wrong.') % {
             'service': service_name,
-            'device_id': device_id,
+            'device': device.name,
+            'location': device.location,
             'turn': turn,
             'status': status
         }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-20 10:40+0000\n"
+"POT-Creation-Date: 2021-01-20 13:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,15 +48,15 @@ msgstr "Toutes vos alarmes sont éteintes."
 msgid "Something went wrong."
 msgstr "Nous avons rencontré un problème technique."
 
-#: mqtt_services/tasks.py:18
+#: mqtt_services/tasks.py:13
 msgid "turn on"
 msgstr "s'allumer"
 
-#: mqtt_services/tasks.py:19
+#: mqtt_services/tasks.py:14
 msgid "turn off"
 msgstr "s'éteindre"
 
-#: mqtt_services/tasks.py:25
+#: mqtt_services/tasks.py:20
 #, python-format
 msgid ""
 "Your service %(service)s, on the device %(device)s in %(location)s, should "
@@ -67,33 +67,30 @@ msgstr ""
 "%(status_text)s mais le système n'a pas reçu signe de vie. Il doit y avoir "
 "un problème."
 
-#: mqtt_services/tasks.py:35
+#: mqtt_services/tasks.py:32
 msgid "has turned on"
 msgstr "s'allumer"
 
-#: mqtt_services/tasks.py:36
+#: mqtt_services/tasks.py:33
 msgid "has turned off"
 msgstr "s'éteindre"
 
-#: mqtt_services/tasks.py:37
+#: mqtt_services/tasks.py:34
 msgid "off"
 msgstr "éteint"
 
-#: mqtt_services/tasks.py:38
+#: mqtt_services/tasks.py:35
 msgid "on"
 msgstr "allumé"
 
-#: mqtt_services/tasks.py:48
-#, fuzzy, python-format
-#| msgid ""
-#| "Your service %(service)s on device %(device_id)s %(turn)s but it should "
-#| "be %(status)s. Something is wrong."
+#: mqtt_services/tasks.py:45
+#, python-format
 msgid ""
-"Your service %(service)s on device %(device_id)s %(turn)s but it should be "
-"%(status)s. Something is wrong."
+"Your service %(service)s, on the device %(device)s in %(location)s, %(turn)s "
+"but it should be %(status)s. Something is wrong."
 msgstr ""
-"Le service %(service)s devrait %(status_text)s mais le système n'a pas reçu "
-"signe de vie. Il doit y avoir un problème."
+"Le service %(service)s, sur l'appareil %(device)s dans %(location)s, "
+"%(turn)s mais il devrait être %(status)s. Il doit y avoir un problème."
 
 #: templates/camera/camera_motion_detected_list.html:18
 msgid "This is the title."

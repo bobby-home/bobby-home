@@ -1,4 +1,6 @@
 import io
+import time
+
 from picamera import PiCamera
 import os
 
@@ -21,6 +23,8 @@ class PiVideoStream:
 
     def run(self):
         self.camera = PiCamera()
+        # Camera warm-up time
+        time.sleep(2)
 
         camera = self.camera
 

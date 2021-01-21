@@ -76,7 +76,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
             mock.assert_called_once()
 
-            expected_call = [call(self.alarm_status.pk, camera_roi=None)]
+            expected_call = [call(self.alarm_status.device.pk, camera_roi=None)]
             mock.assert_has_calls(expected_call)
 
 
@@ -113,7 +113,7 @@ class CameraROIViewsTestCase(TransactionTestCase):
 
             rectangles = [model_to_dict(instance) for instance in rectangle_rois]
 
-            expected_call = [call(self.alarm_status.pk,self.camera_roi, rectangles)]
+            expected_call = [call(self.alarm_status.device.pk, self.camera_roi, rectangles)]
             mock.assert_called_once()
 
             mock.assert_has_calls(expected_call)

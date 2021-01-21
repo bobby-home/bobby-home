@@ -4,7 +4,55 @@ from django.test import TestCase
 
 from devices.factories import DeviceFactory
 from mqtt_services.models import MqttServicesConnectionStatusLogs
-from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog
+from utils.mqtt import MqttMessage
+from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnStatus
+import utils.date as dt_utils
+
+
+class OnStatusTestCase(TestCase):
+    def setUp(self) -> None:
+        self.service_name = 'some_service_name'
+        self.device_id = '1234567'
+        self.topic = f'connected/{self.service_name}/{self.device_id}'
+        self.retain = False
+        self.qos = 1
+        self.payload = True
+
+        self.timestamp = dt_utils.utcnow()
+
+    def test_on_connect_calls_connect(self):
+        handler_mock = Mock()
+        on_status = OnStatus(handler_mock)
+
+        message = MqttMessage(
+            self.topic,
+            self.payload,
+            self.qos,
+            self.retain,
+            self.topic,
+            self.timestamp,
+        )
+
+        on_status.on_connected(message)
+        handler_mock.on_connect.assert_called_once_with(self.service_name, self.device_id)
+        handler_mock.on_disconnect.assert_not_called()
+
+    def test_on_connect_calls_disconnect(self):
+        message = MqttMessage(
+            self.topic,
+            False,
+            self.qos,
+            self.retain,
+            self.topic,
+            self.timestamp,
+        )
+
+        handler_mock = Mock()
+        on_status = OnStatus(handler_mock)
+
+        on_status.on_connected(message)
+        handler_mock.on_disconnect.assert_called_once_with(self.service_name, self.device_id)
+        handler_mock.on_connect.assert_not_called()
 
 
 class OnConnectedHandlerLogTestCase(TestCase):

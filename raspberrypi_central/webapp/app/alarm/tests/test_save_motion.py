@@ -1,8 +1,11 @@
 import uuid
 from decimal import Decimal
+from unittest import skip
 
 from django.forms import model_to_dict
 from django.test import TestCase
+from django.utils import timezone
+from freezegun import freeze_time
 
 from alarm.communication.alarm_consts import ROITypes
 from alarm.communication.in_motion import save_motion
@@ -21,6 +24,29 @@ class SaveMotionTestCase(TestCase):
 
         self.roi1 = CameraRectangleROIFactory(camera_roi=self.roi)
         self.roi2 = CameraRectangleROIFactory(camera_roi=self.roi)
+
+    def test_save_motion(self):
+        event_ref = str(uuid.uuid4())
+
+        start_motion_time = timezone.now()
+        with freeze_time(start_motion_time):
+            save_motion(self.device.device_id, {}, event_ref, True)
+            motion = CameraMotionDetected.objects.filter(device__device_id=self.device.device_id)
+            self.assertTrue(motion.exists())
+            motion = motion[0]
+
+            self.assertEqual(motion.motion_started_at, start_motion_time)
+            self.assertEqual(str(motion.event_ref), event_ref)
+            self.assertIsNone(motion.motion_ended_at)
+
+        end_motion_time = timezone.now()
+        with freeze_time(end_motion_time):
+            save_motion(self.device.device_id, {}, event_ref, False)
+            motion = CameraMotionDetected.objects.get(device__device_id=self.device.device_id)
+            self.assertEqual(motion.motion_started_at, start_motion_time)
+            self.assertEqual(motion.motion_ended_at, end_motion_time)
+            self.assertEqual(str(motion.event_ref), event_ref)
+
 
     def test_save_motion_rectangles(self):
         seen_in = {

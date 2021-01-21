@@ -88,7 +88,7 @@ class NotifyAlarmStatusCalledTestCase(TestCase):
             self.alarm_status.running = False
             self.alarm_status.save()
 
-            expected_call = [call(self.alarm_status.pk, False)]
+            expected_call = [call(self.alarm_status.device.pk, False)]
             mock.assert_called_once()
             mock.assert_has_calls(expected_call)
 
@@ -97,6 +97,6 @@ class NotifyAlarmStatusCalledTestCase(TestCase):
             self.alarm_status.running = True
             self.alarm_status.save()
 
-            expected_call = [call(self.alarm_status.pk, True)]
+            expected_call = [call(self.alarm_status.device.pk, True)]
             mock.assert_called_once()
             mock.assert_has_calls(expected_call)

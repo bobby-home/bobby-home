@@ -16,7 +16,7 @@ class AlarmStatus(models.Model):
 
     def save(self, *args, **kwargs):
         from alarm.communication.out_alarm import notify_alarm_status_factory
-        notify_alarm_status_factory().publish_status_changed(self.device_id, self.running)
+        notify_alarm_status_factory().publish_status_changed(self.device.pk, self.running)
         super().save(*args, **kwargs)
 
     def __str__(self):

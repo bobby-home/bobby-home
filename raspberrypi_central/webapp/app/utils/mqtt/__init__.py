@@ -11,6 +11,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MQTT:
+    """
+    Wrapper around Paho MQTT.
+    This enables us to wrap mqtt message to its own class to group data in a clean manner.
+    """
     def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
         self._mqtt_client_constructor = mqtt_client_constructor

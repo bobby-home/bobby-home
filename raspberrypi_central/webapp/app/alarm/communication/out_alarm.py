@@ -16,12 +16,12 @@ class NotifyAlarmStatus:
         self.alarm_messaging = alarm_messaging
 
     def _can_turn_off(self, device: Device) -> bool:
-        motion = CameraMotionDetected.objects.filter(device=device, motion_ended_at__isnull=True).exists()
-
-        if motion:
-            return False
-        else:
+        try:
+            motion = CameraMotionDetected.objects.filter(device=device).latest('motion_started_at')
+        except CameraMotionDetected.DoesNotExist:
             return True
+
+        return motion.motion_ended_at is not None
 
     def _publish(self, device: Device, running: bool, camera_roi, rois: List[any]):
         """
@@ -42,9 +42,8 @@ class NotifyAlarmStatus:
             else:
                 payload['rois'][ROITypes.FULL.value] = True
 
-        if running is False:
-            if not self._can_turn_off(device):
-                return
+        if running is False and self._can_turn_off(device) is False:
+            return
 
         self.alarm_messaging \
             .publish_alarm_status(device.device_id, running, payload)

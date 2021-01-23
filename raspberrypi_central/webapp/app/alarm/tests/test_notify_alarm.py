@@ -58,6 +58,28 @@ class NotifyAlarmStatusTestCase(TestCase):
         expected_calls = [call(self.device.device_id, False, None)]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
+    def test_publish_false_last_motion_being_done(self):
+        """
+            We have a motion unfinished (something went wrong...)
+            But after that, we have a done motion (motion then no more motion).
+            It should turn off the service.
+        """
+        CameraMotionDetected.objects.create(
+            event_ref=str(uuid.uuid4()),
+            motion_started_at=timezone.now(),
+            device=self.device)
+
+        CameraMotionDetected.objects.create(
+            event_ref=str(uuid.uuid4()),
+            motion_started_at=timezone.now(),
+            motion_ended_at=timezone.now(),
+            device=self.device)
+
+        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
+        notify.publish_status_changed(self.device.id, False)
+
+        expected_calls = [call(self.device.device_id, False, None)]
+        self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
     def test_publish_true_with_roi(self):
         notify = NotifyAlarmStatus(self.alarm_messaging_mock)

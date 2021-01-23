@@ -1,6 +1,3 @@
-import logging
-from typing import Callable
-
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson

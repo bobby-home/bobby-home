@@ -1,6 +1,7 @@
 from typing import List, Dict
 
 from django.db import IntegrityError
+from django.utils import timezone
 
 from alarm.communication.alarm_consts import ROITypes
 from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected
@@ -16,11 +17,16 @@ def _save_bounding_box(data, motion: CameraMotionDetected):
 def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: str, status: bool):
     device = device_models.Device.objects.get(device_id=device_id)
 
-    try:
-        motion = CameraMotionDetected.objects.create(device=device, event_ref=event_ref, is_motion=status)
+    if status is True:
+        try:
+            motion = CameraMotionDetected.objects.create(device=device, event_ref=event_ref, motion_started_at=timezone.now())
+            motion.save()
+        except IntegrityError:
+            return None, None
+    else:
+        motion = CameraMotionDetected.objects.get(event_ref=event_ref, device=device)
+        motion.motion_ended_at = timezone.now()
         motion.save()
-    except IntegrityError:
-        return None, None
 
     if ROITypes.RECTANGLES.value in seen_in:
         seen_in_rectangle = seen_in[ROITypes.RECTANGLES.value]

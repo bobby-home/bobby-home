@@ -83,6 +83,9 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
 
 @dataclass
 class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
+    """
+    Handle boolean mqtt payload: "decode" it and convert it to Python boolean.
+    """
     def callback(self, message: MqttMessage):
         try:
             decoded = struct.unpack('?', message.payload)

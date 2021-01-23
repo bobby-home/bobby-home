@@ -119,7 +119,7 @@ class CameraROICreate(JsonableResponseMixin, FormView):
         if formset.is_valid():
             with transaction.atomic():
                 motion_picture = CameraMotionDetectedPicture.objects.last()
-                form.instance.define_picture = motion_picture.picture
+                form.instance.define_picture = motion_picture.motion_started_picture
                 form.save()
 
                 camera_roi_pk = form.instance.pk

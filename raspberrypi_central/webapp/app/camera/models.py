@@ -41,16 +41,16 @@ class CameraRectangleROI(models.Model):
 
 
 class CameraMotionDetected(models.Model):
-    class Meta:
-        unique_together = ['event_ref', 'is_motion']
+    event_ref = models.UUIDField(unique=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    motion_started_at = models.DateTimeField()
+    motion_ended_at = models.DateTimeField(blank=True, null=True)
+
+    motion_started_picture = models.ImageField()
+    motion_ended_picture = models.ImageField(blank=True, null=True)
+
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
     in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
-
-    event_ref = models.UUIDField()
-    is_motion = models.BooleanField()
-
 
 class CameraMotionDetectedBoundingBox(models.Model):
     """
@@ -66,12 +66,11 @@ class CameraMotionDetectedBoundingBox(models.Model):
 
 
 class CameraMotionDetectedPicture(models.Model):
-    class Meta:
-        unique_together = ['event_ref', 'is_motion']
+    event_ref = models.UUIDField()
 
     created_at = models.DateTimeField(auto_now_add=True)
-    picture = models.ImageField(blank=True, null=True)
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
 
-    event_ref = models.UUIDField()
-    is_motion = models.BooleanField()
+    motion_started_picture = models.ImageField()
+    motion_ended_picture = models.ImageField(blank=True, null=True)
+
+    device = models.ForeignKey(Device, on_delete=models.PROTECT)

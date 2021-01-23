@@ -7,13 +7,19 @@ from utils.mqtt import MQTT, MqttMessage
 
 
 def split_camera_topic(topic: str):
+    """
+    Function to extract data from mqtt topic.
+    """
     data = topic.split('/')
 
-    return {
-        'type': data[0],
-        'service': data[1],
-        'device_id': data[2]
-    }
+    try:
+        return {
+            'type': data[0],
+            'service': data[1],
+            'device_id': data[2]
+        }
+    except IndexError as err:
+        raise ValueError(f'cannot extract data from {topic}. Should be like `type/service/device_id`.') from err
 
 
 class OnConnectedHandler(ABC):

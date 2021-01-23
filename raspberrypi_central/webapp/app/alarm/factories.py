@@ -41,10 +41,10 @@ class CameraMotionDetectedPictureFactory(factory.DjangoModelFactory):
         model = CameraMotionDetectedPicture
 
     event_ref = factory.LazyAttribute(lambda obj: uuid.uuid4().__str__())
-    is_motion = True
     device = factory.SubFactory(DeviceFactory)
-    picture = factory.django.FileField()
 
+    motion_started_picture = factory.django.FileField()
+    motion_ended_picture = factory.django.FileField()
 
 class CameraROIFactoryConf:
     default_image_width = 1024

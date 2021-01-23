@@ -1,6 +1,3 @@
-import logging
-from typing import Callable
-
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
@@ -109,11 +106,11 @@ def on_motion_picture(message: MqttMessage):
 
 class OnConnectedCameraHandler(OnConnectedHandlerLog):
 
-    def on_connect(self, device_id: str) -> None:
+    def on_connect(self, service_name: str, device_id: str) -> None:
         mx = notify_alarm_status_factory(self.get_client)
         mx.publish_device_connected(device_id)
 
-        return super().on_connect(device_id)
+        return super().on_connect(service_name, device_id)
 
 
 class OnConnectedSpeakerHandler(OnConnectedHandlerLog):

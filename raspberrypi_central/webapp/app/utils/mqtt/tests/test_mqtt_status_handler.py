@@ -5,8 +5,25 @@ from django.test import TestCase
 from devices.factories import DeviceFactory
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 from utils.mqtt import MqttMessage
-from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnStatus
+from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnStatus, split_camera_topic
 import utils.date as dt_utils
+
+
+class SplitCameraTopicTestCase(TestCase):
+    def test_split_camera_topic(self):
+        type = 'connected'
+        service = 'object_detection'
+        device_id = 'some device id'
+
+        response = split_camera_topic(f'{type}/{service}/{device_id}')
+        self.assertEqual(response, {
+            'type': type,
+            'service': service,
+            'device_id': device_id,
+        })
+
+        with self.assertRaises(ValueError) as err:
+            split_camera_topic(f'{type}-{service}')
 
 
 class OnStatusTestCase(TestCase):

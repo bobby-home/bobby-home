@@ -1,4 +1,3 @@
-from camera.business.camera_motion import close_unclosed_camera_motions
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
@@ -8,7 +7,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
-from .communication.out_alarm import notify_alarm_status_factory
+from .communication.on_connected_services import OnConnectedCameraHandler, OnConnectedSpeakerHandler
 import os
 
 DEVICE_ID = os.environ['DEVICE_ID']
@@ -103,24 +102,6 @@ def on_motion_picture(message: MqttMessage):
     }
 
     camera_motion_picture.apply_async(kwargs=data)
-
-
-class OnConnectedCameraHandler(OnConnectedHandlerLog):
-
-    def on_connect(self, service_name: str, device_id: str) -> None:
-        mx = notify_alarm_status_factory(self.get_client)
-        mx.publish_device_connected(device_id)
-
-        close_unclosed_camera_motions(device_id)
-        return super().on_connect(service_name, device_id)
-
-    def on_disconnect(self, service_name: str, device_id: str) -> None:
-        close_unclosed_camera_motions(device_id)
-        return super().on_connect(service_name, device_id)
-
-
-class OnConnectedSpeakerHandler(OnConnectedHandlerLog):
-    pass
 
 
 def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:

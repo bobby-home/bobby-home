@@ -13,8 +13,9 @@ class AlarmScheduleChangeStatus:
         alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses.select_for_update().all()
 
         """
-        We don't do bulk update because we have a side effect on the method `AlarmStatus.save`
+        We don't do bulk update because we have a side effect on the method `AlarmStatus.save`.
         (mqtt publish behind the scenes).
+        Django does not call .save() on every modified instances (with bulk), so the side effect would not be called.
         see issues #119
         """
         with transaction.atomic():

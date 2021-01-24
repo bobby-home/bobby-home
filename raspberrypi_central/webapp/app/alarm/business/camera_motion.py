@@ -60,7 +60,7 @@ class CameraMotion:
             message = f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
         else:
             message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
-            if not AlarmStatus.objects.get(device=device).running:
+            if AlarmStatus.objects.get(device=device).running is False:
                 # we need to turn off the service
                 self.notify_alarm_status_factory().publish_status_changed(device.pk, False)
 

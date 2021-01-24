@@ -2,6 +2,7 @@ from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
+import alarm.tasks as tasks
 from alarm.tasks import camera_motion_picture, camera_motion_detected, process_video
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -72,6 +73,14 @@ def on_motion_picture(message: MqttMessage):
     event_ref = topic['event_ref']
     status = topic['status']
 
+    bool_status = None
+    if status == '0':
+        bool_status = False
+    elif status == '1':
+        bool_status = True
+    else:
+        raise ValueError(f'Status {status} should be "0" or "1".')
+
     LOGGER.info(f'on_motion_picture even_ref={event_ref}')
 
     if event_ref == "0":
@@ -98,10 +107,10 @@ def on_motion_picture(message: MqttMessage):
         'device_id': topic['device_id'],
         'picture_path': picture_path,
         'event_ref': event_ref,
-        'status': status,
+        'status': bool_status,
     }
 
-    camera_motion_picture.apply_async(kwargs=data)
+    tasks.camera_motion_picture.apply_async(kwargs=data)
 
 
 def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:

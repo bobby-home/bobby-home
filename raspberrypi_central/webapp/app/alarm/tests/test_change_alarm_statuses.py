@@ -1,6 +1,6 @@
 import uuid
 
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
 from alarm.business.alarm_schedule_change_status import AlarmScheduleChangeStatus
@@ -10,7 +10,7 @@ from camera.models import CameraMotionDetected
 from house.factories import HouseFactory
 
 
-class ChangeAlarmStatusesTestCase(TestCase):
+class ChangeAlarmStatusesTestCase(TransactionTestCase):
     def setUp(self) -> None:
         self.house = HouseFactory()
 

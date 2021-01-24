@@ -17,7 +17,7 @@ class NotifyAlarmStatus:
 
     def _can_turn_off(self, device: Device) -> bool:
         try:
-            motion = CameraMotionDetected.objects.filter(device=device).latest('motion_started_at')
+            motion = CameraMotionDetected.objects.filter(device=device, closed_by_system=False).latest('motion_started_at')
         except CameraMotionDetected.DoesNotExist:
             return True
 

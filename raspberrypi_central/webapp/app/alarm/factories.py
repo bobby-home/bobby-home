@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from faker import Factory
 
-from camera.models import CameraMotionDetectedPicture, CameraROI, CameraRectangleROI
+from camera.models import CameraMotionDetectedPicture, CameraROI, CameraRectangleROI, CameraMotionDetected
 from devices.factories import DeviceFactory
 from .models import AlarmStatus, AlarmSchedule
 
@@ -34,6 +34,14 @@ class AlarmScheduleFactory(factory.DjangoModelFactory):
     friday    = factory.Faker('pybool')
     saturday  = factory.Faker('pybool')
     sunday    = factory.Faker('pybool')
+
+class CameraMotionDetectedFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = CameraMotionDetected
+
+    event_ref = factory.LazyAttribute(lambda obj: str(uuid.uuid4()))
+    motion_started_at = factory.LazyAttribute(lambda obj: timezone.now())
+    device = factory.SubFactory(DeviceFactory)
 
 
 class CameraMotionDetectedPictureFactory(factory.DjangoModelFactory):

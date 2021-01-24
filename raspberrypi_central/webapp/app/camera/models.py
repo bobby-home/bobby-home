@@ -46,8 +46,7 @@ class CameraMotionDetected(models.Model):
     motion_started_at = models.DateTimeField()
     motion_ended_at = models.DateTimeField(blank=True, null=True)
 
-    motion_started_picture = models.ImageField()
-    motion_ended_picture = models.ImageField(blank=True, null=True)
+    closed_by_system = models.BooleanField(default=False)
 
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
     in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)

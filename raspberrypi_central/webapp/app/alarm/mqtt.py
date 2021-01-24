@@ -1,3 +1,4 @@
+from camera.business.camera_motion import close_unclosed_camera_motions
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
@@ -110,6 +111,11 @@ class OnConnectedCameraHandler(OnConnectedHandlerLog):
         mx = notify_alarm_status_factory(self.get_client)
         mx.publish_device_connected(device_id)
 
+        close_unclosed_camera_motions(device_id)
+        return super().on_connect(service_name, device_id)
+
+    def on_disconnect(self, service_name: str, device_id: str) -> None:
+        close_unclosed_camera_motions(device_id)
         return super().on_connect(service_name, device_id)
 
 

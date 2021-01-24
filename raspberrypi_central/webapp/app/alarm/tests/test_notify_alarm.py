@@ -6,7 +6,8 @@ from django.test import TestCase
 from django.utils import timezone
 
 from alarm.communication.out_alarm import NotifyAlarmStatus
-from alarm.factories import AlarmStatusFactory, CameraROIFactory, CameraRectangleROIFactory, CameraROIFactoryConf
+from alarm.factories import AlarmStatusFactory
+from camera.factories import CameraROIFactoryConf, CameraROIFactory, CameraRectangleROIFactory
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected
 from devices.models import Device

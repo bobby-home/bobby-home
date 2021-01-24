@@ -7,8 +7,8 @@ from django.test import TransactionTestCase
 from django.urls import reverse_lazy
 
 from alarm.communication.out_alarm import NotifyAlarmStatus
-from alarm.factories import AlarmStatusFactory, CameraROIFactory, CameraMotionDetectedPictureFactory, \
-    CameraRectangleROIFactory
+from alarm.factories import AlarmStatusFactory
+from camera.factories import CameraMotionDetectedPictureFactory, CameraROIFactory, CameraRectangleROIFactory
 from alarm.models import AlarmStatus
 from camera.models import CameraROI, CameraRectangleROI
 

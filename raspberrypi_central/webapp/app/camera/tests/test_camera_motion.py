@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 
-from alarm.factories import CameraMotionDetectedFactory
+from camera.factories import CameraMotionDetectedFactory
 from camera.business.camera_motion import close_unclosed_camera_motions
 from camera.models import CameraMotionDetected
 from devices.factories import DeviceFactory

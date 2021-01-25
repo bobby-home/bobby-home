@@ -1,3 +1,4 @@
+import logging
 import os
 from django.db import transaction
 import alarm.communication.in_motion as in_motion
@@ -7,6 +8,9 @@ from alarm.communication.play_sound import play_sound
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetectedPicture
 from devices.models import SeverityChoice, Device
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CameraMotion:
@@ -61,6 +65,7 @@ class CameraMotion:
         else:
             message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
             if AlarmStatus.objects.get(device=device).running is False:
+                LOGGER.info(f'The alarm on device {device.device_id} did not turn off because a motion was here. Not here anymore, turning off.')
                 # we need to turn off the service
                 self.notify_alarm_status_factory().publish_status_changed(device.pk, False)
 

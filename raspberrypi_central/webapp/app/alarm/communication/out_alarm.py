@@ -1,27 +1,22 @@
 from typing import Callable, Optional, List
-
+import logging
 from django.forms import model_to_dict
 
+import alarm.business.alarm_status as alarm_status
 from alarm.communication.alarm_consts import ROITypes
 from alarm.messaging import alarm_messaging_factory, AlarmMessaging
-from camera.models import CameraROI, CameraRectangleROI, CameraMotionDetected
+from camera.models import CameraROI, CameraRectangleROI
 from devices.models import Device
 from utils.mqtt import MQTT
 from utils.mqtt import mqtt_factory
 from alarm.models import AlarmStatus
 
 
+LOGGER = logging.getLogger(__name__)
+
 class NotifyAlarmStatus:
     def __init__(self, alarm_messaging: AlarmMessaging):
         self.alarm_messaging = alarm_messaging
-
-    def _can_turn_off(self, device: Device) -> bool:
-        try:
-            motion = CameraMotionDetected.objects.filter(device=device, closed_by_system=False).latest('motion_started_at')
-        except CameraMotionDetected.DoesNotExist:
-            return True
-
-        return motion.motion_ended_at is not None
 
     def _publish(self, device: Device, running: bool, camera_roi, rois: List[any]):
         """
@@ -42,7 +37,8 @@ class NotifyAlarmStatus:
             else:
                 payload['rois'][ROITypes.FULL.value] = True
 
-        if running is False and self._can_turn_off(device) is False:
+        if running is False and alarm_status.can_turn_off(device) is False:
+            LOGGER.info(f'The alarm on device {device.device_id} should turn off but stay on because a motion is being detected.')
             return
 
         self.alarm_messaging \

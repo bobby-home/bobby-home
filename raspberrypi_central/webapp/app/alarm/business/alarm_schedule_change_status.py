@@ -1,6 +1,8 @@
 from typing import List
 
 from django.db import transaction
+
+from alarm.business.alarm_status import alarm_statuses_changed
 from alarm.models import AlarmSchedule, AlarmStatus
 
 
@@ -21,7 +23,9 @@ class AlarmScheduleChangeStatus:
             """
             for alarm_status in alarm_statuses:
                 alarm_status.running = status
-                alarm_status.save()
+
+            AlarmStatus.objects.bulk_update(alarm_statuses, ['running'])
+            alarm_statuses_changed(alarm_statuses)
 
     def turn_off(self, alarm_status_uui: str) -> None:
         self.set_alarm_status(alarm_status_uui, False)

@@ -24,7 +24,6 @@ services:
             - ./videos/:/usr/src/videos/
             - ./tf-models/:/usr/src/tf-models
             - /opt/vc:/opt/vc
-
         devices:
                 - "/dev/vchiq:/dev/vchiq"
 
@@ -44,6 +43,22 @@ services:
         privileged: true
         volumes:
             - ./app/:/usr/src/app/
+
+    listen_frame:
+        build:
+            context: ./app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
+        command: bash -c "python listen_frame.py"
+        volumes:
+            - ./app/:/usr/src/app/
+            - ./tf-models/:/usr/src/tf-models
+        env_file:
+            - .env
+        networks:
+            - backend_mqtt
+            - motion
 
 
 networks:

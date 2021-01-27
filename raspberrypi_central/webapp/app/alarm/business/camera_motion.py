@@ -49,7 +49,7 @@ class CameraMotion:
             'picture_path': picture_path
         }
 
-        self.send_picture(kwargs=kwargs)
+        self.send_picture.apply_async(kwargs=kwargs)
 
     def camera_motion_detected(self, device_id: str, seen_in: dict, event_ref: str, status: bool):
         device, motion = self.save_motion(device_id, seen_in, event_ref, status)

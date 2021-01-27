@@ -65,7 +65,7 @@ class CameraMotionTestCase(TestCase):
             'picture_path': fake_picture_path
         }
 
-        self.send_picture.assert_called_once_with(kwargs=kwargs)
+        self.send_picture.apply_async.assert_called_once_with(kwargs=kwargs)
 
     def test_camera_motion_picture_no_more_motion(self):
         fake_picture_path = '/some/path.png'

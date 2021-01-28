@@ -10,7 +10,7 @@ dr := $(dc) run --rm
 web_image=web
 db_image=database
 
-manage := $(de) $(web_image) python manage.py
+manage := $(dr) $(web_image) python manage.py
 
 .PHONY: create-folders
 create-folders:
@@ -36,7 +36,7 @@ monitoring:
 
 .PHONY: workers
 workers:
-	$(dc-prod) up -d rabbit_worker celery_beat
+	$(dc-prod) up -d rabbit_worker
 
 .PHONY: web-services
 web-services:
@@ -52,7 +52,7 @@ build-docker:
 
 .PHONY: test
 test:
-	$(drtest) web python manage.py test
+	$(drtest) web python -Wa manage.py test
 
 .PHONY: migrations
 migrations:

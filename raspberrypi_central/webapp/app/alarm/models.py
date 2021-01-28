@@ -4,20 +4,15 @@ import uuid
 from django.utils import timezone
 from django.db import models
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
-
 from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_schedule
 from devices.models import Device
 from house.models import House
 from django.db import transaction
 
+
 class AlarmStatus(models.Model):
     running = models.BooleanField()
     device = models.OneToOneField(Device, on_delete=models.CASCADE)
-
-    def save(self, *args, **kwargs):
-        from alarm.communication.out_alarm import notify_alarm_status_factory
-        notify_alarm_status_factory().publish_status_changed(self.device.pk, self.running)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'Status is {self.running} for {self.device}'

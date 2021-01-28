@@ -1,5 +1,8 @@
 import os, sys
+from typing import List
+
 import django
+from alarm.business.alarm_status import alarm_statuses_changed
 
 sys.path.append('/usr/src/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
@@ -28,10 +31,14 @@ class AlarmStatusRepository:
         When the user decide to change the status of the alarm,
         the system do it for every device (alarm status).
         """
-        for status in AlarmStatus.objects.all():
+        alarm_statuses: List[AlarmStatus] = AlarmStatus.objects.all()
+
+        for status in alarm_statuses:
             status: AlarmStatus
             status.running = new_status
-            status.save()
+
+        AlarmStatus.objects.bulk_update(alarm_statuses, ['running'])
+        alarm_statuses_changed(alarm_statuses, force=True)
 
     @property
     def statuses(self):

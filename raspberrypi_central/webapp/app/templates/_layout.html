@@ -12,5 +12,9 @@
         {% block body %}{% endblock %}
     </div>
     {% assets 'entrypoints/app.js' %}
+
+    <script>
+        window.CSRF = "{{ csrf_token }}"
+    </script>
 </body>
 </html>

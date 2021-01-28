@@ -8,7 +8,7 @@ class HouseManager(models.Manager):
     The system is designed to have only one House.
     """
     def get_system_house(self):
-        return self.get(pk=1)
+        return self.all().first()
 
 
 class House(models.Model):
@@ -39,7 +39,7 @@ class Location(models.Model):
     sub_structure = models.CharField(max_length=60)
 
     def __str__(self):
-        return '{0}_{1}'.format(self.structure, self.sub_structure)
+        return f'{self.structure} - {self.sub_structure}'
 
     class Meta:
         unique_together = ['structure', 'sub_structure']

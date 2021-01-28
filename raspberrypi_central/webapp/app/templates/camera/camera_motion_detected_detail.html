@@ -1,0 +1,36 @@
+{% extends '_layout.html' %}
+
+{% block header %}
+    <h1 class="h3">Camera motion detail</h1>
+
+{% endblock header %}
+
+{% block body %}
+    <main class="l-container">
+        <div class="box">
+            <div class="box__body">
+                <h2>Camera motion detected</h2>
+                <ul>
+                    <p>{{ motion.created_at }}</p>
+                    <p>is motion? {{ motion.is_motion }}</p>
+                    {% if picture %}
+                        {{ picture }}
+                    {% else %}
+                        We do not have any picture for this motion.
+                    {% endif %}
+                </ul>
+                <canvas id="picture-canvas"></canvas>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const FILE_URL = "{{ picture.picture.url }}"
+        const BOUNDING_BOXES = JSON.parse({{ bounding_boxes | safe }})
+        const CAMERA_ROI = JSON.parse({{ camera_roi | safe }})
+    </script>
+
+    {% assets 'entrypoints/motion-detected.js' %}
+
+{% endblock body %}

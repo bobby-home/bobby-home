@@ -1,110 +1,69 @@
 import os
+import logging
+from pathlib import Path
+from typing import List
 
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from celery import shared_task
-import paho.mqtt.client as mqtt
-
-from alarm import models as alarm_models
-from house import models as house_models
-from devices import models as device_models
-from notification.tasks import send_message
+from notification.tasks import send_video
+from .business.alarm_schedule_change_status import AlarmScheduleChangeStatus
+from .business.camera_motion import camera_motion_factory
+from alarm.models import AlarmSchedule, AlarmStatus
 
 
-def create_mqtt_client(mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str, client_name = None):
+LOGGER = logging.getLogger(__name__)
 
-    if client_name is None:
-        clean_session = True
-    else:
-        False
+def h264_to_mp4(input_path, output_path = None) -> str:
+    if output_path is None:
+        path, ext = os.path.splitext(input_path)
+        output_path = path + ".mp4"
 
-    client = mqtt.Client(client_id=client_name, clean_session=client_name)
-    client.username_pw_set(mqtt_user, mqtt_pswd)
+    # MP4Box redirect everything to stderr (even if no error).
+    # so we redirect stderr to stdout to /dev/null
+    # so nothing is printed to avoid logs pollution.
+    # if an error happens, we catch it thanks to the result.
+    command = f'MP4Box -add {input_path} {output_path} > /dev/null 2>&1'
 
-    client.connect(mqtt_hostname, int(mqtt_port), keepalive=120)
+    # warning: call could be problematic in Celery tasks.
+    result = os.system(command)
+    if result != 0:
+        raise Exception(f'{command} did not exited successfully.')
 
-    return client
+    return output_path
 
+@shared_task(
+    autoretry_for=(Exception,),
+    retry_kwargs={'max_retries': 5},
+    default_retry_delay=3)
+def process_video(video_path: str):
+    video_path = f'/usr/src/{video_path}'
 
-class AlarmMessaging():
+    if not Path(video_path).is_file():
+        raise FileNotFoundError(f'{video_path} does not exist.')
 
-    def __init__(self, mqtt_client):
-        self._mqtt_client = mqtt_client
-
-    def set_alarm_status(self, status: bool):
-        self._mqtt_client.publish('status/alarm', status, qos=1)
-
-        if status is False:
-            self.set_sound_status(False)
-
-    def set_sound_status(self, status: bool):
-        self._mqtt_client.publish('status/sound', status, qos=1)
-
-
-@shared_task(name="security.camera_motion_picture", bind=True)
-def camera_motion_picture(self, picture_path):
-    picture = alarm_models.CameraMotionDetectedPicture(picture_path=picture_path)
-    picture.save()
+    output_path = h264_to_mp4(video_path)
+    LOGGER.info(f'video to mp4 ok - {output_path}')
 
     kwargs = {
-        'picture_path': picture_path
+        'video_path': output_path
     }
-    send_message.apply_async(kwargs=kwargs)
+
+    send_video.apply_async(kwargs=kwargs)
 
 
-@shared_task(name="security.play_sound")
-def play_sound(motion_came_from_device_id: str):
-    # device = device_models.Device.objects.get(device_id=device_id)
-    mqtt_client = create_mqtt_client(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT']
-    )
-
-    alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_sound_status(True)
-
+@shared_task(name="security.camera_motion_picture")
+def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, status: bool):
+    camera_motion_factory().camera_motion_picture(device_id, picture_path, event_ref, status)
 
 @shared_task(name="security.camera_motion_detected")
-def camera_motion_detected(device_id: str):
-    device = device_models.Device.objects.get(device_id=device_id)
-    alarm_models.CameraMotionDetected.objects.create(device=device)
-
-    location = device.location
-
-    kwargs = {
-        'message': f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
-    }
-
-    send_message.apply_async(kwargs=kwargs)
-    play_sound.apply_async(kwargs={'motion_came_from_device_id': device_id})
+def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status: bool):
+    camera_motion_factory().camera_motion_detected(device_id, seen_in, event_ref, status)
 
 
 @shared_task(name="alarm.set_alarm_off")
-def set_alarm_off():
-    s = alarm_models.AlarmStatus(running=False)
-    s.save()
+def set_alarm_off(alarm_status_uui):
+    AlarmScheduleChangeStatus().turn_off(alarm_status_uui)
 
 
 @shared_task(name="alarm.set_alarm_on")
-def set_alarm_on():
-    s = alarm_models.AlarmStatus(running=True)
-    s.save()
-
-
-@shared_task
-def alarm_status_changed(status: bool):
-    mqtt_client = create_mqtt_client(
-        os.environ['MQTT_USER'],
-        os.environ['MQTT_PASSWORD'],
-        os.environ['MQTT_HOSTNAME'],
-        os.environ['MQTT_PORT']
-    )
-
-    alarm_messaging = AlarmMessaging(mqtt_client)
-    alarm_messaging.set_alarm_status(status)
-
-    kwargs = {
-        'message': f'Votre alarme a changée de status: {status}'
-    }
-    send_message.apply_async(kwargs=kwargs)
+def set_alarm_on(alarm_status_uui):
+    AlarmScheduleChangeStatus().turn_on(alarm_status_uui)

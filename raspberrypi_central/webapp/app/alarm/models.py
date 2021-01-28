@@ -1,17 +1,38 @@
-import uuid 
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
+import json
+import uuid
+
+from django.utils import timezone
 from django.db import models
-from house.models import House
-import pytz
-from . import tasks
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
+from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_schedule
 from devices.models import Device
+from house.models import House
+from django.db import transaction
+
+
+class AlarmStatus(models.Model):
+    running = models.BooleanField()
+    device = models.OneToOneField(Device, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Status is {self.running} for {self.device}'
+
+
+class AlarmScheduleManager(models.Manager):
+    def get_next_off(self):
+        return get_next_off_schedule(timezone.now(), self)
+
+    def get_next_on(self):
+        return get_next_on_schedule(timezone.now(), self)
+
 
 class AlarmSchedule(models.Model):
-    hour_start = models.IntegerField()
-    minute_start = models.IntegerField()
+    objects = AlarmScheduleManager()
 
-    hour_end = models.IntegerField()
-    minute_end = models.IntegerField()
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+
+    start_time = models.TimeField()
+    end_time = models.TimeField()
 
     monday    = models.BooleanField()
     tuesday   = models.BooleanField()
@@ -21,8 +42,36 @@ class AlarmSchedule(models.Model):
     saturday  = models.BooleanField()
     sunday    = models.BooleanField()
 
-    turn_on_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_on')
-    turn_off_task = models.OneToOneField(PeriodicTask, blank=True, null=True, on_delete=models.CASCADE, related_name='alarm_schedule_off')
+    is_disabled_by_system = models.BooleanField(default=False)
+
+    turn_on_task = models.OneToOneField(
+        PeriodicTask,
+        editable=False,
+        on_delete=models.PROTECT,
+        related_name='alarm_schedule_on'
+    )
+
+    turn_off_task = models.OneToOneField(
+        PeriodicTask,
+        editable=False,
+        on_delete=models.PROTECT,
+        related_name='alarm_schedule_off'
+    )
+
+    alarm_statuses = models.ManyToManyField(
+        AlarmStatus,
+        related_name='alarm_schedules'
+    )
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            super().delete(*args, **kwargs)
+
+            if self.turn_off_task:
+                self.turn_off_task.delete()
+
+            if self.turn_on_task:
+                self.turn_on_task.delete()
 
 
     def save(self, *args, **kwargs):
@@ -39,7 +88,7 @@ class AlarmSchedule(models.Model):
             for day_int, day_str in enumerate(possible_days, start=0):
                 if getattr(self, day_str):
                     days.append(str(day_int))
-        
+
             # Celery crontab want a list as str, ex: "monday,tuesday,..."
             cron_days = ','.join(days)
 
@@ -48,80 +97,51 @@ class AlarmSchedule(models.Model):
         cron_days = model_boolean_fields_to_cron_days()
 
         house_timezone = House.objects.get_system_house().timezone
-        uid = uuid.uuid4()
 
         if self._state.adding is True:
+            self.uuid = str(uuid.uuid4())
+
             schedule_turn_on_alarm = CrontabSchedule.objects.create(
-                minute=self.minute_start,
-                hour=self.hour_start,
+                minute=self.start_time.minute,
+                hour=self.start_time.hour,
                 day_of_week=cron_days,
                 timezone=house_timezone
             )
 
             self.turn_on_task = PeriodicTask.objects.create(
-                name=f'Turn on alarm {uid}',
+                name=f'Turn on alarm {self.uuid}',
                 task='alarm.set_alarm_on',
-                crontab=schedule_turn_on_alarm
+                crontab=schedule_turn_on_alarm,
+                args=json.dumps([self.uuid])
             )
 
             schedule_turn_off_alarm = CrontabSchedule.objects.create(
-                minute=self.minute_end,
-                hour=self.hour_end,
+                minute=self.end_time.minute,
+                hour=self.end_time.hour,
                 day_of_week=cron_days,
                 timezone=house_timezone
             )
 
             self.turn_off_task = PeriodicTask.objects.create(
-                name=f'Turn off alarm {uid}',
+                name=f'Turn off alarm {self.uuid}',
                 task='alarm.set_alarm_off',
-                crontab=schedule_turn_off_alarm
+                crontab=schedule_turn_off_alarm,
+                args=json.dumps([self.uuid])
             )
 
         else:
             on_crontab = self.turn_on_task.crontab
             off_crontab = self.turn_off_task.crontab
 
-            on_crontab.minute = self.minute_start
-            on_crontab.hour = self.hour_start
+            on_crontab.minute = self.start_time.minute
+            on_crontab.hour = self.start_time.hour
             on_crontab.day_of_week = cron_days
 
-            off_crontab.minute = self.minute_end
-            off_crontab.hour = self.hour_end
+            off_crontab.minute = self.end_time.minute
+            off_crontab.hour = self.end_time.hour
             off_crontab.day_of_week = cron_days
 
             on_crontab.save()
             off_crontab.save()
 
         super().save(*args, **kwargs)
-
-class AlarmStatusManager(models.Manager):
-    def get_status(self):
-        return self.all().first().running
-
-class AlarmStatus(models.Model):
-    objects = AlarmStatusManager()
-
-    running = models.BooleanField()
-
-    # only one row can be created, otherwise: IntegrityError is raised.
-    # from https://books.agiliq.com/projects/django-orm-cookbook/en/latest/singleton.html
-    def save(self, *args, **kwargs):
-        if self.__class__.objects.count():
-            self.pk = self.__class__.objects.first().pk
-        
-        tasks.alarm_status_changed.delay(self.running)
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f'Status is {self.running}'
-
-
-class CameraMotionDetected(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
-
-
-class CameraMotionDetectedPicture(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    picture_path = models.CharField(max_length=100, blank=True, null=True)

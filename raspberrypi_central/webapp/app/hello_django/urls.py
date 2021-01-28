@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.conf.urls.static import static
 from django.urls import path, include
 from django.conf import settings
 
@@ -6,15 +7,16 @@ from django.conf import settings
 urlpatterns = [
     path(r'admin/', admin.site.urls),
     path('device/', include('devices.urls')),
-    path('alarm/', include('alarm.urls')),
-    path('alert/', include('alerts.urls')),
+    path('alarm/', include('alarm.urls', namespace='alarm')),
+    path('camera/', include('camera.urls', namespace='camera')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ]
 
-# if settings.DEBUG:
-#     import debug_toolbar
-#     urlpatterns = [
-#         path('__debug__/', include(debug_toolbar.urls)),
-#     ] + urlpatterns
-#     # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # https://docs.djangoproject.com/en/3.0/howto/static-files/#serving-files-uploaded-by-a-user-during-development
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

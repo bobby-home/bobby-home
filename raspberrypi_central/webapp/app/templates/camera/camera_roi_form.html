@@ -1,0 +1,35 @@
+{% extends '_layout.html' %}
+
+{% block header %}
+    <h1 class="h3">Alarm ROI</h1>
+{% endblock header %}
+
+{% block body %}
+    <main class="l-container">
+        <div class="box">
+            <div class="box__body">
+                <form action="" method="post" class="form-ajax">
+                    {{ csrf_input }}
+                    {{ form }}
+                    {{ camera_rectangle_roi_formset.management_form }}
+
+                    <div id="container">
+                        <canvas id="imageView" width="400" height="300"></canvas>
+                    </div>
+
+                    <button type="submit">Submit</button>
+                    <button type="button" id="clean">Clean</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const FILE_URL = "{{ motion_picture.url }}"
+        {% if camera_roi_rectangles %}
+            window.RECTANGLES = JSON.parse({{ camera_roi_rectangles | safe }})
+        {% endif %}
+    </script>
+
+    {% assets 'entrypoints/draw-shape.js' %}
+{% endblock body %}

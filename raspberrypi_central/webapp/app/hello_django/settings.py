@@ -25,6 +25,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
+TESTING = int(os.environ.get("TESTING", default=0))
+
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
 # For example: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
 
@@ -43,14 +45,15 @@ INSTALLED_APPS = [
     'api_keys',
     'devices',
     'alarm',
-    'alerts',
+    'camera',
     'house',
     'notification',
+    'mqtt_services',
 
     # third parties
+    'django_extensions',
     'rest_framework',
     'corsheaders',
-    # 'debug_toolbar',
     'django_celery_beat',
 
     # django apps
@@ -71,9 +74,9 @@ REST_FRAMEWORK = {
     # )
 }
 
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -82,7 +85,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'django.middleware.locale.LocaleMiddleware'
 ]
+
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
@@ -92,24 +98,14 @@ ROOT_URLCONF = 'hello_django.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.jinja2.Jinja2',
-        # Jinja2 handle my templates
+        # @see: https://docs.djangoproject.com/en/3.1/topics/templates/#django.template.backends.django.DjangoTemplates
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
-            # add basic django tags and django view environment.
-            'environment': 'hello_django.jinja2.environment',
-            'extensions': [
-                'jdj_tags.tag_assets.Assets',
-            ]
-        }
-    },
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # let Jinja2 handle my templates
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
+            'builtins': [
+                'template_addons.tags'
+            ],
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -159,12 +155,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
+USE_I18N = True
+LANGUAGE_CODE = 'fr'
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, "locale"),
+)
 
 TIME_ZONE = 'UTC'
-
-USE_I18N = True
 
 USE_L10N = True
 
@@ -176,12 +173,21 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-def show_toolbar(request):
-        return DEBUG
+if not TESTING:
+    STATICFILES_DIRS = [
+        f"{BASE_DIR}/static",
+    ]
 
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': show_toolbar,
-}
+if DEBUG and not TESTING:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+
+    def show_toolbar(request):
+            return DEBUG
+
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': show_toolbar,
+    }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

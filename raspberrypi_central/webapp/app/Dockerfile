@@ -1,5 +1,11 @@
 # pull official base image
-FROM python:3.8.1
+FROM python:3.8.5
+
+ARG USER_ID
+ARG GROUP_ID
+
+# add our user with its group
+RUN groupadd -f -g $GROUP_ID user && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
 
 # set work directory
 WORKDIR /usr/src/app
@@ -12,13 +18,26 @@ ENV PYTHONUNBUFFERED 1
 
 # netcat is not required for alpine images, but debian based yes.
 # otherwise "nc" command not found.
+# gettext is used by django to extract texts to translate: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#message-files
+# libpq-dev is used for psycopg2-binary, see: https://stackoverflow.com/a/12037133
+# gpac is used to convert PiCamera videos h264 to mp4
 RUN apt-get update \
-    && apt-get install -y pipenv netcat
+    && apt-get install -y libpq-dev netcat gettext gpac
+
+# upgrade python with root user
+RUN pip install --upgrade pip
+
+# run everything with this user
+USER user
+
+# add pip dependencies folder to PATH
+ENV PATH="/home/user/.local/bin:${PATH}"
 
 # install dependencies
-RUN pip install --upgrade pip
 COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
+
+# thanks to --user, pip will install everything in user directory ~/.local/bin/
+RUN pip install --user --requirement /tmp/requirements.txt
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
@@ -26,4 +45,4 @@ COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
 # copy project
 COPY . /usr/src/app/
 
-# ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

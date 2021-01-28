@@ -13,26 +13,32 @@ class SeverityChoice(models.TextChoices):
 
 
 class DeviceType(models.Model):
-    '''
+    """
     RaspberryPI4, zero w, zero, arduino uno, esp8266...
-    '''
+    """
     type = models.CharField(primary_key=True, max_length=100)
 
     def __str__(self):
         return self.type
 
 
+class DeviceManager(models.Manager):
+    def with_location(self):
+        return self.select_related('location')
+
 class Device(models.Model):
+    objects = DeviceManager()
+
     device_id = models.CharField(max_length=8, unique=True)
 
     name = models.CharField(max_length=100, unique=True, blank=True)
 
-    # When we're installing the system, location may not be known at the begining.
+    # When we're installing the system, location may be unknown at the beginning.
     location = models.ForeignKey(Location, blank=True, on_delete=models.PROTECT)
     device_type = models.ForeignKey(DeviceType, on_delete=models.PROTECT)
 
     def __str__(self):
-        return '{0}_{1}'.format(self.name, self.device_type)
+        return '{0}_{1}_{2}'.format(self.name, self.device_type, self.device_id)
 
 
 # class SensorInformation(models.Model):

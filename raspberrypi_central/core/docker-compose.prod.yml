@@ -13,29 +13,29 @@ x-env: &env
 services:
     rabbit:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
 
     database:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
 
     mqtt_broker:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
 
     rabbit_worker:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
         <<: *env
 
     celery_beat:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
         <<: *env
 
     telegram_bot:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
         <<: *env
 
     web:
@@ -44,11 +44,11 @@ services:
             - 8000:8000
         <<: *env
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
 
     python_process_mqtt:
         logging: *loki-logging
-        restart: always
+        restart: unless-stopped
         <<: *env
 
     loki:
@@ -56,14 +56,14 @@ services:
         ports:
             - "3100:3100"
         command: -config.file=/etc/loki/local-config.yaml
-        restart: always
+        restart: unless-stopped
 
     promtail:
         image: grafana/promtail:1.5.0
         volumes:
             - /var/log:/var/log
         command: -config.file=/etc/promtail/docker-config.yaml
-        restart: always
+        restart: unless-stopped
 
     grafana:
         image: grafana/grafana:7.1.3
@@ -74,7 +74,7 @@ services:
             - "3000:3000"
         volumes:
             - grafana-data:/var/lib/grafana
-        restart: always
+        restart: unless-stopped
 
 volumes:
     grafana-data:

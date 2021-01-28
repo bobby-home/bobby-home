@@ -7,6 +7,9 @@ from alarm.models import AlarmSchedule, AlarmStatus
 
 
 class AlarmScheduleChangeStatus:
+    """
+    Class to change the status of an Alarm through a Schedule.
+    """
     def __init__(self):
         pass
 
@@ -15,12 +18,6 @@ class AlarmScheduleChangeStatus:
             schedule = AlarmSchedule.objects.select_for_update().only('alarm_statuses__running').get(uuid=alarm_status_uui)
             alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses.select_for_update().all()
 
-            """
-            We don't do bulk update because we have a side effect on the method `AlarmStatus.save`.
-            (mqtt publish behind the scenes).
-            Django does not call .save() on every modified instances (with bulk), so the side effect would not be called.
-            see issues #119
-            """
             for alarm_status in alarm_statuses:
                 alarm_status.running = status
 

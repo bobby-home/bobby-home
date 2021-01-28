@@ -83,6 +83,9 @@ class CameraMotionTestCase(TestCase):
         self.assertEqual(motion.motion_ended_picture.name, 'path2.png')
 
     def test_camera_motion_no_more_motion_turn_off(self):
+        """
+        When no more motion is being detected on a camera and its database status is False, it should turn off the camera.
+        """
         camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
         camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), True)
         camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), False)

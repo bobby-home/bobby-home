@@ -1,10 +1,16 @@
+import logging
 import os
 from django.db import transaction
 import alarm.communication.in_motion as in_motion
 import notification.tasks as notification_tasks
+from alarm.communication.out_alarm import notify_alarm_status_factory
 from alarm.communication.play_sound import play_sound
+from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetectedPicture
 from devices.models import SeverityChoice, Device
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CameraMotion:
@@ -12,11 +18,12 @@ class CameraMotion:
     Class with methods to react to camera motion events.
     Each method is executed in a corresponding Celery Task even if it's totally transparent here (and have to stay transparent!).
     """
-    def __init__(self, save_motion, create_and_send_notification, send_picture, play_sound):
+    def __init__(self, save_motion, create_and_send_notification, send_picture, play_sound, notify_alarm_status_factory):
         self.save_motion = save_motion
         self.create_and_send_notification = create_and_send_notification
         self.send_picture = send_picture
         self.play_sound = play_sound
+        self.notify_alarm_status_factory = notify_alarm_status_factory
 
     def camera_motion_picture(self, device_id: str, picture_path: str, event_ref: str, status: bool):
         device = Device.objects.get(device_id=device_id)
@@ -42,7 +49,7 @@ class CameraMotion:
             'picture_path': picture_path
         }
 
-        self.send_picture(kwargs=kwargs)
+        self.send_picture.apply_async(kwargs=kwargs)
 
     def camera_motion_detected(self, device_id: str, seen_in: dict, event_ref: str, status: bool):
         device, motion = self.save_motion(device_id, seen_in, event_ref, status)
@@ -57,6 +64,10 @@ class CameraMotion:
             message = f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
         else:
             message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
+            if AlarmStatus.objects.get(device=device).running is False:
+                LOGGER.info(f'The alarm on device {device.device_id} did not turn off because a motion was here. Not here anymore, turning off.')
+                # we need to turn off the service
+                self.notify_alarm_status_factory().publish_status_changed(device.pk, False)
 
         kwargs = {
             'severity': SeverityChoice.HIGH,
@@ -76,4 +87,4 @@ class CameraMotion:
         self.play_sound(device_id, status)
 
 def camera_motion_factory():
-    return CameraMotion(in_motion.save_motion, notification_tasks.create_and_send_notification, notification_tasks.send_picture, play_sound)
+    return CameraMotion(in_motion.save_motion, notification_tasks.create_and_send_notification, notification_tasks.send_picture, play_sound, notify_alarm_status_factory)

@@ -9,7 +9,8 @@ from freezegun import freeze_time
 
 from alarm.communication.alarm_consts import ROITypes
 from alarm.communication.in_motion import save_motion
-from alarm.factories import AlarmStatusFactory, CameraROIFactory, CameraRectangleROIFactory
+from alarm.factories import AlarmStatusFactory
+from camera.factories import CameraROIFactory, CameraRectangleROIFactory
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected, CameraRectangleROI
 from devices.models import Device

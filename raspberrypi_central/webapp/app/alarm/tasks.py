@@ -5,6 +5,7 @@ from typing import List
 
 from celery import shared_task
 from notification.tasks import send_video
+from .business.alarm_schedule_change_status import AlarmScheduleChangeStatus
 from .business.camera_motion import camera_motion_factory
 from alarm.models import AlarmSchedule, AlarmStatus
 
@@ -58,21 +59,11 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
     camera_motion_factory().camera_motion_detected(device_id, seen_in, event_ref, status)
 
 
-def set_alarm_status(alarm_status_uui: str, status: bool):
-    schedule = AlarmSchedule.objects.get(uuid=alarm_status_uui)
-
-    alarm_statuses: List[AlarmStatus] = schedule.alarm_statuses.all()
-
-    for alarm_status in alarm_statuses:
-        alarm_status.running = status
-        alarm_status.save()
-
-
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):
-    set_alarm_status(alarm_status_uui, False)
+    AlarmScheduleChangeStatus().turn_off(alarm_status_uui)
 
 
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on(alarm_status_uui):
-    set_alarm_status(alarm_status_uui, True)
+    AlarmScheduleChangeStatus().turn_on(alarm_status_uui)

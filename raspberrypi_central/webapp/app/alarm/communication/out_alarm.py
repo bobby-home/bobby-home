@@ -18,7 +18,7 @@ class NotifyAlarmStatus:
     def __init__(self, alarm_messaging: AlarmMessaging):
         self.alarm_messaging = alarm_messaging
 
-    def _publish(self, device: Device, running: bool, camera_roi, rois: List[any]):
+    def _publish(self, device: Device, running: bool, camera_roi, rois: List[any], force=False):
         """
         The only method that actually send an mqtt message.
         It formats the mqtt payload and decide whether or not a mqtt call has to be done.
@@ -37,7 +37,7 @@ class NotifyAlarmStatus:
             else:
                 payload['rois'][ROITypes.FULL.value] = True
 
-        if running is False and alarm_status.can_turn_off(device) is False:
+        if running is False and alarm_status.can_turn_off(device) is False and force is False:
             LOGGER.info(f'The alarm on device {device.device_id} should turn off but stay on because a motion is being detected.')
             return
 
@@ -53,7 +53,7 @@ class NotifyAlarmStatus:
             self._publish(device_status.device, running, camera_roi, rectangle_rois)
 
 
-    def _publish_alarm_status_with_config(self, device: Device, running: bool):
+    def _publish_alarm_status_with_config(self, device: Device, running: bool, force=False):
 
         camera_roi = None
         device_rois = []
@@ -67,13 +67,13 @@ class NotifyAlarmStatus:
             except CameraROI.DoesNotExist:
                 pass
 
-        self._publish(device, running, camera_roi, device_rois)
+        self._publish(device, running, camera_roi, device_rois, force)
 
 
-    def publish_status_changed(self, device_pk: int, running: bool):
+    def publish_status_changed(self, device_pk: int, running: bool, force=False):
         device = Device.objects.get(pk=device_pk)
 
-        self._publish_alarm_status_with_config(device, running)
+        self._publish_alarm_status_with_config(device, running, force)
 
 
     def publish_device_connected(self, device_id: str):

@@ -45,6 +45,16 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         self.alarm_messaging_mock.publish_alarm_status.assert_not_called()
 
+    def test_force_publish_motion_being(self):
+        event_ref = str(uuid.uuid4())
+
+        CameraMotionDetected.objects.create(event_ref=event_ref, motion_started_at=timezone.now(), device=self.device)
+
+        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
+        notify.publish_status_changed(self.device.id, False, force=True)
+
+        self.alarm_messaging_mock.publish_alarm_status.assert_called_once_with(self.device.device_id, False, None)
+
     def test_publish_false_motion_ended(self):
         event_ref = str(uuid.uuid4())
 

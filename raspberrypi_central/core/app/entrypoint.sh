@@ -24,7 +24,6 @@ while ! nc -z "$MQTT_HOSTNAME" "$MQTT_PORT"; do
 done
 echo "MQTT started"
 
-# pipenv run python manage.py flush --no-input
-# pipenv run python manage.py migrate --no-input
+python manage.py migrate --no-input
 
 exec "$@"

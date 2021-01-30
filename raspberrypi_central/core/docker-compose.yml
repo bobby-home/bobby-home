@@ -51,7 +51,7 @@ services:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
             - ./app/:/usr/src/app/
-            - ../smart-camera/videos/:/usr/src/videos
+            - camera_videos:/usr/src/videos
             - medias:/var/lib/house/media
         networks:
             - webapp_backend
@@ -143,3 +143,5 @@ volumes:
         driver: local
     medias:
         driver: local
+    camera_videos:
+        external: true

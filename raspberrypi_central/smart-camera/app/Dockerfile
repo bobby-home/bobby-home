@@ -3,11 +3,12 @@ FROM mxmaxime/rpi4-opencv:0.0.2
 ARG USER_ID
 ARG GROUP_ID
 
-RUN groupadd -f --gid $GROUP_ID user
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
-RUN usermod -aG video user
-RUN usermod -aG audio user
+RUN groupadd -f -g $GROUP_ID camera && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID camera; \
+    mkdir -p /var/lib/camera; \
+    chown -R camera:camera /var/lib/camera
 
+# to have access to input camera and output audio on the RaspberryPi.
+RUN usermod -aG video camera && usermod -aG audio camera
 
 # set work directory
 WORKDIR /usr/src/app
@@ -25,10 +26,10 @@ RUN pip install --upgrade pip
 
 ENV READTHEDOCS True
 
-USER user
+USER camera
 
 # add pip dependencies folder to PATH
-ENV PATH="/home/user/.local/bin:${PATH}"
+ENV PATH="/home/camera/.local/bin:${PATH}"
 
 COPY requirements.txt /tmp/
 RUN pip install --user --requirement /tmp/requirements.txt
@@ -42,7 +43,18 @@ RUN dpkgArch="$(dpkg --print-architecture)"; \
     esac; \
     pip install $tfLiteRuntime
 
+ENV MEDIA_FOLDER=/var/lib/camera/media
+RUN mkdir -p "$MEDIA_FOLDER" && chown -R camera:camera "$MEDIA_FOLDER" && chmod 700 "$MEDIA_FOLDER"
+
+ENV TF_MODELS_FOLDER=/var/lib/camera/tf-models
+RUN mkdir -p "$TF_MODELS_FOLDER" && chown -R camera:camera "$TF_MODELS_FOLDER" && chmod 700 "$TF_MODELS_FOLDER"
+
+VOLUME ["/var/lib/camera/media", "/var/lib/camera/tf-models"]
+
 # ADD ca.crt /usr/local/share/ca-certificates/ca.cert
 # RUN chmod 644 /usr/local/share/ca-certificates/ca.cert && update-ca-certificates
 
 COPY . /usr/src/app/
+
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+

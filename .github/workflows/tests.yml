@@ -11,5 +11,5 @@
 #      - uses: actions/checkout@master
 #      - name: test
 #        run: |
-#          bash docker-network.sh -xe
+#          bash docker-setup.sh -xe
 #          make test

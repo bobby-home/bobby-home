@@ -52,6 +52,7 @@ services:
         volumes:
             - ./app/:/usr/src/app/
             - ../smart-camera/videos/:/usr/src/videos
+            - medias:/var/lib/house/media
         networks:
             - webapp_backend
             - rabbitmq
@@ -87,7 +88,8 @@ services:
                 GROUP_ID: ${GROUP_ID}
         command: bash -c "python manage.py runserver 0.0.0.0:8000"
         volumes:
-          - ./app/:/usr/src/app/
+            - ./app/:/usr/src/app/
+            - medias:/var/lib/house/media
         ports:
           - 8000:8000
         depends_on:
@@ -109,6 +111,7 @@ services:
         command: bash -c "python standalone/mqtt/mqtt_run.py"
         volumes:
             - ./app/:/usr/src/app/
+            - medias:/var/lib/house/media
         networks:
             rabbitmq:
             webapp_backend:
@@ -123,6 +126,7 @@ services:
         command: python standalone/telegram_bot/bot.py
         volumes:
             - ./app/:/usr/src/app/
+            - medias:/var/lib/house/media
         networks:
             - rabbitmq
             - webapp_backend
@@ -136,4 +140,6 @@ networks:
 
 volumes:
     psql-data:
+        driver: local
+    medias:
         driver: local

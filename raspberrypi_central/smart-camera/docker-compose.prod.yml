@@ -8,7 +8,9 @@ x-logging: &loki-logging
 
 services:
     camera:
+        image: mxmaxime/camera:latest
         logging: *loki-logging
 
     sound:
+        image: mxmaxime/camera:latest
         logging: *loki-logging

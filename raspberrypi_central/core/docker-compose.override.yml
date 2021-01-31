@@ -37,7 +37,6 @@ services:
         volumes:
             - ./app/:/usr/src/app/
 
-
     telegram_bot:
         <<: *build
         <<: *env

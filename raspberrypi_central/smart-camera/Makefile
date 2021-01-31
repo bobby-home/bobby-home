@@ -5,7 +5,7 @@ de := docker-compose exec
 
 .PHONY: prod-up
 prod-up:
-	$(dc) -f ../docker-compose.yml -f ../docker-compose.prod.yml -d up
+	$(dc) -f ./docker-compose.yml -f ./docker-compose.prod.yml up -d
 
 .PHONY: dev-up
 dev-up:

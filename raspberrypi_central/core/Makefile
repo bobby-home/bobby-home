@@ -50,6 +50,11 @@ mqtt-services:
 build-docker:
 	$(dc) build
 
+.PHONY: docker-build-release
+docker-build-release:
+	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/core ./app
+
+
 .PHONY: test
 test:
 	$(drtest) web python -Wa manage.py test

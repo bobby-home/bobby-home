@@ -34,7 +34,7 @@ services:
         image: eclipse-mosquitto:2.0.4
         volumes:
             - ./config/mosquitto:/mosquitto/config
-            - ./mosquitto-data:/mosquitto/data
+            - mosquitto-data:/mosquitto/data
         ports:
             - "8883:8883"
         networks:
@@ -43,14 +43,8 @@ services:
                 ipv4_address: 172.19.0.100
 
     rabbit_worker:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
-            - ./app/:/usr/src/app/
             - camera_videos:/usr/src/videos
             - medias:/var/lib/house/media
         networks:
@@ -63,13 +57,6 @@ services:
             - mqtt_broker
 
     celery_beat:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        volumes:
-            - ./app/:/usr/src/app/
         command: bash -c "celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
         networks:
             - rabbitmq
@@ -81,14 +68,7 @@ services:
             - mqtt_broker
 
     web:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
         command: bash -c "python manage.py runserver 0.0.0.0:8000"
-        volumes:
-            - ./app/:/usr/src/app/
             - medias:/var/lib/house/media
         ports:
           - 8000:8000
@@ -103,14 +83,7 @@ services:
             backend_mqtt:
 
     python_process_mqtt:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
         command: bash -c "python standalone/mqtt/mqtt_run.py"
-        volumes:
-            - ./app/:/usr/src/app/
             - medias:/var/lib/house/media
         networks:
             rabbitmq:
@@ -118,14 +91,7 @@ services:
             backend_mqtt:
 
     telegram_bot:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
         command: python standalone/telegram_bot/bot.py
-        volumes:
-            - ./app/:/usr/src/app/
             - medias:/var/lib/house/media
         networks:
             - rabbitmq
@@ -142,6 +108,8 @@ volumes:
     psql-data:
         driver: local
     medias:
+        driver: local
+    mosquitto-data:
         driver: local
     camera_videos:
         external: true

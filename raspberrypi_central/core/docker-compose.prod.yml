@@ -23,34 +23,6 @@ services:
         logging: *loki-logging
         restart: unless-stopped
 
-    rabbit_worker:
-        logging: *loki-logging
-        restart: unless-stopped
-        <<: *env
-
-    celery_beat:
-        logging: *loki-logging
-        restart: unless-stopped
-        <<: *env
-
-    telegram_bot:
-        logging: *loki-logging
-        restart: unless-stopped
-        <<: *env
-
-    web:
-#        command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
-        ports:
-            - 8000:8000
-        <<: *env
-        logging: *loki-logging
-        restart: unless-stopped
-
-    python_process_mqtt:
-        logging: *loki-logging
-        restart: unless-stopped
-        <<: *env
-
     loki:
         image: grafana/loki:1.5.0
         ports:
@@ -75,6 +47,39 @@ services:
         volumes:
             - grafana-data:/var/lib/grafana
         restart: unless-stopped
+
+    rabbit_worker:
+        image: mxmaxime/core:latest
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+    celery_beat:
+        image: mxmaxime/core:latest
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+    telegram_bot:
+        image: mxmaxime/core:latest
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+    web:
+        image: mxmaxime/core:latest
+        #        command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
+        ports:
+            - 8000:8000
+        <<: *env
+        logging: *loki-logging
+        restart: unless-stopped
+
+    python_process_mqtt:
+        image: mxmaxime/core:latest
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
 
 volumes:
     grafana-data:

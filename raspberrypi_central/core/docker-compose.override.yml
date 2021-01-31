@@ -1,4 +1,12 @@
-version: '3.7'
+version: '3.8'
+
+
+x-build: &build
+    build:
+        context: ./app
+        args:
+            USER_ID: ${USER_ID}
+            GROUP_ID: ${GROUP_ID}
 
 x-env: &env
     env_file:
@@ -6,17 +14,32 @@ x-env: &env
 
 services:
     rabbit_worker:
+        <<: *build
         <<: *env
+        volumes:
+            - ./app/:/usr/src/app/
 
     celery_beat:
+        <<: *build
         <<: *env
+        volumes:
+            - ./app/:/usr/src/app/
 
     web:
+        <<: *build
         <<: *env
+        volumes:
+            - ./app/:/usr/src/app/
 
     python_process_mqtt:
+        <<: *build
         <<: *env
+        volumes:
+            - ./app/:/usr/src/app/
 
 
     telegram_bot:
+        <<: *build
         <<: *env
+        volumes:
+            - ./app/:/usr/src/app/

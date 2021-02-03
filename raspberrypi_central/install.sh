@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y git vim libffi-dev libssl-dev python python-pip python3-pip
 
@@ -29,4 +29,19 @@ docker plugin install grafana/loki-docker-driver:arm-v7 --alias loki --grant-all
 grep -q "denyinterfaces veth*" /etc/dhcpcd.conf
 if [ $? -eq 1 ]; then
   echo "denyinterfaces veth*" >> /etc/dhcpcd.conf
+fi
+
+touch ~/.device
+
+grep -q "DEVICE_ID=" ~/.device
+if [ $? -eq 1 ]; then
+  DEVICE_ID=$(cat /proc/sys/kernel/random/uuid | cut -d "-" -f 1)
+  echo "DEVICE_ID=$DEVICE_ID" >> ~/.device && source ~/.device
+fi
+
+grep -q "DEVICE_MODEL=" ~/.device
+if [ $? -eq 1 ]; then
+  # xargs is used to trim string
+  DEVICE_MODEL=$(cat /proc/device-tree/model | awk -F 'Rev' '{print $1}' | xargs)
+  echo "DEVICE_MODEL=\"$DEVICE_MODEL\"" >> ~/.device && source ~/.device
 fi

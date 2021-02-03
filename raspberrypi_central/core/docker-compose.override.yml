@@ -11,6 +11,7 @@ x-build: &build
 x-env: &env
     env_file:
         - .env
+        - ~/.device
 
 services:
     rabbit_worker:

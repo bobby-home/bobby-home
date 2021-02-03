@@ -24,6 +24,10 @@ while ! nc -z "$MQTT_HOSTNAME" "$MQTT_PORT"; do
 done
 echo "MQTT started"
 
-python manage.py migrate --no-input
+# don't migrate here because multiple containers use the same image and the same entrypoint:
+# concurrent migrate that produces a lot of database errors.
+# just run migrate for web container, with command...
+# it's maybe a temp solution until I use 1 image per container.
+#python manage.py migrate --no-input
 
 exec "$@"

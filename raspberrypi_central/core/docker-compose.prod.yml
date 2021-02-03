@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.8'
 
 x-logging: &loki-logging
     driver: loki
@@ -9,6 +9,7 @@ x-logging: &loki-logging
 x-env: &env
     env_file:
         - .env
+        - ~/.device
 
 services:
     rabbit:

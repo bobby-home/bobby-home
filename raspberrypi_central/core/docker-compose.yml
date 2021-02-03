@@ -1,12 +1,10 @@
-version: "3.7"
+version: "3.8"
 
 
 services:
     rabbit:
         hostname: rabbit
-        image: rabbitmq:3.8-management-alpine
-        volumes:
-            - ../smart-camera/videos/:/usr/src/videos
+        image: rabbitmq:3.8-management
         environment:
             - RABBITMQ_DEFAULT_USER=admin
             - RABBITMQ_DEFAULT_PASS=mypass
@@ -31,9 +29,10 @@ services:
             - webapp_backend
 
     mqtt_broker:
-        image: eclipse-mosquitto:2.0.4
+        image: eclipse-mosquitto:2.0.6
         volumes:
-            - ./config/mosquitto:/mosquitto/config
+            - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/passwd:/mosquitto/config/passwd
             - mosquitto-data:/mosquitto/data
         ports:
             - "8883:8883"
@@ -68,8 +67,10 @@ services:
             - mqtt_broker
 
     web:
-        command: bash -c "python manage.py runserver 0.0.0.0:8000"
+        command: bash -c "python manage.py migrate --no-input && python manage.py runserver 0.0.0.0:8000"
+        volumes:
             - medias:/var/lib/house/media
+            - devices:/var/lib/house/devices
         ports:
           - 8000:8000
         depends_on:
@@ -108,6 +109,8 @@ volumes:
     psql-data:
         driver: local
     medias:
+        driver: local
+    devices:
         driver: local
     mosquitto-data:
         driver: local

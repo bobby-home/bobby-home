@@ -1,11 +1,15 @@
 version: "3.8"
 
 
+x-env: &env
+    env_file:
+        - .env
+        - ~/.device
+
 services:
     camera:
         command: python alarm.py
-        env_file:
-            - .env
+        <<: *env
         networks:
             - backend_mqtt
             - motion
@@ -23,8 +27,7 @@ services:
 
     sound:
         command: python sound.py
-        env_file:
-            - .env
+        <<: *env
         networks:
             - backend_mqtt
             - motion

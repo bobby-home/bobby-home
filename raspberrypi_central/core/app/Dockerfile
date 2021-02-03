@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.8.5
+FROM python:3.8.7
 
 ARG USER_ID
 ARG GROUP_ID

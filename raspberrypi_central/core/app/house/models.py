@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 import pytz
 
@@ -22,7 +21,14 @@ class House(models.Model):
 
 class TelegramBotManager(models.Manager):
     def house_token(self):
-        return self.all().first().token
+        i = self.all().first()
+
+        if not i:
+            raise self.model.DoesNotExist(
+                "No telegram bot token found."
+            )
+
+        return i
 
 class TelegramBot(models.Model):
     objects = TelegramBotManager()

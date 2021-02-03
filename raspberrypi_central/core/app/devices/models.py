@@ -1,8 +1,5 @@
-from django.conf import settings
 from django.db import models
-from django.contrib.postgres.fields import JSONField
-from django.utils import timezone
-from enum import Enum
+
 from house.models import Location
 
 

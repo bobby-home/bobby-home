@@ -19,7 +19,7 @@ do
     nb_line=$(cat ~/.ssh/config| grep -o $raspberry_pi_ip | wc -l)
 
     # gt 0
-    if [ "$nb_line" -gt 10 ]; then
+    if [ "$nb_line" -gt 0 ]; then
         echo "The system already knows this device."
     else
         # connect with SSH
@@ -32,7 +32,8 @@ do
 
         # model=$(ssh pi@mx_rpi 'bash -s' < ./get_rpi_model.sh)
 
-        echo "$DEVICE_ID/$raspberry_pi_ip" >> ../../webapp/app/data/new_devices
+#>> ../../webapp/app/data/new_devices
+        echo "$DEVICE_ID/$raspberry_pi_ip"
 
         # echo "This device id is: $DEVICE_ID"
         # echo "I'm configuring SSH with keys."
@@ -55,5 +56,3 @@ do
         # ssh pi@$DEVICE_ID 'bash -s' < change_hostname.sh $CURRENT_HOSTNAME $NEW_HOSTNAME
     fi
 done
-
-# I've found another RPI on the network: rpi-ec6d33df.

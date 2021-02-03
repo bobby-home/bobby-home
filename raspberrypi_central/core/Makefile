@@ -5,7 +5,7 @@ de := docker-compose exec
 
 dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
 drtest := $(dc) -f docker-compose.yml -f docker-compose.test.yml run --rm
-dr := $(dc) run --rm
+dr := $(dc) d run --rm
 
 web_image=web
 db_image=database
@@ -16,7 +16,6 @@ manage := $(dr) $(web_image) python manage.py
 create-folders:
 	mkdir -p mosquitto-data && sudo chown -R 1883:1883 mosquitto-data
 	mkdir -p psql-data
-
 
 .PHONY: stop-all
 stop-all:
@@ -40,7 +39,11 @@ workers:
 
 .PHONY: web-services
 web-services:
-	$(dc-prod) up -d web telegram_bot
+	$(dc-prod) up -d web
+
+.PHONY: telegram_bot
+telegram_bot:
+	$(dc-prod) up -d telegram_bot
 
 .PHONY: mqtt-services
 mqtt-services:
@@ -53,7 +56,6 @@ build-docker:
 .PHONY: docker-build-release
 docker-build-release:
 	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/core ./app
-
 
 .PHONY: test
 test:

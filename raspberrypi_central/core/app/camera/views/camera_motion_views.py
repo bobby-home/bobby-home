@@ -7,7 +7,7 @@ from utils.json.decimal_encoder import DecimalEncoder
 
 class CameraMotionDetectedList(ListView):
     template_name = 'camera/camera_motion_detected_list.html'
-    queryset = CameraMotionDetected.objects.order_by('-created_at')
+    queryset = CameraMotionDetected.objects.order_by('-motion_started_at')
     context_object_name = 'motions'
 
 

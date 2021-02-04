@@ -8,7 +8,7 @@ class TelegramMessaging:
 
     def __init__(self):
         self.token = TelegramBot.objects.house_token()
-        updater = Updater(self.token, use_context=True)
+        updater = Updater(self.token.token, use_context=True)
         self.bot = updater.bot
 
     def send_message(self, chat_id: UserTelegramBotChatId, message: str):

@@ -3,6 +3,7 @@ from typing import List
 
 import django
 from alarm.business.alarm_status import alarm_statuses_changed
+from utils.telegram.restrict import restricted
 
 sys.path.append('/usr/src/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
@@ -14,12 +15,12 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from alarm.models import AlarmStatus
 from notification.models import UserTelegramBotChatId
 from django.utils.translation import gettext as _
+from telegram import Update
 
 
 class BotData(Enum):
     OFF = 'off'
     ON = 'on'
-
 
 class AlarmStatusRepository:
     def __init__(self):
@@ -51,35 +52,33 @@ class AlarmStatusBot:
     def __init__(self, repository: AlarmStatusRepository, telegram_updater: Updater):
         self.repository = repository
         self._register_commands(telegram_updater)
-    
-    def _alarm_status(self, update, context):
-        chat_id = update.message.chat.id
 
-        try:
-            UserTelegramBotChatId.objects.get(chat_id=chat_id)
-        except UserTelegramBotChatId.DoesNotExist:
-            update.message.reply_text('Forbidden')
-        else:
-            statuses = self.repository.statuses
+    @restricted
+    def _alarm_status(self, update: Update, context):
+        # chat_id = update.message.chat.id
+        statuses = self.repository.statuses
 
-            texts = []
-            for status in statuses:
-                running = status.running
+        texts = []
+        for status in statuses:
+            running = status.running
 
-                if running is True:
-                    text = _('Your alarm %(alarm)s is on.') % {'alarm': status.device.location}
-                    texts.append(text)
-                elif running is False:
-                    text = _('Your alarm %(alarm)s is off.') % {'alarm': status.device.location}
-                    texts.append(text)
+            if running is True:
+                text = _('Your alarm %(alarm)s is on.') % {'alarm': status.device.location}
+                texts.append(text)
+            elif running is False:
+                text = _('Your alarm %(alarm)s is off.') % {'alarm': status.device.location}
+                texts.append(text)
 
-            keyboard = [
-                InlineKeyboardButton(_('Deactivate all'), callback_data=BotData.OFF.value),
-                InlineKeyboardButton(_('Activate all'), callback_data=BotData.ON.value)]
+        keyboard = [
+            InlineKeyboardButton(_('Deactivate all'), callback_data=BotData.OFF.value),
+            InlineKeyboardButton(_('Activate all'), callback_data=BotData.ON.value)]
 
+        if len(texts) > 0:
             update.message.reply_text('\n'.join(texts), reply_markup=InlineKeyboardMarkup([keyboard]))
+        else:
+            update.message.reply_text('No alarm configured.')
 
-    def _set_alarm_status(self, update, context):
+    def _set_alarm_status(self, update: Update, context):
         query = update.callback_query
         status = query.data
 
@@ -96,7 +95,7 @@ class AlarmStatusBot:
         query.edit_message_text(_('Something went wrong.'))
 
 
-    def _register_commands(self, update):
+    def _register_commands(self, update: Updater):
         update.dispatcher.add_handler(CommandHandler('alarm', self._alarm_status))
         update.dispatcher.add_handler(CallbackQueryHandler(self._set_alarm_status))
 

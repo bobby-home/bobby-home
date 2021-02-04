@@ -31,7 +31,7 @@ class Device(models.Model):
     name = models.CharField(max_length=100, unique=True, blank=True)
 
     # When we're installing the system, location may be unknown at the beginning.
-    location = models.ForeignKey(Location, blank=True, on_delete=models.PROTECT)
+    location = models.ForeignKey(Location, blank=True, null=True, on_delete=models.PROTECT)
     device_type = models.ForeignKey(DeviceType, on_delete=models.PROTECT)
 
     def __str__(self):

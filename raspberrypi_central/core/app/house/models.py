@@ -40,6 +40,16 @@ class TelegramBot(models.Model):
         return self.token
 
 
+class TelegramBotStart(models.Model):
+    user_id = models.CharField(max_length=60)
+    username = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ['user_id', 'username', 'first_name', 'last_name']
+
+
 class Location(models.Model):
     structure = models.CharField(max_length=60)
     sub_structure = models.CharField(max_length=60)

@@ -67,7 +67,7 @@ services:
             - mqtt_broker
 
     web:
-        command: bash -c "python manage.py migrate --no-input && python manage.py runserver 0.0.0.0:8000"
+        command: bash -c "python manage.py migrate --no-input && python register_device.py && python manage.py runserver 0.0.0.0:8000"
         volumes:
             - medias:/var/lib/house/media
             - devices:/var/lib/house/devices

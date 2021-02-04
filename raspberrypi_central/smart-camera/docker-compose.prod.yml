@@ -6,6 +6,7 @@ x-logging: &loki-logging
     options:
         loki-url: "http://localhost:3100/api/prom/push"
 
+
 services:
     camera:
         image: mxmaxime/camera:latest

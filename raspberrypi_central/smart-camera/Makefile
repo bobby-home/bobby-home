@@ -3,6 +3,10 @@ group := $(shell id -g)
 dc := USER_ID=$(user) GROUP_ID=$(group) docker-compose
 de := docker-compose exec
 
+# -f docker-compose.test.yml
+drtest := $(dc) -f docker-compose.yml run --rm
+dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
+
 .PHONY: prod-up
 prod-up:
 	$(dc) -f ./docker-compose.yml -f ./docker-compose.prod.yml up -d
@@ -14,3 +18,7 @@ dev-up:
 .PHONY: build-docker
 build-docker:
 	$(dc) build
+
+.PHONY: test
+test:
+	$(drtest) camera python -m unittest test/test_rate_limit.py

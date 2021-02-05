@@ -69,7 +69,7 @@ services:
                 GROUP_ID: ${GROUP_ID}
         volumes:
             - ./app/:/usr/src/app/
-        command: bash -c "celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
+        command: bash -c "rm celerybeat.pid && celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info --pidfile="
         networks:
             - rabbitmq
             - backend_mqtt
@@ -93,8 +93,8 @@ services:
         depends_on:
             - database
             - mqtt_broker
-            - rabbit
             - rabbit_worker
+            - celery_beat
         networks:
             rabbitmq:
             webapp_backend:

@@ -5,7 +5,7 @@ de := docker-compose exec
 
 dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
 drtest := $(dc) -f docker-compose.yml -f docker-compose.test.yml run --rm
-dr := $(dc) run --rm
+dr := $(dc) -f docker-compose.yml -f docker-compose.prod.yml run --rm
 
 web_image=web
 db_image=database

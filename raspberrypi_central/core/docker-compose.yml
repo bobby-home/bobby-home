@@ -3,6 +3,7 @@ version: "3.8"
 
 services:
     rabbit:
+        # hostname is mandatory to keep track of our data.
         hostname: rabbit
         image: rabbitmq:3.8-management
         environment:

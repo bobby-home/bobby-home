@@ -1,0 +1,119 @@
+version: "3.8"
+
+
+services:
+    rabbit:
+        # hostname is mandatory to keep track of our data.
+        hostname: rabbit
+        image: rabbitmq:3.8-management
+        environment:
+            - RABBITMQ_DEFAULT_USER=admin
+            - RABBITMQ_DEFAULT_PASS=mypass
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        networks:
+            - rabbitmq
+            - backend_mqtt
+
+    database:
+        image: postgres:13.1
+        volumes:
+            - psql-data:/var/lib/postgresql/data
+        environment:
+          - POSTGRES_DB=hello_django_dev
+          - POSTGRES_USER=hello_django
+          - POSTGRES_PASSWORD=hello_django
+        ports:
+            - '5432:5432'
+        networks:
+            - webapp_backend
+
+    mqtt_broker:
+        image: eclipse-mosquitto:2.0.6
+        volumes:
+            - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/passwd:/mosquitto/config/passwd
+            - mosquitto-data:/mosquitto/data
+        ports:
+            - "8883:8883"
+        networks:
+            webapp_backend:
+            backend_mqtt:
+                ipv4_address: 172.19.0.100
+
+    rabbit_worker:
+        command: bash -c "celery -A hello_django worker --loglevel=info"
+        volumes:
+            - camera_videos:/usr/src/videos
+            - medias:/var/lib/house/media
+        networks:
+            - webapp_backend
+            - rabbitmq
+            - backend_mqtt
+        depends_on:
+            - rabbit
+            - database
+            - mqtt_broker
+
+    celery_beat:
+        command: bash -c "rm celerybeat.pid && celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info --pidfile="
+        networks:
+            - rabbitmq
+            - backend_mqtt
+            - webapp_backend
+        depends_on:
+            - rabbit
+            - database
+            - mqtt_broker
+
+    web:
+        command: bash -c "python manage.py migrate --no-input && python register_device.py && python manage.py runserver 0.0.0.0:8000"
+        volumes:
+            - medias:/var/lib/house/media
+            - devices:/var/lib/house/devices
+        ports:
+          - 8000:8000
+        depends_on:
+            - database
+            - mqtt_broker
+            - rabbit_worker
+            - celery_beat
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
+
+    python_process_mqtt:
+        command: bash -c "python standalone/mqtt/mqtt_run.py"
+            - medias:/var/lib/house/media
+        networks:
+            rabbitmq:
+            webapp_backend:
+            backend_mqtt:
+
+    telegram_bot:
+        command: python standalone/telegram_bot/bot.py
+            - medias:/var/lib/house/media
+        networks:
+            - rabbitmq
+            - webapp_backend
+            - backend_mqtt
+
+networks:
+    rabbitmq:
+    webapp_backend:
+    backend_mqtt:
+        external: true
+
+volumes:
+    psql-data:
+        driver: local
+    medias:
+        driver: local
+    devices:
+        driver: local
+    mosquitto-data:
+        driver: local
+    camera_videos:
+        external: true

@@ -1,0 +1,15 @@
+django==3.1.6
+psycopg2-binary==2.8.*
+gunicorn==20.0.4
+django-debug-toolbar==2.2
+factory-boy==2.12.0
+faker==4.1.1
+paho-mqtt==1.5.1
+celery==4.4.*
+django-celery-beat==2.2.*
+python-telegram-bot==13.2
+pytz==2020.5
+requests==2.25.*
+django_extensions==3.0.9
+Pillow==8.1.*
+freezegun==1.0.0

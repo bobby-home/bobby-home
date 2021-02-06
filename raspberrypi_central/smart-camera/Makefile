@@ -22,3 +22,7 @@ build-docker:
 .PHONY: test
 test:
 	$(drtest) camera python -m unittest test/test_rate_limit.py
+
+.PHONY: docker-build-release
+docker-build-release:
+	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/camera ./app

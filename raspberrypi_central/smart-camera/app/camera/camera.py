@@ -8,8 +8,6 @@ from collections import defaultdict
 from io import BytesIO
 from typing import List, Callable, Optional
 
-from attr import dataclass
-
 from camera.camera_record import CameraRecorder
 from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 from loggers import LOGGER
@@ -19,7 +17,7 @@ from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import People, PeopleAllData
 
 
-@dataclass
+@dataclasses.dataclass
 class ObjectLinkConsiderations:
     object: PeopleAllData
     considerations: List[Consideration]

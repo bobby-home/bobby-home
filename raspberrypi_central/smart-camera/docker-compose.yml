@@ -1,48 +1,37 @@
 version: "3.8"
 
 
+x-env: &env
+    env_file:
+        - .env
+        - ~/.device
+
 services:
     camera:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt_broker:8883 -- python alarm.py"
-        env_file:
-            - .env
-        networks: 
+        command: python alarm.py
+        <<: *env
+        networks:
             - backend_mqtt
             - motion
-
         # Give access to the rpi camera device.
         privileged: true
         environment:
                 - LD_LIBRARY_PATH=/opt/vc/lib
         volumes:
-            - ./app/:/usr/src/app/
-            - ./videos/:/usr/src/videos/
-            - ./tf-models/:/usr/src/tf-models
+            - camera_videos/:/var/lib/camera/media
+            - tf-models/:/var/lib/camera/tf-models
             - /opt/vc:/opt/vc
         devices:
                 - "/dev/vchiq:/dev/vchiq"
 
     sound:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt_broker:8883 -- python sound.py"
-        env_file:
-            - .env
+        command: python sound.py
+        <<: *env
         networks:
             - backend_mqtt
             - motion
         # Give access to the rpi audio device. Otherwise it cannot play sound! see issue #126
         privileged: true
-        volumes:
-            - ./app/:/usr/src/app/
 
     listen_frame:
         build:
@@ -67,3 +56,9 @@ networks:
     backend_mqtt:
         external:
             name: backend_mqtt
+
+volumes:
+    camera_videos:
+        external: true
+    tf-models:
+        driver: local

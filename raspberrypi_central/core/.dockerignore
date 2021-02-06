@@ -1,0 +1,7 @@
+__pycache__/
+wheels/
+pip-log.txt
+pip-wheel-metadata/
+.vscode
+.idea
+.gitignore

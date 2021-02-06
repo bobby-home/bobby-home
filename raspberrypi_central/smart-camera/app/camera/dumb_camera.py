@@ -3,8 +3,9 @@ from mqtt.mqtt_client import get_mqtt
 
 
 class DumbCamera:
+    """Runs on little end device. Take frames from picamera and send it through mqtt.
+    """
     SERVICE_NAME = 'dumb_camera'
-
     PICTURE_TOPIC = 'ia/picture'
 
     def __init__(self, device_id: str):

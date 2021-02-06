@@ -6,6 +6,7 @@ from camera.dumb_camera import DumbCamera
 from camera_analyze.all_analyzer import NoAnalyzer
 from camera_analyze.camera_analyzer import Consideration
 from mqtt.mqtt_client import get_mqtt
+from camera.camera_record import DumbCameraRecord
 
 
 def extract_data_from_topic(topic: str):
@@ -25,6 +26,9 @@ analyzer = NoAnalyzer(consideration)
 
 camera = camera_factory(get_mqtt, analyzer)
 camera.start()
+
+camera_record = DumbCameraRecord()
+camera.camera_recorder = camera_record
 
 def on_picture(client, userdata, message):
     data = extract_data_from_topic(message.topic)

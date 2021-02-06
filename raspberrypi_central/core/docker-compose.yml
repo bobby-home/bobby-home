@@ -86,7 +86,11 @@ services:
 
     python_process_mqtt:
         command: bash -c "python standalone/mqtt/mqtt_run.py"
+        volumes:
             - medias:/var/lib/house/media
+        depends_on:
+            - rabbit_worker
+            - database
         networks:
             rabbitmq:
             webapp_backend:
@@ -94,7 +98,6 @@ services:
 
     telegram_bot:
         command: python standalone/telegram_bot/bot.py
-            - medias:/var/lib/house/media
         networks:
             - rabbitmq
             - webapp_backend

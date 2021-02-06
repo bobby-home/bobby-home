@@ -15,3 +15,7 @@ services:
     sound:
         image: mxmaxime/camera:latest
         logging: *loki-logging
+
+    listen_frame:
+        image: mxmaxime/camera:latest
+        logging: *loki-logging

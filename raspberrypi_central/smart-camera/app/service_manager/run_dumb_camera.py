@@ -72,7 +72,7 @@ class RunDumbCamera(RunService):
         print('run dumb camera!')
         camera = DumbCamera(os.environ['DEVICE_ID'])
 
-        @rate_limited(max_per_second=1, thread_safe=False, block=False)
+        @rate_limited(max_per_second=0.5, thread_safe=False, block=False)
         def process_frame(frame: BytesIO):
             print('process frame bridge with rate limit')
             camera.process_frame(frame)

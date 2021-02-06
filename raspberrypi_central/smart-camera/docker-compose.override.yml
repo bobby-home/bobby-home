@@ -18,3 +18,8 @@ services:
         <<: *build
         volumes:
             - ./app/:/usr/src/app/
+
+    listen_frame:
+        <<: *build
+        volumes:
+            - ./app/:/usr/src/app/

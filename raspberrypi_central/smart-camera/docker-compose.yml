@@ -34,17 +34,10 @@ services:
         privileged: true
 
     listen_frame:
-        build:
-            context: ./app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
         command: bash -c "python listen_frame.py"
         volumes:
-            - ./app/:/usr/src/app/
-            - ./tf-models/:/usr/src/tf-models
-        env_file:
-            - .env
+            - tf-models/:/var/lib/camera/tf-models
+        <<: *env
         networks:
             - backend_mqtt
             - motion

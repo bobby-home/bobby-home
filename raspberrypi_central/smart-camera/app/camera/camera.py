@@ -129,7 +129,7 @@ class Camera:
     def _split_recording(self, device_id: str) -> None:
         LOGGER.info('split recording')
         self.recording_first_video = True
-        self._publish_video_event()
+        self._publish_video_event(device_id)
         self._camera_recorder.split_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
 
     def _publish_motion(self, payload, on_device_id: str) -> None:

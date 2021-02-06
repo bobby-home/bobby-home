@@ -44,8 +44,6 @@ def rate_limited(max_per_second: int, thread_safe: bool = True, block: bool = Tr
                 else:
                     left_to_wait = 0
 
-                print(f'left_to_wait = {left_to_wait}')
-
                 if left_to_wait > 0:
                     if block is True:
                         time.sleep(left_to_wait)

@@ -126,11 +126,11 @@ class Camera:
 
         return frame
 
-    def _split_recording(self) -> None:
+    def _split_recording(self, device_id: str) -> None:
         LOGGER.info('split recording')
         self.recording_first_video = True
         self._publish_video_event()
-        self._camera_recorder.split_recording(f'{self.event_ref}-{self._record_video_number}')
+        self._camera_recorder.split_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
 
     def _publish_motion(self, payload, on_device_id: str) -> None:
         mqtt_payload = json.dumps(payload)
@@ -167,7 +167,7 @@ class Camera:
             if self._camera_recorder:
                 LOGGER.info('start recording')
                 self.start_recording_time = datetime.datetime.now()
-                self._camera_recorder.start_recording(f'{self.event_ref}-{self._record_video_number}')
+                self._camera_recorder.start_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
 
             # self._visualize_contours(frame, considered_peoples)
             payload = self._get_motion_payload(self.event_ref, considered_peoples)
@@ -181,7 +181,7 @@ class Camera:
                 datetime.datetime.now() - self.start_recording_time).seconds >= Camera.SECONDS_FIRST_MOTION_VIDEO
 
             if time_lapsed and self.recording_first_video is False:
-                self._split_recording()
+                self._split_recording(device_id)
 
         elif self._need_to_publish_no_motion():
             payload = {
@@ -192,7 +192,7 @@ class Camera:
 
             if self._camera_recorder:
                 LOGGER.info('stop recording')
-                self._camera_recorder.stop_recording()
+                self._camera_recorder.stop_recording(device_id)
                 self._publish_video_event(device_id)
 
             self.recording_first_video = False

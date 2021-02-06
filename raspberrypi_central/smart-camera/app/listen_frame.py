@@ -27,7 +27,7 @@ analyzer = NoAnalyzer(consideration)
 camera = camera_factory(get_mqtt, analyzer)
 camera.start()
 
-camera_record = DumbCameraRecord()
+camera_record = DumbCameraRecord(mqtt_client.client)
 camera.camera_recorder = camera_record
 
 def on_picture(client, userdata, message):

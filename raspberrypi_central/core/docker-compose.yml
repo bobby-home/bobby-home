@@ -45,8 +45,9 @@ services:
     rabbit_worker:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
-            - camera_videos:/usr/src/videos
+            - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
+            - ~/.ssh:/home/house/.ssh:ro
         networks:
             - webapp_backend
             - rabbitmq

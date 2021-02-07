@@ -61,13 +61,15 @@ def on_motion_video(message: MqttMessage):
         'event_ref': topic['event_ref'],
     }
 
+    video_file = f'{data["event_ref"]}.h264'
+
     if data['device_id'] == DEVICE_ID:
-        video_path = f'videos/{data["event_ref"]}.h264'
         # The system has some latency to save the video,
         # so we add a little countdown so the video will more likely be available after x seconds.
-        process_video.apply_async(kwargs={'video_path': video_path}, countdown=3)
-
-    #TODO: else get the file through rsync
+        process_video.apply_async(kwargs={'video_file': video_file}, countdown=3)
+    else:
+        print('on_motion_video retrieve_and_process_video')
+        tasks.retrieve_and_process_video.apply_async(kwargs={'video_file': video_file, 'device_id': data['device_id']}, countdown=3)
 
 def on_motion_picture(message: MqttMessage):
     topic = split_camera_topic(message.topic, True)

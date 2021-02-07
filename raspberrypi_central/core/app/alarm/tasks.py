@@ -34,8 +34,10 @@ def h264_to_mp4(input_path, output_path = None) -> str:
     autoretry_for=(Exception,),
     retry_kwargs={'max_retries': 5},
     default_retry_delay=3)
-def process_video(video_path: str):
-    video_path = f'/usr/src/{video_path}'
+def process_video(video_file: str):
+    media = os.environ['MEDIA_FOLDER']
+
+    video_path = os.path.join(media, video_file)
 
     if not Path(video_path).is_file():
         raise FileNotFoundError(f'{video_path} does not exist.')
@@ -48,6 +50,22 @@ def process_video(video_path: str):
     }
 
     send_video.apply_async(kwargs=kwargs)
+
+
+@shared_task(
+    autoretry_for=(Exception,),
+    retry_kwargs={'max_retries': 5},
+    default_retry_delay=3)
+def retrieve_and_process_video(device_id: str, video_file: str):
+    remote_path = f'/var/lib/camera/media/{video_file}'
+    dest_path = os.environ['VIDEO_FOLDER']
+
+    video_dest_path = os.path.join(dest_path, video_file)
+
+    command = f"rsync -avt --remove-source-files pi@{device_id}:{remote_path} {video_dest_path}"
+    os.system(command)
+
+    process_video(video_dest_path)
 
 
 @shared_task(name="security.camera_motion_picture")

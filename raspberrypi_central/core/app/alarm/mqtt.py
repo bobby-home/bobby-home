@@ -3,13 +3,13 @@ from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSu
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
-from alarm.tasks import camera_motion_picture, camera_motion_detected, process_video
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
+from alarm.tasks import camera_motion_detected, process_video
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
 from .communication.on_connected_services import OnConnectedCameraHandler, OnConnectedSpeakerHandler
 import os
+import hello_django.settings as settings
+
 
 DEVICE_ID = os.environ['DEVICE_ID']
 
@@ -67,6 +67,8 @@ def on_motion_video(message: MqttMessage):
         # so we add a little countdown so the video will more likely be available after x seconds.
         process_video.apply_async(kwargs={'video_path': video_path}, countdown=3)
 
+    #TODO: else get the file through rsync
+
 def on_motion_picture(message: MqttMessage):
     topic = split_camera_topic(message.topic, True)
 
@@ -100,8 +102,10 @@ def on_motion_picture(message: MqttMessage):
     - So we go with low-level API.
     - at the end, picture_path is an absolute path e.g: "/usr/src/app/media/1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg"
     """
-    filename = default_storage.save(file_name, ContentFile(image))
-    picture_path = default_storage.path(filename)
+
+    picture_path = os.path.join(settings.MEDIA_ROOT, file_name)
+    with open(picture_path, 'wb') as f:
+        f.write(image)
 
     data = {
         'device_id': topic['device_id'],

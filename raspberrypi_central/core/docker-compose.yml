@@ -57,7 +57,7 @@ services:
             - mqtt_broker
 
     celery_beat:
-        command: bash -c "rm celerybeat.pid && celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info --pidfile="
+        command: bash -c "rm -f celerybeat.pid && celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info --pidfile="
         networks:
             - rabbitmq
             - backend_mqtt

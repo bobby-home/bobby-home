@@ -1,10 +1,11 @@
 from multiprocessing import Process
 
 from loggers import LOGGER
+from service_manager.runnable import Runnable
 from service_manager.service_manager import RunService
 
 
-class ThreadManager:
+class ThreadManager(Runnable):
 
     def __init__(self, run_service: RunService):
         self._is_running = False
@@ -42,7 +43,7 @@ class ThreadManager:
     def running(self):
         return self._is_running
 
-    def run(self, status: bool, data=None):
+    def run(self, _device_id: str, status: bool, data=None) -> None:
         self._is_running = status
 
         if status is True:

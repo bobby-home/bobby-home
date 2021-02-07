@@ -1,5 +1,6 @@
 import os
 from io import BytesIO
+from typing import Dict
 
 from mqtt.mqtt_client import get_mqtt
 from camera.camera_config import camera_config
@@ -15,7 +16,11 @@ CAMERA_HEIGHT = camera_config.camera_height
 
 DEVICE_ID = os.environ['DEVICE_ID']
 
-class ManageRecord():
+class ManageRecord:
+    """
+    Manage record through MQTT for dumb camera.
+    It receives MQTT messages, process it to manage records.
+    """
     def __init__(self, video_stream: PiVideoStream) -> None:
         self._video_stream = video_stream
 
@@ -25,20 +30,22 @@ class ManageRecord():
 
         self._setup_listeners()
 
-    def _extract_data_from_topic(self, topic: str) -> None:
+    @staticmethod
+    def _extract_data_from_topic(topic: str) -> Dict[str, str]:
         split = topic.split('/')
 
         data = {
             'action': split[3],
         }
 
-        if len(split) > 3:
+        if len(split) > 4:
             data['video_ref'] = split[4]
 
         return data
 
     def _on_record(self, client, userdata, message) -> None:
         data = self._extract_data_from_topic(message.topic)
+        print(f'dumb_camera: on_record {data}')
 
         if data['action'] == 'start':
             self._video_stream.start_recording(data['video_ref'])
@@ -48,8 +55,8 @@ class ManageRecord():
             self._video_stream.stop_recording()
 
     def _setup_listeners(self) -> None:
-        self._mqtt_client.client.subscribe(f'camera/recording/{DEVICE_ID}/#', qos=1)
-        self._mqtt_client.client.message_callback_add(f'camera/recording/{DEVICE_ID}/', self._on_record)
+        self._mqtt_client.client.subscribe(f'camera/recording/{DEVICE_ID}/#', qos=2)
+        self._mqtt_client.client.message_callback_add(f'camera/recording/{DEVICE_ID}/#', self._on_record)
 
 class RunDumbCamera(RunService):
 
@@ -72,16 +79,14 @@ class RunDumbCamera(RunService):
         print('run dumb camera!')
         camera = DumbCamera(os.environ['DEVICE_ID'])
 
-        @rate_limited(max_per_second=0.5, thread_safe=False, block=False)
+        @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
         def process_frame(frame: BytesIO):
-            print('process frame bridge with rate limit')
             camera.process_frame(frame)
 
         stream = PiVideoStream(process_frame, resolution=(
-            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=30)
+            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
 
         ManageRecord(stream)
-
         stream.run()
         # unreachable code because .run() contains an endless loop.
 

@@ -22,7 +22,6 @@ class DumbCamera:
         self.mqtt_client.loop_start()
 
     def process_frame(self, frame: BytesIO):
-        print('dumb_camera: process frame')
         picture = frame.getvalue()
 
         self.mqtt_client.publish(f'{self.PICTURE_TOPIC}/{self._device_id}', picture, qos=1)

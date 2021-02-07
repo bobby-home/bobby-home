@@ -91,7 +91,6 @@ class Camera:
 
         return payload
 
-
     def _considered_peoples(self, peoples: List[People]) -> List[ObjectLinkConsiderations]:
         object_considerations: List[ObjectLinkConsiderations] = []
 
@@ -213,3 +212,11 @@ class Camera:
     @camera_recorder.setter
     def camera_recorder(self, value: CameraRecorder):
         self._camera_recorder = value
+
+    @property
+    def analyze_motion(self):
+        return self._analyze_motion
+
+    @analyze_motion.setter
+    def analyze_motion(self, analyzer: CameraAnalyzer):
+        self._analyze_motion = analyzer

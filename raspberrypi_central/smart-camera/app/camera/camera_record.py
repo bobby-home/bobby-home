@@ -11,7 +11,7 @@ class CameraRecorder(ABC):
         pass
 
     @abstractmethod
-    def stop_recording(self) -> None:
+    def stop_recording(self, device_id: str) -> None:
         pass
 
     @abstractmethod
@@ -26,13 +26,13 @@ class DumbCameraRecord(CameraRecorder):
         self.mqtt_client = mqtt_client
 
     def stop_recording(self, device_id: str) -> None:
-        self.mqtt_client.publish(f'camera/recording/{device_id}/end', qos=1)
+        self.mqtt_client.publish(f'camera/recording/{device_id}/end', qos=2)
 
     def start_recording(self, video_ref: str, device_id: str) -> None:
-        self.mqtt_client.publish(f'camera/recording/{device_id}/start/{video_ref}')
+        self.mqtt_client.publish(f'camera/recording/{device_id}/start/{video_ref}', qos=2)
 
     def split_recording(self, video_ref: str, device_id: str) -> None:
-        self.mqtt_client.publish(f'camera/recording/{device_id}/split/{video_ref}')
+        self.mqtt_client.publish(f'camera/recording/{device_id}/split/{video_ref}', qos=2)
 
 
 class CameraRecord(CameraRecorder):
@@ -51,7 +51,7 @@ class CameraRecord(CameraRecorder):
         self.queue = queue
         self.record_event = record_event
 
-    def stop_recording(self):
+    def stop_recording(self, device_id: str):
         # clear doesn't throw if the event is not True. It turns it to False even if it's already False.
         self.record_event.clear()
 

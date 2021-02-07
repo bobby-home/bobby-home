@@ -1,3 +1,4 @@
+import os
 import signal
 from typing import Callable
 
@@ -16,6 +17,8 @@ import multiprocessing as mp
 
 CAMERA_WIDTH = camera_config.camera_width
 CAMERA_HEIGHT = camera_config.camera_height
+
+DEVICE_ID = os.environ['DEVICE_ID']
 
 
 class RunSmartCamera(RunService):
@@ -37,7 +40,7 @@ class RunSmartCamera(RunService):
         self._camera = self.camera_factory(get_mqtt, self._camera_analyze_object)
 
     def _exit_gracefully(self, signum, frame):
-        self.camera_record.stop_recording()
+        self.camera_record.stop_recording(DEVICE_ID)
         self.capture_proc.terminate()
         self.consumer_proc.terminate()
 

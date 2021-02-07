@@ -7,7 +7,7 @@ from mqtt.mqtt_client import get_mqtt
 
 device_id = os.environ['DEVICE_ID']
 
-camera_mqtt_client = get_mqtt(f"{device_id}-dumb-camera")
+camera_mqtt_client = get_mqtt(f"{device_id}-dumb-camera-manager")
 
 camera_manager = ThreadManager(RunDumbCamera())
 

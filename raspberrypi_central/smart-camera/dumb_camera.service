@@ -7,8 +7,8 @@ After=network-online.target
 Type=simple
 User=pi
 Group=pi
-WorkingDirectory=/home/pi/mx-tech-house/smart-camera/app/
-ExecStart=/home/pi/mx-tech-house/smart-camera/app/dumb_camera.sh
+WorkingDirectory=/home/pi/camera/app/
+ExecStart=/home/pi/camera/app/entrypoint_dumb_camera.sh
 
 SyslogIdentifier=dumb_camera
 Restart=always

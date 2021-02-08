@@ -5,7 +5,7 @@ de := docker-compose exec
 
 .PHONY: prod-up
 prod-up:
-	$(dc) -f ../docker-compose.yml -f ../docker-compose.prod.yml -d up
+	$(dc) -f ./docker-compose.yml -f ./docker-compose.prod.yml up -d
 
 .PHONY: dev-up
 dev-up:
@@ -14,3 +14,7 @@ dev-up:
 .PHONY: build-docker
 build-docker:
 	$(dc) build
+
+.PHONY: docker-build-release
+docker-build-release:
+	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/camera ./app

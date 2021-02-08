@@ -6,10 +6,10 @@
 #    runs-on: ubuntu-20.04
 #    defaults:
 #      run:
-#        working-directory: raspberrypi_central/webapp
+#        working-directory: raspberrypi_central/core
 #    steps:
 #      - uses: actions/checkout@master
 #      - name: test
 #        run: |
-#          bash docker-network.sh -xe
+#          bash docker-setup.sh -xe
 #          make test

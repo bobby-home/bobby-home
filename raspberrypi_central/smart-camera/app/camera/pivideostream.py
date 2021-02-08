@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 class PiVideoStream:
 
-    BASE_VIDEO_PATH = '/usr/src/videos'
+    BASE_VIDEO_PATH = os.environ['MEDIA_FOLDER']
 
     def __init__(self, process_frame, resolution, framerate, **kwargs):
         self.process_frame = process_frame

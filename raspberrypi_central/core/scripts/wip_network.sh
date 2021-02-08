@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# The idea of this script was to find raspberrypi's on the network
+# and setup them: ssh keys + assign device_id + create a file to automatically register
+# these devices to the core app.
+
 SELF_LAN_IP=$(hostname -I | awk '{print $1}')
 
 echo "My IP in the LAN is: $SELF_LAN_IP"
@@ -29,11 +33,6 @@ do
         # Default HOSTNAME given by RPI by default.
         CURRENT_HOSTNAME="raspberrypi"
         NEW_HOSTNAME="rpi-$DEVICE_ID"
-
-        # model=$(ssh pi@mx_rpi 'bash -s' < ./get_rpi_model.sh)
-
-#>> ../../webapp/app/data/new_devices
-        echo "$DEVICE_ID/$raspberry_pi_ip"
 
         # echo "This device id is: $DEVICE_ID"
         # echo "I'm configuring SSH with keys."

@@ -45,3 +45,13 @@ if [ $? -eq 1 ]; then
   DEVICE_MODEL=$(cat /proc/device-tree/model | awk -F 'Rev' '{print $1}' | xargs)
   echo "DEVICE_MODEL=\"$DEVICE_MODEL\"" >> ~/.device && source ~/.device
 fi
+
+source ~/.device
+
+# Change hostname "raspberrypi" to the device id, so it's easier to find the device on the network.
+CURRENT_HOSTNAME="raspberrypi"
+NEW_HOSTNAME=$DEVICE_ID
+
+sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+sudo sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+sudo reboot

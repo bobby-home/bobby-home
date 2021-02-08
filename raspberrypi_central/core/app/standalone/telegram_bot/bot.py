@@ -14,7 +14,7 @@ from house.models import TelegramBot, TelegramBotStart
 from notification.models import UserTelegramBotChatId
 
 
-def start(update: Update, context: CallbackContext) -> None:
+def start(update: Update, _context: CallbackContext) -> None:
     if update.message.chat.type != 'private':
         update.message.reply_text("This bot is only available in private chat.")
         return
@@ -22,7 +22,7 @@ def start(update: Update, context: CallbackContext) -> None:
     if UserTelegramBotChatId.objects.filter(chat_id=update.message.chat.id).exists():
         return update.message.reply_text('You are already onboard.')
 
-    obj, created = TelegramBotStart.objects.get_or_create(
+    _obj, _created = TelegramBotStart.objects.get_or_create(
         user_id=update.message.chat.id,
         username=update.message.chat.username,
         first_name=update.message.chat.first_name,
@@ -35,13 +35,13 @@ def start(update: Update, context: CallbackContext) -> None:
 def help(update, context):
     update.message.reply_text("Use /start to test this bot.")
 
-# logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#                     level=logging.INFO)
-# logger = logging.getLogger(__name__)
-#
-# def error(update, context):
-#     """Log Errors caused by Updates."""
-#     logger.warning('Update "%s" caused error "%s"', update, context.error)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def error_handler(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
 def main():
@@ -55,7 +55,7 @@ def main():
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('help', help))
-    # dp.add_error_handler(error)
+    dp.add_error_handler(error_handler)
 
     # Start the Bot
     updater.start_polling()

@@ -1,4 +1,6 @@
+import logging
 import os
+import traceback
 from io import BytesIO
 from typing import Dict
 
@@ -13,6 +15,9 @@ from camera.camera_record import DumbCameraRecord
 
 CAMERA_WIDTH = camera_config.camera_width
 CAMERA_HEIGHT = camera_config.camera_height
+
+logger = logging.getLogger('dumb_camera')
+
 
 DEVICE_ID = os.environ['DEVICE_ID']
 
@@ -76,20 +81,28 @@ class RunDumbCamera(RunService):
         pass
 
     def run(self) -> None:
-        print('run dumb camera!')
-        camera = DumbCamera(os.environ['DEVICE_ID'])
+        try:
+            print('run dumb camera!')
+            camera = DumbCamera(os.environ['DEVICE_ID'])
 
-        @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
-        def process_frame(frame: BytesIO):
-            camera.process_frame(frame)
+            @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
+            def process_frame(frame: BytesIO):
+                camera.process_frame(frame)
 
-        stream = PiVideoStream(process_frame, resolution=(
-            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
+            stream = PiVideoStream(process_frame, resolution=(
+                CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
 
-        ManageRecord(stream)
-        stream.run()
-        # unreachable code because .run() contains an endless loop.
+            ManageRecord(stream)
+            stream.run()
+            # unreachable code because .run() contains an endless loop.
+        except BaseException as e:
+            tags = {}
+            tags['device'] = DEVICE_ID
 
+            logger.error(traceback.format_exc(),
+                         extra={'tags': tags})
+
+            raise
 
     def __str__(self):
         return 'run-dumb-camera'

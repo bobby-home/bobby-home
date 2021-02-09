@@ -2,7 +2,10 @@
 
 # Script used to setup raspberry pi zero for dumb camera.
 
-sudo apt install git
+sudo apt install -y git python3-pip
+
+# enable the pi camera. Warning: need reboot (done at the end).
+sudo raspi-config nonint do_camera 0
 
 # folder used to store videos.
 sudo mkdir -p /var/lib/camera/media && sudo chown -R pi:pi /var/lib/camera/media
@@ -32,5 +35,6 @@ if [ $? -eq 1 ]; then
 
   sudo hostnamectl set-hostname "$NEW_HOSTNAME"
   sudo sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
-  sudo reboot
 fi
+
+sudo reboot

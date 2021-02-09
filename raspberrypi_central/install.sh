@@ -14,7 +14,7 @@ sudo apt autoremove
 curl -sSL https://get.docker.com | sh
 sudo usermod -aG docker pi
 
-# enable the pi camera.
+# enable the pi camera. Warning: need reboot (done at the end).
 sudo raspi-config nonint do_camera 0
 
 docker network create --gateway 172.19.0.1 --subnet 172.19.0.0/16 backend_mqtt
@@ -56,5 +56,6 @@ if [ $? -eq 1 ]; then
 
   sudo hostnamectl set-hostname "$NEW_HOSTNAME"
   sudo sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
-  sudo reboot
 fi
+
+sudo reboot

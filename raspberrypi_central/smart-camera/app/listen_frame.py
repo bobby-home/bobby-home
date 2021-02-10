@@ -76,7 +76,6 @@ class FrameReceiver:
         image = io.BytesIO(message.payload)
 
         camera = self._connected_devices.connected_devices.get(from_device_id, None)
-        print(f'on picture analyze {from_device_id} {camera}')
 
         if camera:
             camera.process_frame(image, from_device_id)
@@ -107,7 +106,7 @@ connected_devices = ConnectedDevices()
 frame_receiver = FrameReceiver(connected_devices)
 
 # topics to receive frames to analyze for dumb cameras.
-mqtt_client.client.subscribe(f'{DumbCamera.PICTURE_TOPIC}/+', qos=1)
+mqtt_client.client.subscribe(f'{DumbCamera.PICTURE_TOPIC}/+', qos=0)
 mqtt_client.client.message_callback_add(f'{DumbCamera.PICTURE_TOPIC}/+', frame_receiver.on_picture)
 
 # topics to know when a camera is up/off

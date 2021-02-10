@@ -6,7 +6,7 @@ import struct
 import uuid
 from collections import defaultdict
 from io import BytesIO
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 from camera.camera_record import CameraRecorder
 from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
@@ -35,7 +35,7 @@ class Camera:
     VIDEO = 'motion/video'
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id):
+    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str):
         self._camera_recorder = None
         self._analyze_motion = analyze_motion
         self._device_id = device_id
@@ -91,7 +91,6 @@ class Camera:
 
         return payload
 
-
     def _considered_peoples(self, peoples: List[People]) -> List[ObjectLinkConsiderations]:
         object_considerations: List[ObjectLinkConsiderations] = []
 
@@ -126,32 +125,34 @@ class Camera:
 
         return frame
 
-    def _split_recording(self) -> None:
+    def _split_recording(self, device_id: str) -> None:
         LOGGER.info('split recording')
         self.recording_first_video = True
-        self._publish_video_event()
-        self._camera_recorder.split_recording(f'{self.event_ref}-{self._record_video_number}')
+        self._publish_video_event(device_id)
+        self._camera_recorder.split_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
 
-    def _publish_motion(self, payload) -> None:
+    def _publish_motion(self, payload, on_device_id: str) -> None:
         mqtt_payload = json.dumps(payload)
         LOGGER.info(f'publish motion {mqtt_payload}')
 
-        self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
+        self.mqtt_client.publish(f'{self.MOTION}/{on_device_id}', mqtt_payload, retain=True, qos=1)
 
-    def _publish_video_event(self) -> None:
-        self.mqtt_client.publish(f'{self.VIDEO}/{self._device_id}/{self.event_ref}-{self._record_video_number}', qos=1)
+    def _publish_video_event(self, on_device_id: str) -> None:
+        self.mqtt_client.publish(f'{self.VIDEO}/{on_device_id}/{self.event_ref}-{self._record_video_number}', qos=1)
         self._record_video_number += 1
 
-    def _publish_image(self, frame: BytesIO, is_motion: bool) -> None:
+    def _publish_image(self, frame: BytesIO, is_motion: bool, on_device_id: str) -> None:
         byte_arr = self._transform_image_to_publish(frame)
 
         motion = '0'
         if is_motion is True:
             motion = '1'
 
-        self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/{motion}', byte_arr, qos=1)
+        self.mqtt_client.publish(f'{self.PICTURE}/{on_device_id}/{self.event_ref}/{motion}', byte_arr, qos=1)
 
-    def process_frame(self, frame: BytesIO):
+    def process_frame(self, frame: BytesIO, on_device_id: Optional[str] = None) -> None:
+        device_id = on_device_id or self._device_id
+
         peoples, image = self.detect_people.process_frame(frame)
 
         considered_peoples = self._considered_peoples(peoples)
@@ -165,12 +166,12 @@ class Camera:
             if self._camera_recorder:
                 LOGGER.info('start recording')
                 self.start_recording_time = datetime.datetime.now()
-                self._camera_recorder.start_recording(f'{self.event_ref}-{self._record_video_number}')
+                self._camera_recorder.start_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
 
             # self._visualize_contours(frame, considered_peoples)
             payload = self._get_motion_payload(self.event_ref, considered_peoples)
-            self._publish_motion(payload)
-            self._publish_image(frame, is_motion=True)
+            self._publish_motion(payload, device_id)
+            self._publish_image(frame, True, device_id)
 
         if is_any_considered_object:
             self._last_time_people_detected = datetime.datetime.now()
@@ -179,7 +180,7 @@ class Camera:
                 datetime.datetime.now() - self.start_recording_time).seconds >= Camera.SECONDS_FIRST_MOTION_VIDEO
 
             if time_lapsed and self.recording_first_video is False:
-                self._split_recording()
+                self._split_recording(device_id)
 
         elif self._need_to_publish_no_motion():
             payload = {
@@ -190,15 +191,15 @@ class Camera:
 
             if self._camera_recorder:
                 LOGGER.info('stop recording')
-                self._camera_recorder.stop_recording()
-                self._publish_video_event()
+                self._camera_recorder.stop_recording(device_id)
+                self._publish_video_event(device_id)
 
             self.recording_first_video = False
             self.start_recording_time = None
             self._record_video_number = 0
 
-            self._publish_motion(payload)
-            self._publish_image(frame, is_motion=False)
+            self._publish_motion(payload, device_id)
+            self._publish_image(frame, False, device_id)
 
     @staticmethod
     def generate_event_ref():
@@ -211,3 +212,11 @@ class Camera:
     @camera_recorder.setter
     def camera_recorder(self, value: CameraRecorder):
         self._camera_recorder = value
+
+    @property
+    def analyze_motion(self):
+        return self._analyze_motion
+
+    @analyze_motion.setter
+    def analyze_motion(self, analyzer: CameraAnalyzer):
+        self._analyze_motion = analyzer

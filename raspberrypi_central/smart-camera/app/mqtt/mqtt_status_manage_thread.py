@@ -1,9 +1,10 @@
 import struct
+import json
+from typing import Optional
 
 from loggers import LOGGER
 from mqtt.mqtt_client import MqttClient
-from thread.thread_manager import ThreadManager
-import json
+from service_manager.runnable import Runnable
 
 
 class MqttStatusManageThread:
@@ -11,19 +12,47 @@ class MqttStatusManageThread:
     This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
     """
-    def __init__(self, device_id: str, service_name: str, mqtt_client: MqttClient, thread_manager: ThreadManager, status_json = False):
+    def __init__(self, device_id: Optional[str], service_name: str, mqtt_client: MqttClient, thread_manager: Runnable, status_json=False):
         self._thread_manager = thread_manager
         self._service_name = service_name
         self._status_json = status_json
 
-        mqtt_topic = f'status/{service_name}/{device_id}'
+        self._device_id = device_id
 
-        mqtt_client.connect_keep_status(service_name, device_id)
+        if device_id:
+            mqtt_topic = f'status/{service_name}/{device_id}'
+            mqtt_client.connect_keep_status(service_name, device_id)
+        else:
+            # generic, connect for every devices.
+            mqtt_topic = f'status/{service_name}/+'
+            mqtt_client.connect()
+            mqtt_client.client.loop_start()
 
         mqtt_client.client.subscribe(mqtt_topic, qos=1)
         mqtt_client.client.message_callback_add(mqtt_topic, self._switch_on_or_off)
 
-    def _switch_on_or_off(self, client, userdata, msg):
+    @staticmethod
+    def _get_device_id_from_topic(topic: str) -> str:
+        split = topic.split('/')
+
+        return split[2]
+
+    def _switch_on_or_off(self, client, userdata, msg) -> None:
+        device_id = self._device_id or self._get_device_id_from_topic(msg.topic)
+
+        """
+        MQTT callback to decide to call on/off based on received mqtt payload.
+
+        Parameters
+        ----------
+        client
+        userdata
+        msg
+
+        Returns
+        -------
+        None
+        """
         message = msg.payload
         data = None
 
@@ -35,7 +64,10 @@ class MqttStatusManageThread:
                 return
 
             status = message['status']
-            data = message['data']
+
+            if 'data' in message:
+                data = message['data']
+
         else:
             try:
                 # unpack always return a tuple (False,) or (True,) because we pack only one value.
@@ -51,9 +83,9 @@ class MqttStatusManageThread:
         LOGGER.info(f'Receive status {status} for {self._service_name} with data {data}')
 
         if status:
-            self._thread_manager.run(True, data=data)
+            self._thread_manager.run(device_id, True, data=data)
         else:
-            self._thread_manager.run(False)
+            self._thread_manager.run(device_id, False)
 
 
 def mqtt_status_manage_thread_factory(*args, **kwargs):

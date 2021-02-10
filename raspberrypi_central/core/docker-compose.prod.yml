@@ -42,10 +42,9 @@ services:
         restart: unless-stopped
 
     grafana:
-        image: grafana/grafana:7.3.7
+        image: grafana/grafana:7.4.0
         # run grafana with this user (host user), so we don't have any right conflict.
         # https://grafana.com/docs/grafana/latest/administration/configure-docker/#run-grafana-container-using-bind-mounts
-        user: ${USER_ID}
         ports:
             - "3000:3000"
         volumes:

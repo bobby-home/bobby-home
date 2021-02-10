@@ -23,8 +23,9 @@ ENV PYTHONUNBUFFERED 1
 # gettext is used by django to extract texts to translate: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#message-files
 # libpq-dev is used for psycopg2-binary, see: https://stackoverflow.com/a/12037133
 # gpac is used to convert PiCamera videos h264 to mp4
+# rsync is used to retrieve videos
 RUN apt-get update \
-    && apt-get install -y libpq-dev netcat gettext gpac
+    && apt-get install -y libpq-dev netcat gettext gpac rsync
 
 # upgrade python with root user
 RUN pip install --upgrade pip
@@ -45,7 +46,10 @@ RUN pip install --user --requirement /tmp/requirements.txt
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
 
 ENV MEDIA_FOLDER=/var/lib/house/media
-RUN mkdir -p "$MEDIA_FOLDER" && chown -R house:house "$MEDIA_FOLDER" && chmod 700 "$MEDIA_FOLDER"
+ENV VIDEO_FOLDER=/var/lib/house/video
+RUN mkdir -p "$MEDIA_FOLDER" && chown -R house:house "$MEDIA_FOLDER" && chmod 700 "$MEDIA_FOLDER" \
+    && mkdir -p /home/house/.ssh && chown -R house:house /home/house/.ssh \
+    && mkdir -p "$VIDEO_FOLDER" && chown -R house:house "$VIDEO_FOLDER"
 
 VOLUME ["/var/lib/house/media"]
 

@@ -45,8 +45,9 @@ services:
     rabbit_worker:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
-            - camera_videos:/usr/src/videos
+            - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
+            - ~/.ssh:/home/house/.ssh:ro
         networks:
             - webapp_backend
             - rabbitmq
@@ -57,7 +58,7 @@ services:
             - mqtt_broker
 
     celery_beat:
-        command: bash -c "celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info"
+        command: bash -c "rm -f celerybeat.pid && celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info --pidfile="
         networks:
             - rabbitmq
             - backend_mqtt
@@ -77,8 +78,8 @@ services:
         depends_on:
             - database
             - mqtt_broker
-            - rabbit
             - rabbit_worker
+            - celery_beat
         networks:
             rabbitmq:
             webapp_backend:
@@ -86,7 +87,11 @@ services:
 
     python_process_mqtt:
         command: bash -c "python standalone/mqtt/mqtt_run.py"
+        volumes:
             - medias:/var/lib/house/media
+        depends_on:
+            - rabbit_worker
+            - database
         networks:
             rabbitmq:
             webapp_backend:
@@ -94,7 +99,6 @@ services:
 
     telegram_bot:
         command: python standalone/telegram_bot/bot.py
-            - medias:/var/lib/house/media
         networks:
             - rabbitmq
             - webapp_backend

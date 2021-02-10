@@ -45,20 +45,19 @@ class PiVideoStream:
             raw_capture.seek(0)
             raw_capture.truncate()
 
-    def start_recording(self, video_ref):
+    def start_recording(self, video_ref: str) -> None:
         if self._record is False:
             LOGGER.info(f'start recording video_ref={video_ref}')
             self._record = True
             self.camera.start_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
 
-    def stop_recording(self):
+    def stop_recording(self) -> None:
         if self._record is True:
             LOGGER.info('stop recording')
             self.camera.stop_recording()
             self._record = False
 
-
-    def split_recording(self, video_ref):
+    def split_recording(self, video_ref: str) -> None:
         if self._record is True:
             LOGGER.info(f'split_recording video_ref={video_ref}')
 

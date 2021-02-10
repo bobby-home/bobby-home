@@ -21,7 +21,6 @@ services:
             - camera_videos/:/var/lib/camera/media
             - tf-models/:/var/lib/camera/tf-models
             - /opt/vc:/opt/vc
-
         devices:
                 - "/dev/vchiq:/dev/vchiq"
 
@@ -33,6 +32,15 @@ services:
             - motion
         # Give access to the rpi audio device. Otherwise it cannot play sound! see issue #126
         privileged: true
+
+    listen_frame:
+        command: bash -c "python listen_frame.py"
+        volumes:
+            - tf-models/:/var/lib/camera/tf-models
+        <<: *env
+        networks:
+            - backend_mqtt
+            - motion
 
 
 networks:

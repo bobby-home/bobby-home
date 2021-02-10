@@ -11,8 +11,7 @@ class MqttClient:
     Keep it little as possible.
     """
     def __init__(self, client_name: str, mqtt_user: str, mqtt_pswd: str, mqtt_hostname: str, mqtt_port: str):
-        # todo: migrate to mqtt v5 -> protocol=mqtt.MQTTv5
-        client = mqtt.Client(client_id=client_name)
+        client = mqtt.Client(client_id=client_name, protocol=mqtt.MQTTv5)
         client.username_pw_set(mqtt_user, mqtt_pswd)
 
         self.mqtt_hostname = mqtt_hostname

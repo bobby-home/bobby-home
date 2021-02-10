@@ -22,7 +22,7 @@ class MQTT:
 
     def _init_mqtt_client(self):
         config = self._config
-        client: mqtt.Client = self._mqtt_client_constructor(client_id=config.client_id, clean_session=config.clean_session)
+        client: mqtt.Client = self._mqtt_client_constructor(client_id=config.client_id, protocol=mqtt.MQTTv5)
 
         if config.user is not None and config.password is not None:
             client.username_pw_set(config.user, config.password)

@@ -7,7 +7,7 @@ from camera.camera_factory import camera_factory
 from camera.dumb_camera import DumbCamera
 from camera_analyze.camera_analyzer import CameraAnalyzer
 from mqtt.mqtt_client import get_mqtt
-from camera.camera_record import DumbCameraRecord
+from camera.camera_record import DumbCameraRecorder
 from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
 from service_manager.roi_camera_from_args import roi_camera_from_args
 from service_manager.runnable import Runnable
@@ -55,7 +55,7 @@ class ConnectedDevices:
         camera = camera_factory(get_mqtt, camera_analyzer)
         camera.start()
 
-        camera_record = DumbCameraRecord(mqtt_client.client)
+        camera_record = DumbCameraRecorder(mqtt_client.client, device_id)
         camera.camera_recorder = camera_record
 
         self._connected_devices[device_id] = camera

@@ -3,7 +3,7 @@ import multiprocessing as mp
 from queue import Empty, Full
 from utils.rate_limit import rate_limited
 
-from camera.camera_record import CameraRecord
+from camera.camera_record import MPCameraRecorder
 
 
 class FrameProducer:
@@ -22,7 +22,7 @@ class FrameProducer:
         except Empty:
             pass
         else:
-            split_recording_video_ref = CameraRecord.is_split_recording_task(record_event_ref)
+            split_recording_video_ref = MPCameraRecorder.is_split_recording_task(record_event_ref)
             if split_recording_video_ref:
                 self.camera_stream.split_recording(split_recording_video_ref)
             else:

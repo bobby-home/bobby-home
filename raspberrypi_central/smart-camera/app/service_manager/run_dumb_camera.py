@@ -10,7 +10,7 @@ from camera.dumb_camera import DumbCamera
 from camera.pivideostream import PiVideoStream
 from service_manager.service_manager import RunService
 from utils.rate_limit import rate_limited
-from camera.camera_record import DumbCameraRecord
+from camera.camera_record import DumbCameraRecorder
 
 
 CAMERA_WIDTH = camera_config.camera_width

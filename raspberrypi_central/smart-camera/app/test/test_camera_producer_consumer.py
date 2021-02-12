@@ -5,7 +5,7 @@ from camera.camera_producer_consumer import FrameProducer
 from unittest.mock import Mock
 import multiprocessing as mp
 
-from camera.camera_record import CameraRecord
+from camera.camera_record import MPCameraRecorder
 
 
 class TestFrameProducer(TestCase):
@@ -19,7 +19,7 @@ class TestFrameProducer(TestCase):
 
         video_ref = str(uuid.uuid4())
 
-        recorder = CameraRecord(camera_record_event, camera_record_queue)
+        recorder = MPCameraRecorder(camera_record_event, camera_record_queue)
         producer = FrameProducer([], camera_record_event, camera_record_queue)
         producer.set_camera_steam(camera_mock)
 
@@ -35,7 +35,7 @@ class TestFrameProducer(TestCase):
         camera_mock.reset_mock()
 
         video_ref = str(uuid.uuid4())
-        video_ref = f'{CameraRecord.SPLIT_RECORDING_TASK}/{video_ref}'
+        video_ref = f'{MPCameraRecorder.SPLIT_RECORDING_TASK}/{video_ref}'
         recorder.split_recording(video_ref)
         producer._manage_record()
 

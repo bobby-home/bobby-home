@@ -1,0 +1,57 @@
+from datetime import datetime
+from typing import Optional
+
+from camera.camera_record import CameraRecorder
+from utils.time import is_time_lapsed
+
+
+class CameraRecording:
+    """
+    Class to manage CameraRecording.
+    """
+    SECONDS_FIRST_MOTION_VIDEO = 10
+    SECONDS_MOTION_VIDEO = 60
+
+    def __init__(self, device_id: str, camera_recorder: CameraRecorder):
+        self._device_id = device_id
+        self._camera_recorder = camera_recorder
+
+        self._first_video_recorded = False
+        self._start_recording_time = None
+        self._record_video_number = 0
+
+    def start_recording(self, event_ref: str):
+        self._start_recording_time = datetime.now()
+        self._camera_recorder.start_recording(f'{event_ref}-{self._record_video_number}')
+
+    def _split_recording(self, event_ref: str) -> str:
+        video_ref = f'{event_ref}-{self._record_video_number}'
+
+        self._first_video_recorded = True
+        self._camera_recorder.split_recording(video_ref)
+        self._record_video_number = self._record_video_number +1
+
+        return video_ref
+
+    def split_recording(self, event_ref: str) -> Optional[str]:
+        if self._start_recording_time is None:
+            return None
+
+        if self._first_video_recorded is False:
+            time_lapsed = is_time_lapsed(self._start_recording_time, CameraRecording.SECONDS_FIRST_MOTION_VIDEO)
+            if time_lapsed:
+                return self._split_recording(event_ref)
+
+
+    def stop_recording(self, event_ref: str) -> Optional[str]:
+        if self._start_recording_time is None:
+            return None
+
+        video_ref = f'{event_ref}-{self._record_video_number}'
+
+        self._first_video_recorded = False
+        self._start_recording_time = None
+        self._record_video_number = 0
+
+        self._camera_recorder.stop_recording()
+        return video_ref

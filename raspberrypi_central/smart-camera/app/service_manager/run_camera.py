@@ -5,7 +5,7 @@ from typing import Callable
 from camera.camera import Camera
 from camera.camera_config import camera_config
 from camera.camera_producer_consumer import FrameProducer, FrameIAConsumer
-from camera.camera_record import CameraRecord
+from camera.camera_record import MPCameraRecorder
 
 from camera.camera_factory import camera_factory
 from camera.videostream import video_stream_factory
@@ -61,7 +61,7 @@ class RunSmartCamera(RunService):
         frame_producer = FrameProducer([queue, queue_model], camera_record_event, camera_record_queue)
         camera_consumer = FrameIAConsumer(self._camera)
 
-        camera_record = CameraRecord(camera_record_event, camera_record_queue)
+        camera_record = MPCameraRecorder(camera_record_event, camera_record_queue)
         self.camera_record = camera_record
         self._camera.camera_recorder = camera_record
 

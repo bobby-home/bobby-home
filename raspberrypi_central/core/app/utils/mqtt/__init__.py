@@ -18,9 +18,9 @@ class MQTT:
     def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
         self._mqtt_client_constructor = mqtt_client_constructor
-        self._init_mqtt_client()
+        self.client = self._init_mqtt_client()
 
-    def _init_mqtt_client(self):
+    def _init_mqtt_client(self) -> mqtt.Client:
         config = self._config
         client: mqtt.Client = self._mqtt_client_constructor(client_id=config.client_id, protocol=mqtt.MQTTv5)
 
@@ -34,9 +34,9 @@ class MQTT:
         # TODO: what do we do when disconnect happens? It is very bad!
         # client.on_disconnect = self._mqtt_on_disconnect
 
-        self._client = client
+        return client
 
-    def _mqtt_on_connect(self, _mqttc, _userdata, _flags, result_code: int):
+    def _mqtt_on_connect(self, _idk, _mqttc, _userdata, _flags, result_code: int):
         # pylint: disable=import-outside-toplevel
         import paho.mqtt.client as mqtt
 
@@ -55,7 +55,7 @@ class MQTT:
 
         def _mqtt_add_callback(subscription: MqttTopicSubscription):
             subscription_callback = self._wrap_subscription_callback(subscription)
-            self._client.message_callback_add(subscription.topic, subscription_callback)
+            self.client.message_callback_add(subscription.topic, subscription_callback)
 
         for subscription in subscriptions:
             """
@@ -71,7 +71,7 @@ class MQTT:
 
             We also use it for single topic/handler, for example: "/something/else" -> subscribe -> addCallbackHandler.
             """
-            self._client.subscribe(subscription.topic, subscription.qos)
+            self.client.subscribe(subscription.topic, subscription.qos)
 
             if isinstance(subscription, MqttTopicFilterSubscription):
                 for sub in subscription.topics:
@@ -93,7 +93,7 @@ class MQTT:
         ))
 
     def publish(self, topic, message, qos=1, retain=False):
-        self._client.publish(topic, message, qos=qos, retain=retain)
+        self.client.publish(topic, message, qos=qos, retain=retain)
 
 
 def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:

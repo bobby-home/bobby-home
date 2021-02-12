@@ -85,7 +85,7 @@ class RunDumbCamera(RunService):
             print('run dumb camera!')
             camera = DumbCamera(os.environ['DEVICE_ID'])
 
-            @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
+            # @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
             def process_frame(frame: BytesIO):
                 camera.process_frame(frame)
 

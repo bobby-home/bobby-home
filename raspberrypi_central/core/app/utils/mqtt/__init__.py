@@ -36,7 +36,7 @@ class MQTT:
 
         self._client = client
 
-    def _mqtt_on_connect(self, _mqttc, _userdata, _flags, result_code: int):
+    def _mqtt_on_connect(self, _idk, _mqttc, _userdata, _flags, result_code: int):
         # pylint: disable=import-outside-toplevel
         import paho.mqtt.client as mqtt
 

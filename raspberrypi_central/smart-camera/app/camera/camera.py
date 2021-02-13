@@ -42,8 +42,8 @@ class Camera:
         self._analyze_motion = analyze_motion
         self._device_id = device_id
         self.get_mqtt = get_mqtt
-        self._last_time_people_detected = None
 
+        self._last_time_people_detected = None
         self._initialize = True
 
         self.detect_people = detect_people
@@ -70,7 +70,7 @@ class Camera:
         return time_lapsed
 
     @staticmethod
-    def _get_motion_payload(event_ref, object_link_considerations: List[ObjectLinkConsiderations]):
+    def _get_motion_payload(event_ref: str, object_link_considerations: List[ObjectLinkConsiderations]):
         payload = {
             'status': True,
             'event_ref': event_ref,
@@ -114,6 +114,7 @@ class Camera:
         self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
     def _publish_video_event(self, video_ref: str) -> None:
+        LOGGER.info(f'publish video {video_ref}')
         self.mqtt_client.publish(f'{self.VIDEO}/{self._device_id}/{video_ref}', qos=1)
 
     def _publish_image(self, frame: BytesIO, is_motion: bool) -> None:
@@ -141,7 +142,8 @@ class Camera:
         self._last_time_people_detected = datetime.datetime.now()
 
         video_ref = self.camera_recording.split_recording(self.event_ref)
-        if video_ref:
+
+        if isinstance(video_ref, str):
             self._publish_video_event(video_ref)
 
     def _no_more_detection(self, frame: BytesIO):
@@ -155,7 +157,9 @@ class Camera:
         LOGGER.info('stop recording')
         video_ref = self.camera_recording.stop_recording(self.event_ref)
 
-        self._publish_video_event(video_ref)
+        if isinstance(video_ref, str):
+            self._publish_video_event(video_ref)
+
         self._publish_motion(payload)
         self._publish_image(frame, False)
 
@@ -166,15 +170,14 @@ class Camera:
         is_any_considered_object = len(considered_peoples) > 0
 
         # first time we detect people
-        if is_any_considered_object and self._last_time_people_detected is None:
-            self._start_detection(frame, considered_peoples)
-
-        # we continue to detect people
         if is_any_considered_object:
-            self._detection()
-
-        # people left (some time ago), we let the core knows
+            if self._last_time_people_detected is None:
+                self._start_detection(frame, considered_peoples)
+            else:
+                # we continue to detect people
+                self._detection()
         elif self._need_to_publish_no_motion():
+            # people left (some time ago), we let the core knows
             self._no_more_detection(frame)
 
     @staticmethod

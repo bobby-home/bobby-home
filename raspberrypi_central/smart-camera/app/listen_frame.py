@@ -52,11 +52,9 @@ class ConnectedDevices:
             self._connected_devices[device_id].analyze_motion = camera_analyzer
 
     def add(self, device_id: str, camera_analyzer: CameraAnalyzer) -> None:
-        camera = camera_factory(get_mqtt, camera_analyzer)
-        camera.start()
-
         camera_record = DumbCameraRecorder(mqtt_client.client, device_id)
-        camera.camera_recorder = camera_record
+        camera = camera_factory(camera_analyzer, camera_record)
+        camera.start()
 
         self._connected_devices[device_id] = camera
 
@@ -69,7 +67,7 @@ class FrameReceiver:
     def __init__(self, connected_devices: ConnectedDevices):
         self._connected_devices = connected_devices
 
-    def on_picture(self, client, userdata, message):
+    def on_picture(self, _client, _userdata, message):
         data = extract_data_from_topic(message.topic)
         from_device_id = data['device_id']
 
@@ -78,7 +76,7 @@ class FrameReceiver:
         camera = self._connected_devices.connected_devices.get(from_device_id, None)
 
         if camera:
-            camera.process_frame(image, from_device_id)
+            camera.process_frame(image)
 
 class CameraManager(Runnable):
 
@@ -99,7 +97,6 @@ class CameraManager(Runnable):
             # could be able to do it because its a composition
         else:
             self._connected_devices.add(device_id, camera_analyze_object)
-
 
 connected_devices = ConnectedDevices()
 

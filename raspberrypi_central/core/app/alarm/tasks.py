@@ -35,9 +35,9 @@ def h264_to_mp4(input_path, output_path = None) -> str:
     retry_kwargs={'max_retries': 5},
     default_retry_delay=3)
 def process_video(video_file: str):
-    media = os.environ['MEDIA_FOLDER']
+    videos = os.environ['VIDEO_FOLDER']
 
-    video_path = os.path.join(media, video_file)
+    video_path = os.path.join(videos, video_file)
 
     if not Path(video_path).is_file():
         raise FileNotFoundError(f'{video_path} does not exist.')

@@ -1,7 +1,6 @@
 import dataclasses
 import datetime
 import json
-import os
 import uuid
 from collections import defaultdict
 from io import BytesIO
@@ -23,13 +22,9 @@ class ObjectLinkConsiderations:
 
 
 class Camera:
-
     SERVICE_NAME = 'object_detection'
-    DEVICE_ID = os.environ['DEVICE_ID']
 
     SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 10
-    SECONDS_FIRST_MOTION_VIDEO = 10
-    SECONDS_MOTION_VIDEO_SPLIT = 60
 
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'
@@ -53,7 +48,7 @@ class Camera:
 
     def start(self) -> None:
         mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{Camera.SERVICE_NAME}')
-        mqtt_client.connect_keep_status(Camera.SERVICE_NAME, Camera.DEVICE_ID)
+        mqtt_client.connect_keep_status(Camera.SERVICE_NAME, self._device_id)
         self.mqtt_client = mqtt_client.client
 
     def _need_to_publish_no_motion(self) -> bool:

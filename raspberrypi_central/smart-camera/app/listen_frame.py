@@ -8,7 +8,7 @@ from camera.dumb_camera import DumbCamera
 from camera_analyze.camera_analyzer import CameraAnalyzer
 from mqtt.mqtt_client import get_mqtt
 from camera.camera_record import DumbCameraRecorder
-from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
+from mqtt.mqtt_manage_runnable import MqttManageRunnable
 from service_manager.roi_camera_from_args import roi_camera_from_args
 from service_manager.runnable import Runnable
 
@@ -53,7 +53,7 @@ class ConnectedDevices:
 
     def add(self, device_id: str, camera_analyzer: CameraAnalyzer) -> None:
         camera_record = DumbCameraRecorder(mqtt_client.client, device_id)
-        camera = camera_factory(camera_analyzer, camera_record)
+        camera = camera_factory(device_id, camera_analyzer, camera_record)
         camera.start()
 
         self._connected_devices[device_id] = camera
@@ -74,7 +74,7 @@ class FrameReceiver:
         image = io.BytesIO(message.payload)
 
         camera = self._connected_devices.connected_devices.get(from_device_id, None)
-
+        print(f'analyze picture {camera}')
         if camera:
             camera.process_frame(image)
 
@@ -108,6 +108,6 @@ mqtt_client.client.message_callback_add(f'{DumbCamera.PICTURE_TOPIC}/+', frame_r
 
 # topics to know when a camera is up/off
 camera_manager = CameraManager(connected_devices)
-mqtt_status_manage_thread_factory(None, 'camera', get_mqtt(f"{DEVICE_ID}-listen-dumb-camera-manager"), camera_manager, status_json=True)
+MqttManageRunnable(DEVICE_ID, 'camera', get_mqtt(f'{DEVICE_ID}-listen-dumb-camera-manager'), camera_manager, status_json=True, multi_device=True)
 
 mqtt_client.client.loop_forever()

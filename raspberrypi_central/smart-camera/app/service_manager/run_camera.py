@@ -23,7 +23,7 @@ DEVICE_ID = os.environ['DEVICE_ID']
 
 class RunSmartCamera(RunService):
 
-    def __init__(self, camera_factory: Callable[[CameraAnalyzer, CameraRecorder], Camera], video_stream):
+    def __init__(self, camera_factory: Callable[[str, CameraAnalyzer, CameraRecorder], Camera], video_stream):
         self._stream = None
         self._camera = None
         self._camera_analyze_object = None
@@ -59,7 +59,7 @@ class RunSmartCamera(RunService):
 
         frame_producer = FrameProducer([queue, queue_model], camera_record_event, camera_record_queue)
         camera_record = MPCameraRecorder(camera_record_event, camera_record_queue)
-        self._camera = self.camera_factory(self._camera_analyze_object, camera_record)
+        self._camera = self.camera_factory(DEVICE_ID, self._camera_analyze_object, camera_record)
 
         camera_consumer = FrameIAConsumer(self._camera)
 

@@ -30,7 +30,7 @@ services:
             - webapp_backend
 
     mqtt_broker:
-        image: eclipse-mosquitto:2.0.6
+        image: eclipse-mosquitto:2.0.7
         volumes:
             - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
             - ./config/mosquitto/passwd:/mosquitto/config/passwd

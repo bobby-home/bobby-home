@@ -21,7 +21,7 @@ device_id = None
 # sys.excepthook = my_exception_hook does not work for this case (the loki request is not sent).
 try:
     from service_manager.run_dumb_camera import RunDumbCamera
-    from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
+    from mqtt.mqtt_manage_runnable import MqttManageRunnable
     from thread.thread_manager import ThreadManager
     from mqtt.mqtt_client import get_mqtt
 
@@ -31,7 +31,7 @@ try:
 
     camera_manager = ThreadManager(RunDumbCamera())
 
-    mqtt_status_manage_thread_factory(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
+    MqttManageRunnable(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
 
     camera_mqtt_client.client.loop_forever()
 except BaseException as e:

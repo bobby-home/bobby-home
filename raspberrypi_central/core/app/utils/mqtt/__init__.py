@@ -3,9 +3,9 @@ from functools import partial
 from typing import List
 import logging
 import utils.date as dt_utils
+from paho.mqtt.reasoncodes import ReasonCodes
 from utils.mqtt.mqtt_data import MqttConfig, Subscription, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
 import paho.mqtt.client as mqtt
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,14 +15,13 @@ class MQTT:
     Wrapper around Paho MQTT.
     This enables us to wrap mqtt message to its own class to group data in a clean manner.
     """
-    def __init__(self, config: MqttConfig, mqtt_client_constructor):
+    def __init__(self, config: MqttConfig):
         self._config = config
-        self._mqtt_client_constructor = mqtt_client_constructor
         self._init_mqtt_client()
 
     def _init_mqtt_client(self):
         config = self._config
-        client: mqtt.Client = self._mqtt_client_constructor(client_id=config.client_id, protocol=mqtt.MQTTv5)
+        client: mqtt.Client = mqtt.Client(client_id=config.client_id, protocol=mqtt.MQTTv5)
 
         if config.user is not None and config.password is not None:
             client.username_pw_set(config.user, config.password)
@@ -32,18 +31,21 @@ class MQTT:
         client.on_connect = self._mqtt_on_connect
 
         # TODO: what do we do when disconnect happens? It is very bad!
-        # client.on_disconnect = self._mqtt_on_disconnect
+        client.on_disconnect = self._mqtt_on_disconnect
 
         self._client = client
 
-    def _mqtt_on_connect(self, _mqttc, _userdata, _flags, result_code: int):
-        # pylint: disable=import-outside-toplevel
-        import paho.mqtt.client as mqtt
+    def _mqtt_on_disconnect(self, _client, _userdata, rc):
+        print(f'_mqtt_on_disconnect reasoncode: {mqtt.connack_string(rc)}')
 
-        if result_code != mqtt.CONNACK_ACCEPTED:
+    def _mqtt_on_connect(self, _client, _userdata, _flags, rc: ReasonCodes, _properties):
+        # print(_client._protocol)
+        print(f'_mqtt_on_connect rc: {rc}')
+
+        if rc != mqtt.CONNACK_ACCEPTED:
             _LOGGER.error(
                 "Unable to connect to the MQTT broker: %s",
-                mqtt.connack_string(result_code),
+                mqtt.connack_string(rc),
             )
             return
 
@@ -109,4 +111,4 @@ def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
         port=int(os.environ['MQTT_PORT'])
     )
 
-    return MQTT(mqttConfig, mqtt.Client)
+    return MQTT(mqttConfig)

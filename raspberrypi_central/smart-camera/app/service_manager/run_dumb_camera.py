@@ -10,7 +10,6 @@ from camera.dumb_camera import DumbCamera
 from camera.pivideostream import PiVideoStream
 from service_manager.service_manager import RunService
 from utils.rate_limit import rate_limited
-from camera.camera_record import DumbCameraRecord
 
 
 CAMERA_WIDTH = camera_config.camera_width
@@ -96,9 +95,7 @@ class RunDumbCamera(RunService):
             stream.run()
             # unreachable code because .run() contains an endless loop.
         except BaseException as e:
-            tags = {}
-            tags['device'] = DEVICE_ID
-
+            tags = {'device': DEVICE_ID}
             logger.error(traceback.format_exc(),
                          extra={'tags': tags})
 

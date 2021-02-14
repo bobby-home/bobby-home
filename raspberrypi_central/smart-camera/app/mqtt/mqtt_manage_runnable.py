@@ -83,7 +83,7 @@ class MqttManageRunnable:
                 LOGGER.critical(f'Cannot decode binary {message} for service {self._service_name}')
                 return
 
-        LOGGER.info(f'Receive status {status} for {self._service_name} with data {data}')
+        LOGGER.info(f'Receive status {status} for {self._service_name} with data {data} on device {device_id}')
 
         if status:
             self._runnable.run(device_id, True, data)

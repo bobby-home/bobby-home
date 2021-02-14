@@ -27,6 +27,17 @@ class CameraRecording:
             self._camera_recorder.start_recording(f'{event_ref}-{self._record_video_number}')
 
     def _split_recording(self, event_ref: str) -> str:
+        """
+        Order the CameraRecorder to record in a new file.
+        Parameters
+        ----------
+        event_ref: The event_ref that causes the recording.
+
+        Returns
+        -------
+        If the records has been split: the video_ref that has been created.
+        Otherwise None.
+        """
         old_video_ref = f'{event_ref}-{self._record_video_number}'
 
         self._record_video_number = self._record_video_number +1
@@ -41,11 +52,12 @@ class CameraRecording:
 
         Parameters
         ----------
-        event_ref
+        event_ref: The event_ref that causes the recording.
 
         Returns
         -------
-        The record that has been split,
+        If the records split: the video_ref.
+        Otherwise None.
         """
         if self._start_recording_time is None:
             return None
@@ -64,6 +76,17 @@ class CameraRecording:
                 return self._split_recording(event_ref)
 
     def stop_recording(self, event_ref: str) -> Optional[str]:
+        """
+
+        Parameters
+        ----------
+        event_ref: The event_ref that causes the recording.
+
+        Returns
+        -------
+        If the records stop: the video_ref.
+        Otherwise None.
+        """
         if self._start_recording_time is None:
             return None
 

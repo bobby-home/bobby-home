@@ -43,7 +43,7 @@ services:
                 ipv4_address: 172.19.0.100
 
     rabbit_worker:
-        command: bash -c "celery -A hello_django worker -B --loglevel=info"
+        command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
             - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media

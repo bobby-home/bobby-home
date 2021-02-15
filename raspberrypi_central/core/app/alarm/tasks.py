@@ -1,18 +1,16 @@
 import os
 import logging
-from datetime import timedelta
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from celery import shared_task
-from django.utils import timezone
 
 from notification.consts import SeverityChoice
 from notification.tasks import send_video, create_and_send_notification
 from utils.date import is_time_newer_than
 from .business.alarm_schedule_change_status import AlarmScheduleChangeStatus
 from .business.camera_motion import camera_motion_factory
-from alarm.models import AlarmSchedule, AlarmStatus, Ping
+from alarm.models import AlarmStatus, Ping
 
 
 LOGGER = logging.getLogger(__name__)
@@ -131,18 +129,25 @@ class CheckPings:
 
         for status in statuses:
             result, ping = check_ping(status)
+            device = status.device
+
+            if ping is None:
+                msg = f'The service object_detection for the device {device} does not send any ping.'
+                create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
+                return None
+
             if result is False:
                 ping.consecutive_failures += 1
 
                 if ping.consecutive_failures > 3:
                     ping.failures += ping.consecutive_failures
                     ping.consecutive_failures = 0
-                    msg = f'The service object_detection does not send any ping since {ping.last_update}.'
+                    msg = f'The service object_detection for the device {device} does not send any ping since {ping.last_update}.'
                     create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
 
                 ping.save()
             elif ping.consecutive_failures > 0:
-                msg = f'The service object_detection was not pinging but it does now. Everything is back to normal.'
+                msg = f'The service object_detection for the device {device} was not pinging but it does now. Everything is back to normal.'
                 create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
 
                 ping.failures += ping.consecutive_failures

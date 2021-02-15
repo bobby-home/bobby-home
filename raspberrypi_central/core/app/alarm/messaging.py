@@ -19,12 +19,14 @@ class AlarmMessaging:
         self._speaker_messaging = speaker_messaging
         self._verify_service_status = verify_service_status
 
-    def publish_alarm_status(self, device_id: str, status: bool, data = None):
+    def publish_alarm_status(self, device_id: str, status: bool, is_dumb: bool, data=None) -> None:
         self._mqtt_status.publish(f'status/camera/{device_id}', status, data)
 
         """
         When the system turns on the camera, the object_detection should be up a bit later.
         """
+
+        # @TODO: for dumb camera we have 2 services: 'dumb_camera' (that sends frames) and 'object_detection' (that analyzes frames).
         kwargs = {
             'device_id': device_id,
             'service_name': 'object_detection',
@@ -33,6 +35,15 @@ class AlarmMessaging:
         }
 
         self._verify_service_status.apply_async(kwargs=kwargs, countdown=5)
+
+        if is_dumb is True:
+            kwargs_dumb = {
+                'device_id': device_id,
+                'service_name': 'dumb_camera',
+                'status': status,
+                'since_time': timezone.now()
+            }
+            self._verify_service_status.apply_async(kwargs=kwargs_dumb, countdown=5)
 
         if status is False:
             self._speaker_messaging.publish_speaker_status(device_id, False)

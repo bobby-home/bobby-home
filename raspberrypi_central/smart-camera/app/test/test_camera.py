@@ -155,6 +155,29 @@ class TestCamera(TestCase):
 
         self.mqtt_mock.client.publish.assert_has_calls(calls)
 
+    def test_ping(self):
+        self.detect_motion_mock.process_frame.return_value = [], []
+        self.analyze_object_mock.considered_objects.return_value = []
+
+        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera.start()
+        camera._initialize = False
+
+        camera.process_frame(BytesIO())
+        self.mqtt_mock.client.publish.assert_not_called()
+
+        with patch('utils.time.datetime') as mock_datetime:
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.PING_SECONDS_FREQUENCY)
+            camera.process_frame(BytesIO())
+            camera.process_frame(BytesIO())
+            self.mqtt_mock.client.publish.assert_called_once_with(Camera.PING, qos=1)
+
+            self.mqtt_mock.reset_mock()
+
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.PING_SECONDS_FREQUENCY -1)
+            camera.process_frame(BytesIO())
+            self.mqtt_mock.client.publish.assert_not_called()
+
     def test_motion_no_more_motion(self):
         """
         - we process a frame with considerations -> the system makes 2 publishes: motion + picture.

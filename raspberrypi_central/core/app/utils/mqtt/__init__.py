@@ -1,6 +1,6 @@
 import os
 from functools import partial
-from typing import List
+from typing import List, Callable
 import logging
 import utils.date as dt_utils
 from paho.mqtt.reasoncodes import ReasonCodes
@@ -15,13 +15,14 @@ class MQTT:
     Wrapper around Paho MQTT.
     This enables us to wrap mqtt message to its own class to group data in a clean manner.
     """
-    def __init__(self, config: MqttConfig):
+    def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
-        self._init_mqtt_client()
+        self._mqtt_client_constructor = mqtt_client_constructor
+        self._client = self._init_mqtt_client()
 
-    def _init_mqtt_client(self):
+    def _init_mqtt_client(self) -> mqtt.Client:
         config = self._config
-        client: mqtt.Client = mqtt.Client(client_id=config.client_id, protocol=mqtt.MQTTv5)
+        client: mqtt.Client = self._mqtt_client_constructor(client_id=config.client_id, protocol=mqtt.MQTTv5)
 
         if config.user is not None and config.password is not None:
             client.username_pw_set(config.user, config.password)
@@ -33,7 +34,7 @@ class MQTT:
         # TODO: what do we do when disconnect happens? It is very bad!
         client.on_disconnect = self._mqtt_on_disconnect
 
-        self._client = client
+        return client
 
     def _mqtt_on_disconnect(self, _client, _userdata, rc):
         print(f'_mqtt_on_disconnect reasoncode: {mqtt.connack_string(rc)}')
@@ -111,4 +112,4 @@ def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
         port=int(os.environ['MQTT_PORT'])
     )
 
-    return MQTT(mqttConfig)
+    return MQTT(mqttConfig, mqtt.Client)

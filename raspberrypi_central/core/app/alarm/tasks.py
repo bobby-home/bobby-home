@@ -1,7 +1,7 @@
 import os
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from celery import shared_task
 from notification.tasks import send_video
@@ -12,7 +12,25 @@ from alarm.models import AlarmSchedule, AlarmStatus
 
 LOGGER = logging.getLogger(__name__)
 
-def h264_to_mp4(input_path, output_path = None) -> str:
+def h264_to_mp4(input_path: str, output_path: Optional[str] = None) -> str:
+    """Convert raw h264 'input_path' to mp4 in 'output_path' or in 'input_path' with .mp4 extension.
+
+    Parameters
+    ----------
+    input_path : str
+    output_path : str, optional
+
+    Raises
+    ------
+    Exception
+        If underlying MP4Box command is not exited normally,
+            probably something went wrong and the file is not converted.
+
+    Returns
+    -------
+    str
+        The path to the newly (converted) video.
+    """
     if output_path is None:
         path, ext = os.path.splitext(input_path)
         output_path = path + ".mp4"
@@ -34,16 +52,19 @@ def h264_to_mp4(input_path, output_path = None) -> str:
     autoretry_for=(Exception,),
     retry_kwargs={'max_retries': 5},
     default_retry_delay=3)
-def process_video(video_file: str):
+def process_video(video_file: str) -> None:
     videos = os.environ['VIDEO_FOLDER']
 
-    video_path = os.path.join(videos, video_file)
+    raw_video_path = os.path.join(videos, video_file)
 
-    if not Path(video_path).is_file():
-        raise FileNotFoundError(f'{video_path} does not exist.')
+    if not Path(raw_video_path).is_file():
+        raise FileNotFoundError(f'{raw_video_path} does not exist.')
 
-    output_path = h264_to_mp4(video_path)
+    output_path = h264_to_mp4(raw_video_path)
     LOGGER.info(f'video to mp4 ok - {output_path}')
+
+    # we don't need raw h264 anymore.
+    os.remove(raw_video_path)
 
     kwargs = {
         'video_path': output_path

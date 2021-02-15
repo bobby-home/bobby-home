@@ -6,11 +6,13 @@ de := docker-compose exec
 dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
 drtest := $(dc) -f docker-compose.yml -f docker-compose.test.yml run --rm
 dr := $(dc) -f docker-compose.yml -f docker-compose.prod.yml run --rm
+dr-dev := $(dc) run --rm
 
 web_image=web
 db_image=database
 
 manage := $(dr) $(web_image) python manage.py
+manage-dev := $(dr-dev) $(web_image) python manage.py
 
 .PHONY: create-folders
 create-folders:
@@ -63,11 +65,11 @@ test:
 
 .PHONY: migrations
 migrations:
-	$(manage) makemigrations
+	$(manage-dev) makemigrations
 
 .PHONY: migrate
-migrate: ## Migrate database /!\ docker-compose up should run.
-	$(manage) migrate
+migrate:
+	$(manage-dev) migrate
 
 .PHONY: tests
 tests:

@@ -138,7 +138,7 @@ class Camera:
         self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/{motion}', byte_arr, qos=1)
 
     def _publish_ping(self) -> None:
-        self.mqtt_client.publish(f'{self.PING}', qos=1)
+        self.mqtt_client.publish(f'{self.PING}/{self._device_id}', qos=1)
 
     def _start_detection(self, frame: BytesIO, considerations: List[ObjectLinkConsiderations]) -> None:
         self._last_time_people_detected = datetime.datetime.now()

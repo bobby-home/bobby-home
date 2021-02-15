@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
@@ -6,6 +8,7 @@ import alarm.tasks as tasks
 from alarm.tasks import camera_motion_detected, process_video
 
 from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
+from .business.alarm import ping
 from .communication.on_connected_services import OnConnectedCameraHandler, OnConnectedSpeakerHandler
 import os
 import hello_django.settings as settings
@@ -118,6 +121,21 @@ def on_motion_picture(message: MqttMessage):
 
     tasks.camera_motion_picture.apply_async(kwargs=data)
 
+@dataclass
+class PingData:
+    device_id: str
+    service_name: str
+
+def on_ping_data_from_topic(topic: str) -> PingData:
+    data = topic.split('/')
+    return PingData(data[2], data[1])
+
+
+def on_ping(message: MqttMessage) -> None:
+    print(f'on_ping message={message}')
+
+    data = on_ping_data_from_topic(message.topic)
+    ping(data.device_id, data.service_name)
 
 def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:
     on_status = OnStatus(handler_instance)
@@ -141,6 +159,14 @@ def register(mqtt: MQTT):
                 MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
                 MqttTopicSubscription('motion/video/+/+', on_motion_video),
             ],
+        ),
+        MqttTopicFilterSubscription(
+            # ping/{service_name}/{device_id}
+            topic='ping/+/+',
+            qos=1,
+            topics=[
+                MqttTopicSubscription('ping/+/+', on_ping)
+            ]
         ),
         camera,
         speaker,

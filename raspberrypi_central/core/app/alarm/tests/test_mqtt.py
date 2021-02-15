@@ -38,7 +38,7 @@ class OnMotionPictureTestCase(TestCase):
 
             kwargs = {
                 'device_id': self.device.device_id,
-                'picture_path': f'/usr/src/app/media/{self.event_ref}.jpg',
+                'picture_path': f'/var/lib/house/media/{self.event_ref}.jpg',
                 'event_ref': self.event_ref,
                 'status': False,
             }
@@ -60,7 +60,7 @@ class OnMotionPictureTestCase(TestCase):
 
             kwargs = {
                 'device_id': self.device.device_id,
-                'picture_path': f'/usr/src/app/media/{self.event_ref}.jpg',
+                'picture_path': f'/var/lib/house/media/{self.event_ref}.jpg',
                 'event_ref': self.event_ref,
                 'status': True,
             }

@@ -1,13 +1,16 @@
 import os
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional, Tuple
 
 from celery import shared_task
-from notification.tasks import send_video
+
+from notification.consts import SeverityChoice
+from notification.tasks import send_video, create_and_send_notification
+from utils.date import is_time_newer_than
 from .business.alarm_schedule_change_status import AlarmScheduleChangeStatus
 from .business.camera_motion import camera_motion_factory
-from alarm.models import AlarmSchedule, AlarmStatus
+from alarm.models import AlarmStatus, Ping
 
 
 LOGGER = logging.getLogger(__name__)
@@ -106,3 +109,49 @@ def set_alarm_off(alarm_status_uui):
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on(alarm_status_uui):
     AlarmScheduleChangeStatus().turn_on(alarm_status_uui)
+
+
+def check_ping(status: AlarmStatus) -> Tuple[bool, Optional[Ping]]:
+    try:
+        ping = Ping.objects.get(device_id=status.device.device_id, service_name='object_detection')
+        return is_time_newer_than(ping.last_update, 60), ping
+        # ping.last_update.
+    except Ping.DoesNotExist:
+        return False, None
+
+
+class CheckPings:
+    def __init__(self):
+        pass
+
+    def check(self):
+        statuses = AlarmStatus.objects.filter(running=True)
+
+        for status in statuses:
+            result, ping = check_ping(status)
+            device = status.device
+
+            if ping is None:
+                msg = f'The service object_detection for the device {device} does not send any ping.'
+                create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
+                return None
+
+            if result is False:
+                ping.consecutive_failures += 1
+
+                if ping.consecutive_failures == 3:
+                    msg = f'The service object_detection for the device {device} does not send any ping since {ping.last_update}.'
+                    create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
+
+                ping.save()
+            elif ping.consecutive_failures > 0:
+                msg = f'The service object_detection for the device {device} was not pinging but it does now. Everything is back to normal.'
+                create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
+
+                ping.failures += ping.consecutive_failures
+                ping.consecutive_failures = 0
+                ping.save()
+
+@shared_task()
+def check_pings() -> None:
+    CheckPings().check()

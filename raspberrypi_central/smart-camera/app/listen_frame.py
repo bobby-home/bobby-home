@@ -9,6 +9,7 @@ from camera_analyze.camera_analyzer import CameraAnalyzer
 from mqtt.mqtt_client import get_mqtt
 from camera.camera_record import DumbCameraRecorder
 from mqtt.mqtt_manage_runnable import MqttManageRunnable
+from object_detection.detect_people_factory import detect_people_factory
 from service_manager.roi_camera_from_args import roi_camera_from_args
 from service_manager.runnable import Runnable
 
@@ -26,6 +27,7 @@ DEVICE_ID = os.environ['DEVICE_ID']
 mqtt_client = get_mqtt(f'{DEVICE_ID}-analyzer')
 mqtt_client.connect()
 
+DETECT_PEOPLE = detect_people_factory()
 
 class ConnectedDevices:
     """
@@ -53,7 +55,7 @@ class ConnectedDevices:
 
     def add(self, device_id: str, camera_analyzer: CameraAnalyzer) -> None:
         camera_record = DumbCameraRecorder(mqtt_client.client, device_id)
-        camera = camera_factory(device_id, camera_analyzer, camera_record)
+        camera = camera_factory(device_id, camera_analyzer, camera_record, DETECT_PEOPLE)
         camera.start()
 
         self._connected_devices[device_id] = camera
@@ -74,7 +76,7 @@ class FrameReceiver:
         image = io.BytesIO(message.payload)
 
         camera = self._connected_devices.connected_devices.get(from_device_id, None)
-        print(f'analyze picture {camera}')
+        print(f'analyze picture for device {from_device_id} {camera}')
 
         if camera:
             camera.process_frame(image)

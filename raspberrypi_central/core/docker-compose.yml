@@ -47,7 +47,7 @@ services:
         volumes:
             - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
-            - ~/.ssh:/home/house/.ssh:ro
+            - ~/.ssh:/home/house/.ssh:ro # for rsync to get videos from dumb devices.
         networks:
             - webapp_backend
             - rabbitmq

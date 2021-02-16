@@ -27,6 +27,11 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get update \
     && apt-get install -y libpq-dev netcat gettext gpac rsync
 
+# for pip cryptography (3.4.5) package.
+# was suggested in the build failure message.
+# see: https://github.com/docker/compose/issues/8105#issuecomment-775879420
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
+
 # upgrade python with root user
 RUN pip install --upgrade pip
 

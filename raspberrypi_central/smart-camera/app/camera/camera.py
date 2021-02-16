@@ -13,6 +13,7 @@ from mqtt.mqtt_client import MqttClient
 from object_detection.detect_people import DetectPeople
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import People, PeopleAllData
+from utils.time import is_time_lapsed
 
 
 @dataclasses.dataclass
@@ -29,6 +30,10 @@ class Camera:
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'
     VIDEO = 'motion/video'
+
+    PING = f'ping/object_detection'
+    PING_SECONDS_FREQUENCY = 60
+
     EVENT_REF_NO_MOTION = '0'
 
     def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str, camera_recording: CameraRecording):
@@ -46,23 +51,15 @@ class Camera:
 
         self.mqtt_client = None
 
+        self.last_ping_time = None
+
     def start(self) -> None:
         mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{Camera.SERVICE_NAME}')
         mqtt_client.connect_keep_status(Camera.SERVICE_NAME, self._device_id)
         self.mqtt_client = mqtt_client.client
 
-    def _need_to_publish_no_motion(self) -> bool:
-        if self._initialize is True:
-            self._initialize = False
-            return True
-
-        time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= Camera.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
-
-        if time_lapsed:
-            self._last_time_people_detected = None
-
-        return time_lapsed
+        self.mqtt_client.loop_start()
+        self.last_ping_time = datetime.datetime.now()
 
     @staticmethod
     def _get_motion_payload(event_ref: str, object_link_considerations: List[ObjectLinkConsiderations]):
@@ -102,6 +99,26 @@ class Camera:
     def _transform_image_to_publish(image: BytesIO):
         return image.getvalue()
 
+    def _need_to_publish_no_motion(self) -> bool:
+        """
+
+        Returns
+        -------
+        bool
+            Whether or not it needs to publish "no motion" event.
+        """
+        if self._initialize is True:
+            self._initialize = False
+            return True
+
+        time_lapsed = (self._last_time_people_detected is not None) and (
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= Camera.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
+
+        if time_lapsed:
+            self._last_time_people_detected = None
+
+        return time_lapsed
+
     def _publish_motion(self, payload) -> None:
         mqtt_payload = json.dumps(payload)
         LOGGER.info(f'publish motion {mqtt_payload}')
@@ -120,6 +137,9 @@ class Camera:
             motion = '1'
 
         self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/{motion}', byte_arr, qos=1)
+
+    def _publish_ping(self) -> None:
+        self.mqtt_client.publish(f'{self.PING}/{self._device_id}', qos=1)
 
     def _start_detection(self, frame: BytesIO, considerations: List[ObjectLinkConsiderations]) -> None:
         self._last_time_people_detected = datetime.datetime.now()
@@ -174,6 +194,10 @@ class Camera:
         elif self._need_to_publish_no_motion():
             # people left (some time ago), we let the core knows
             self._no_more_detection(frame)
+
+        if is_time_lapsed(self.last_ping_time, Camera.PING_SECONDS_FREQUENCY, first_true=True):
+            self.last_ping_time = datetime.datetime.now()
+            self._publish_ping()
 
     @staticmethod
     def generate_event_ref():

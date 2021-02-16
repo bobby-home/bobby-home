@@ -115,10 +115,8 @@ def check_ping(status: AlarmStatus) -> Tuple[bool, Optional[Ping]]:
     try:
         ping = Ping.objects.get(device_id=status.device.device_id, service_name='object_detection')
         return is_time_newer_than(ping.last_update, 60), ping
-        # ping.last_update.
     except Ping.DoesNotExist:
         return False, None
-
 
 class CheckPings:
     def __init__(self):

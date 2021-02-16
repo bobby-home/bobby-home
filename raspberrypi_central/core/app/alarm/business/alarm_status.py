@@ -17,7 +17,7 @@ def alarm_status_changed(alarm_status: AlarmStatus, force=False):
     force : bool
         If it's true, it forces the synchronization.
     """
-    notify_alarm_status_factory().publish_status_changed(alarm_status.device_id, alarm_status.running, force)
+    notify_alarm_status_factory().publish_status_changed(alarm_status.device_id, alarm_status, force)
 
 
 def alarm_statuses_changed(alarm_statuses: List[AlarmStatus], force=False):

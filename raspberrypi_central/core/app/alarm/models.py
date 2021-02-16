@@ -27,6 +27,7 @@ class Ping(models.Model):
 class AlarmStatus(models.Model):
     running = models.BooleanField()
     device = models.OneToOneField(Device, on_delete=models.CASCADE)
+    is_dumb = models.BooleanField(default=True)
 
     def __str__(self):
         return f'Status is {self.running} for {self.device}'

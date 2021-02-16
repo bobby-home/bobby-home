@@ -132,8 +132,6 @@ def on_ping_data_from_topic(topic: str) -> PingData:
 
 
 def on_ping(message: MqttMessage) -> None:
-    print(f'on_ping message={message}')
-
     data = on_ping_data_from_topic(message.topic)
     ping(data.device_id, data.service_name)
 

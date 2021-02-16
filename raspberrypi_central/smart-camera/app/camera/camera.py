@@ -61,6 +61,9 @@ class Camera:
         self.mqtt_client.loop_start()
         self.last_ping_time = datetime.datetime.now()
 
+    def __del__(self):
+        self.mqtt_client.loop_stop()
+
     @staticmethod
     def _get_motion_payload(event_ref: str, object_link_considerations: List[ObjectLinkConsiderations]):
         payload = {

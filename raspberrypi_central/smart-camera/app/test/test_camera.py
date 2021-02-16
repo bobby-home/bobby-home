@@ -170,7 +170,7 @@ class TestCamera(TestCase):
             mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.PING_SECONDS_FREQUENCY)
             camera.process_frame(BytesIO())
             camera.process_frame(BytesIO())
-            self.mqtt_mock.client.publish.assert_called_once_with(Camera.PING, qos=1)
+            self.mqtt_mock.client.publish.assert_called_once_with(f'{Camera.PING}/{self.device_id}', qos=1)
 
             self.mqtt_mock.reset_mock()
 

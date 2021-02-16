@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+
 from django.db.models import Model
 import alarm.business.alarm as alarm
 from mqtt_services.models import MqttServicesConnectionStatusLogs
@@ -50,7 +52,7 @@ class OnConnectedHandlerLog(OnConnectedHandler):
     For example, in the database the alarm status is on and the system receives a mqtt message that indicates a disconnect
     from the alarm.
     """
-    def __init__(self, client: MQTT, status_model: Model = None):
+    def __init__(self, client: MQTT, status_model: Optional[Model] = None):
         self.status_model = status_model
         super().__init__(client)
 

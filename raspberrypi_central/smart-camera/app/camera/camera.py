@@ -58,6 +58,7 @@ class Camera:
         mqtt_client.connect_keep_status(Camera.SERVICE_NAME, self._device_id)
         self.mqtt_client = mqtt_client.client
 
+        self.mqtt_client.loop_start()
         self.last_ping_time = datetime.datetime.now()
 
     @staticmethod

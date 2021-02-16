@@ -114,7 +114,7 @@ def set_alarm_on(alarm_status_uui):
 def check_ping(status: AlarmStatus) -> Tuple[bool, Optional[Ping]]:
     try:
         ping = Ping.objects.get(device_id=status.device.device_id, service_name='object_detection')
-        return is_time_newer_than(ping, 60), ping
+        return is_time_newer_than(ping.last_update, 60), ping
         # ping.last_update.
     except Ping.DoesNotExist:
         return False, None
@@ -139,9 +139,7 @@ class CheckPings:
             if result is False:
                 ping.consecutive_failures += 1
 
-                if ping.consecutive_failures > 3:
-                    ping.failures += ping.consecutive_failures
-                    ping.consecutive_failures = 0
+                if ping.consecutive_failures == 3:
                     msg = f'The service object_detection for the device {device} does not send any ping since {ping.last_update}.'
                     create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
 

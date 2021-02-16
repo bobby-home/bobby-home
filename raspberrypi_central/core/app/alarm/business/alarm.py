@@ -1,5 +1,7 @@
+from alarm.models import Ping
 from devices.models import Device
 from django.db.models import Model
+from django.utils import timezone
 
 
 def is_status_exists(model_ref: Model, device_id: str, running: bool) -> bool:
@@ -10,3 +12,9 @@ def is_status_exists(model_ref: Model, device_id: str, running: bool) -> bool:
         return True
 
     return False
+
+def ping(device_id: str, service_name: str) -> None:
+    Ping.objects.update_or_create(
+        device_id=device_id, service_name=service_name,
+        defaults={'last_update': timezone.now()}
+    )

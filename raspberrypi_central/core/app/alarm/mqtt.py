@@ -148,7 +148,7 @@ def register(mqtt: MQTT):
     camera = bind_on_connected('camera', OnConnectedCameraHandler(mqtt))
 
     object_detection = bind_on_connected('object_detection', OnConnectedHandlerLog(mqtt))
-    dumb_camera = bind_on_connected('dumb-camera', OnConnectedHandlerLog(mqtt))
+    dumb_camera = bind_on_connected('dumb_camera', OnConnectedHandlerLog(mqtt))
 
     mqtt.add_subscribe([
         MqttTopicFilterSubscription(

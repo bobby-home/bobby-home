@@ -21,6 +21,9 @@ class Ping(models.Model):
     class Meta:
         unique_together = ['device_id', 'service_name']
 
+    def __str__(self):
+        return f'Service {self.service_name} on device {self.device_id} last ping at {self.last_update}'
+
 class AlarmStatus(models.Model):
     running = models.BooleanField()
     device = models.OneToOneField(Device, on_delete=models.CASCADE)

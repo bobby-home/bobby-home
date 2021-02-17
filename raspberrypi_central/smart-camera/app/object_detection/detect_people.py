@@ -12,7 +12,7 @@ class DetectPeople:
     def __init__(self, tflite_file: str, labels_file: str):
         self.model_file = tflite_file
         self.labels_file = labels_file
-        self.threshold = 0.5
+        self.threshold = 0.6
 
         self.labels = self._load_labels(self.labels_file)
         self.interpreter = Interpreter(self.model_file)

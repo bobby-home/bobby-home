@@ -9,7 +9,7 @@ from notification.consts import SeverityChoice
 from notification.tasks import send_video, create_and_send_notification
 from utils.date import is_time_newer_than
 from .business.alarm_schedule_change_status import AlarmScheduleChangeStatus
-from .business.camera_motion import camera_motion_factory
+from alarm.communication.camera_motion import camera_motion_factory, camera_video
 from alarm.models import AlarmStatus, Ping
 
 
@@ -100,6 +100,9 @@ def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, sta
 def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status: bool):
     camera_motion_factory().camera_motion_detected(device_id, seen_in, event_ref, status)
 
+@shared_task(name='security.camera_motion_video')
+def camera_motion_video(device_id: str, video_ref: str, is_same_device: bool = False) -> None:
+    camera_video(device_id, video_ref, is_same_device)
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):

@@ -14,7 +14,7 @@ import alarm.tasks as alarm_tasks
 LOGGER = logging.getLogger(__name__)
 
 def camera_video(device_id: str, video_ref: str, is_same_device: bool = False) -> None:
-    """Save camera video reference to the database. It add/extracts useful information.
+    """Save camera video reference to the database. It adds/extracts useful information.
 
      Parameters
      ----------

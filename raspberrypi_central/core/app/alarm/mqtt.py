@@ -140,7 +140,7 @@ def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -
 def register(mqtt: MQTT):
     speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
 
-    # <!> je crois que ce n'est plus le service 'camera' mais 'object_detection' !
+    # @todo <!> je crois que ce n'est plus le service 'camera' mais 'object_detection' !
     camera = bind_on_connected('camera', OnConnectedCameraHandler(mqtt))
 
     object_detection = bind_on_connected('object_detection', OnConnectedHandlerLog(mqtt))

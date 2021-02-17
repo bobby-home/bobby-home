@@ -66,7 +66,10 @@ def save_camera_video(video_ref: str) -> CameraMotionVideo:
     obj, created = CameraMotionVideo.objects.get_or_create(event_ref=event_ref)
 
     if record_number <= obj.number_records:
-        # well that is an issue, do nothing?
+        """
+        That means that we received a record number that is already taken in account.
+        - "Hey, I got the record nb. 3", "Ok, but I already got record nb 4 so it's fine".
+        """
         return obj
 
     obj.number_records = record_number

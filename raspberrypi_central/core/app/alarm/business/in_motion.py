@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 from alarm.communication.alarm_consts import ROITypes
-from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected
+from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected, CameraMotionVideo
 from devices import models as device_models
 from hello_django.loggers import LOGGER
 
@@ -44,3 +44,32 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
         LOGGER.error(f'{seen_in} is not understandable by our system.')
 
     return device, motion
+
+
+def save_camera_video(video_ref: str) -> CameraMotionVideo:
+    """Save camera video reference to the database. It add/extracts useful information.
+
+    Parameters
+    ----------
+    video_ref : str
+        A string that represents a video_ref, ex: '49efa0b4-2003-44e4-920c-4eb0e6eea358-1'
+            composed by two parts: the first one, the `event_ref` and the `record_number`.
+
+    Returns
+    -------
+    CameraMotionVideo
+    """
+    split = video_ref.split('-')
+    record_number = int(split[-1])
+    event_ref = '-'.join(split[:-1])
+
+    obj, created = CameraMotionVideo.objects.get_or_create(event_ref=event_ref)
+
+    if record_number <= obj.number_records:
+        # well that is an issue, do nothing?
+        return obj
+
+    obj.number_records = record_number
+    obj.save()
+
+    return obj

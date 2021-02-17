@@ -1,6 +1,11 @@
+from datetime import timedelta
+
 from celery import shared_task
+from django.utils import timezone
+
 from devices.models import Device
 from mqtt_services.business.mqtt_services import is_in_status_since
+from mqtt_services.models import MqttServicesConnectionStatusLogs
 from notification.tasks import send_message
 from django.utils.translation import gettext as _
 
@@ -61,3 +66,8 @@ def mqtt_status_does_not_match_database(device_id: str, received_status: bool, s
             'status': status
         }
     )
+
+@shared_task()
+def cleanup() -> None:
+    how_many_hour = 1
+    MqttServicesConnectionStatusLogs.objects.filter(created_at__lte=timezone.now() - timedelta(hours=how_many_hour)).delete()

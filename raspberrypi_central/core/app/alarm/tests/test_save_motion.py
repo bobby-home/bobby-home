@@ -1,6 +1,5 @@
 import uuid
 from decimal import Decimal
-from unittest import skip
 
 from django.forms import model_to_dict
 from django.test import TestCase
@@ -8,7 +7,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from alarm.communication.alarm_consts import ROITypes
-from alarm.communication.in_motion import save_motion
+from alarm.business.in_motion import save_motion
 from alarm.factories import AlarmStatusFactory
 from camera.factories import CameraROIFactory, CameraRectangleROIFactory
 from alarm.models import AlarmStatus

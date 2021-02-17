@@ -1,17 +1,48 @@
 import logging
 import os
 from django.db import transaction
-import alarm.communication.in_motion as in_motion
+import alarm.business.in_motion as in_motion
 import notification.tasks as notification_tasks
 from alarm.communication.out_alarm import notify_alarm_status_factory
 from alarm.communication.play_sound import play_sound
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetectedPicture
 from devices.models import SeverityChoice, Device
+import alarm.tasks as alarm_tasks
 
 
 LOGGER = logging.getLogger(__name__)
 
+def camera_video(device_id: str, video_ref: str, is_same_device: bool = False) -> None:
+    """Save camera video reference to the database. It add/extracts useful information.
+
+     Parameters
+     ----------
+     device_id : str
+        The device_id that sent the `video_ref`.
+
+     video_ref : str
+         A string that represents a video_ref, ex: '49efa0b4-2003-44e4-920c-4eb0e6eea358-1'
+             composed by two parts: the first one, the `event_ref` and the `record_number`.
+
+     is_same_device : bool
+        Either or not the `device_id` (so the device) is the same as the one that executes the function.
+
+     Returns
+     -------
+     None
+     """
+
+    video_file = f'{video_ref}.h264'
+
+    if is_same_device:
+        # The system has some latency to save the video,
+        # so we add a little countdown so the video will more likely be available after x seconds.
+        alarm_tasks.process_video.apply_async(kwargs={'video_file': video_file}, countdown=3)
+    else:
+        alarm_tasks.retrieve_and_process_video.apply_async(kwargs={'video_file': video_file, 'device_id': device_id}, countdown=3)
+
+    in_motion.save_camera_video(video_ref)
 
 class CameraMotion:
     """

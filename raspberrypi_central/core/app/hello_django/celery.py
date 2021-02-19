@@ -5,6 +5,8 @@ import os
 from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
+from celery.schedules import crontab
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
 
 celery = Celery('hello_django')
@@ -20,6 +22,12 @@ celery.config_from_object('django.conf:settings', namespace='CELERY')
 def setup_periodic_tasks(**_kwargs):
     # Calls every 60 seconds.
     celery.add_periodic_task(60, periodic_check_pings.s())
+
+    # Executes every Sunday morning at 9:30 a.m.
+    celery.add_periodic_task(
+        crontab(hour=9, minute=30, day_of_week=0),
+        backend_cleanup.s(),
+    )
 
 # Load task modules from all registered Django app configs.
 celery.autodiscover_tasks()
@@ -37,3 +45,8 @@ def periodic_check_pings() -> None:
     """
     from alarm.tasks import check_pings
     check_pings()
+
+@celery.task
+def backend_cleanup() -> None:
+    from mqtt_services.tasks import cleanup
+    cleanup()

@@ -3,8 +3,8 @@ from unittest.mock import Mock
 
 from django.test import TestCase
 
-from alarm.business.camera_motion import CameraMotion
-from alarm.communication.in_motion import save_motion
+from alarm.communication.camera_motion import CameraMotion
+from alarm.business.in_motion import save_motion
 from alarm.factories import AlarmStatusFactory
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected, CameraMotionDetectedPicture

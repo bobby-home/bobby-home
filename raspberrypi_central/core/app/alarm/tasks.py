@@ -145,7 +145,7 @@ class CheckPings:
                     create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
 
                 ping.save()
-            elif ping.consecutive_failures > 0:
+            elif ping.consecutive_failures >= 3:
                 msg = f'The service object_detection for the device {device} was not pinging but it does now. Everything is back to normal.'
                 create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
 

@@ -20,8 +20,8 @@ celery.config_from_object('django.conf:settings', namespace='CELERY')
 # setup Periodic Tasks. @see https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
 @celery.on_after_finalize.connect
 def setup_periodic_tasks(**_kwargs):
-    # Calls every 60 seconds.
-    celery.add_periodic_task(60, periodic_check_pings.s())
+    # Calls every 65 seconds.
+    celery.add_periodic_task(65, periodic_check_pings.s())
 
     # Executes every Sunday morning at 9:30 a.m.
     celery.add_periodic_task(

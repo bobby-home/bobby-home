@@ -1,6 +1,5 @@
 import struct
 import json
-from typing import Optional
 
 from loggers import LOGGER
 from mqtt.mqtt_client import MqttClient
@@ -20,6 +19,12 @@ class MqttManageRunnable:
         self._device_id = device_id
         self._multi_device = multi_device
 
+        def subscribe(client) -> None:
+            client.subscribe(mqtt_topic, qos=1)
+            client.message_callback_add(mqtt_topic, self._switch_on_or_off)
+
+        mqtt_client.on_connected_callbacks.append(subscribe)
+
         if multi_device is False:
             mqtt_topic = f'status/{service_name}/{device_id}'
             mqtt_client.connect_keep_status(service_name, device_id)
@@ -28,9 +33,6 @@ class MqttManageRunnable:
             mqtt_topic = f'status/{service_name}/+'
             mqtt_client.connect()
             mqtt_client.client.loop_start()
-
-        mqtt_client.client.subscribe(mqtt_topic, qos=1)
-        mqtt_client.client.message_callback_add(mqtt_topic, self._switch_on_or_off)
 
     @staticmethod
     def _get_device_id_from_topic(topic: str) -> str:

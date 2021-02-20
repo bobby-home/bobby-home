@@ -24,9 +24,6 @@ def extract_data_from_topic(topic: str):
 
 DEVICE_ID = os.environ['DEVICE_ID']
 
-mqtt_client = get_mqtt(f'{DEVICE_ID}-analyzer')
-mqtt_client.connect()
-
 DETECT_PEOPLE = detect_people_factory()
 
 class ConnectedDevices:
@@ -105,9 +102,15 @@ class CamerasManager(Runnable):
 connected_devices = ConnectedDevices()
 frame_receiver = FrameReceiver(connected_devices)
 
-# topics to receive frames to analyze for dumb cameras.
-mqtt_client.client.subscribe(f'{DumbCamera.PICTURE_TOPIC}/+', qos=0)
-mqtt_client.client.message_callback_add(f'{DumbCamera.PICTURE_TOPIC}/+', frame_receiver.on_picture)
+mqtt_client = get_mqtt(f'{DEVICE_ID}-analyzer')
+
+def subscribe(client) -> None:
+    # topics to receive frames to analyze for dumb cameras.
+    client.subscribe(f'{DumbCamera.PICTURE_TOPIC}/+', qos=0)
+    client.message_callback_add(f'{DumbCamera.PICTURE_TOPIC}/+', frame_receiver.on_picture)
+
+mqtt_client.on_connected_callbacks.append(subscribe)
+mqtt_client.connect()
 
 # topics to know when a camera is up/off
 camera_manager = CamerasManager(connected_devices)

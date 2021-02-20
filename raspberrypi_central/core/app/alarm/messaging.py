@@ -34,7 +34,7 @@ class AlarmMessaging:
             'since_time': timezone.now()
         }
 
-        self._verify_service_status.apply_async(kwargs=kwargs, countdown=5)
+        self._verify_service_status.apply_async(kwargs=kwargs, countdown=15)
 
         if is_dumb is True:
             kwargs_dumb = {
@@ -43,7 +43,7 @@ class AlarmMessaging:
                 'status': status,
                 'since_time': timezone.now()
             }
-            self._verify_service_status.apply_async(kwargs=kwargs_dumb, countdown=5)
+            self._verify_service_status.apply_async(kwargs=kwargs_dumb, countdown=15)
 
         if status is False:
             self._speaker_messaging.publish_speaker_status(device_id, False)

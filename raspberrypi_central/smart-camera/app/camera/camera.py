@@ -25,7 +25,7 @@ class ObjectLinkConsiderations:
 class Camera:
     SERVICE_NAME = 'object_detection'
 
-    SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 30
+    SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 60
 
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'

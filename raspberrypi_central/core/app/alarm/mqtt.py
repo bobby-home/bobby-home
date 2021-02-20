@@ -138,12 +138,11 @@ def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -
 
 
 def register(mqtt: MQTT):
-
     def inner(mqtt: MQTT):
         object_detection = bind_on_connected('object_detection', OnConnectedObjectDetectionHandler(mqtt))
+        dumb_camera = bind_on_connected('dumb_camera', OnConnectedObjectDetectionHandler(mqtt))
         speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
         camera = bind_on_connected('camera', OnConnectedHandlerLog(mqtt))
-        dumb_camera = bind_on_connected('dumb_camera', OnConnectedObjectDetectionHandler(mqtt))
 
         mqtt.add_subscribe([
             MqttTopicFilterSubscription(

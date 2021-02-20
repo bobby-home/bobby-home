@@ -4,10 +4,12 @@ import traceback
 import logging_loki
 from multiprocessing import Queue
 
+LOKI_HOSTNAME = os.environ['LOKI_HOSTNAME']
+LOKI_PORT = os.environ['LOKI_PORT']
 
 handler = logging_loki.LokiQueueHandler(
     Queue(-1),
-    url="http://192.168.1.8:3100/loki/api/v1/push",
+    url=f'http://{LOKI_HOSTNAME}:{LOKI_PORT}/loki/api/v1/push',
     # tags={'container_name': 'dumb_camera'},
     # auth=("username", "password"),
     version="1",

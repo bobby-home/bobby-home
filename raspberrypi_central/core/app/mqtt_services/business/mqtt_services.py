@@ -2,6 +2,13 @@ from django.utils import timezone
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 
 
+def is_last_status(device_id: str, service_name: str, status: bool) -> bool:
+    try:
+        latest = MqttServicesConnectionStatusLogs.objects.filter(device_id=device_id, service_name=service_name).latest()
+        return latest.status == status
+    except MqttServicesConnectionStatusLogs.DoesNotExist:
+        return False
+
 def is_in_status_since(device_id: str, service_name: str, status: bool, since_time) -> bool:
     """
     Check if the (device_id,service_name) status is equals to the `status` since the time asked.

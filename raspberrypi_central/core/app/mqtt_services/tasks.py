@@ -4,7 +4,7 @@ from celery import shared_task
 from django.utils import timezone
 
 from devices.models import Device
-from mqtt_services.business.mqtt_services import is_in_status_since
+from mqtt_services.business.mqtt_services import is_in_status_since, is_last_status
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 from notification.tasks import send_message
 from django.utils.translation import gettext as _
@@ -17,7 +17,7 @@ def verify_service_status(device_id: str, service_name: str, status: bool, since
     Usage: when the system sends a mqtt message to change the status of a service and it want to check if the status of the service actually changed.
     Generally, it is used with a countdown of some seconds to let the service the time to change.
     """
-    if not is_in_status_since(device_id, service_name, status, since_time):
+    if not is_in_status_since(device_id, service_name, status, since_time) and not is_last_status(device_id, service_name, status):
         device = Device.objects.with_location().get(device_id=device_id)
 
         on_text = _('turn on')

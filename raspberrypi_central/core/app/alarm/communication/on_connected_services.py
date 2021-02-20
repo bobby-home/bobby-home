@@ -19,7 +19,7 @@ class OnConnectedObjectDetectionHandler(OnConnectedHandlerLog):
 
     def on_disconnect(self, service_name: str, device_id: str) -> None:
         camera_motion.close_unclosed_camera_motions(device_id)
-        return super().on_connect(service_name, device_id)
+        return super().on_disconnect(service_name, device_id)
 
 class OnConnectedDumbCamera(OnConnectedHandlerLog):
     def __init__(self, client: MQTT):

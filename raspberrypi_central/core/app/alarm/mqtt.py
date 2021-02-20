@@ -138,31 +138,34 @@ def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -
 
 
 def register(mqtt: MQTT):
-    object_detection = bind_on_connected('object_detection', OnConnectedObjectDetectionHandler(mqtt))
-    speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
-    camera = bind_on_connected('camera', OnConnectedHandlerLog(mqtt))
-    dumb_camera = bind_on_connected('dumb_camera', OnConnectedHandlerLog(mqtt))
+    def inner(mqtt: MQTT):
+        object_detection = bind_on_connected('object_detection', OnConnectedObjectDetectionHandler(mqtt))
+        dumb_camera = bind_on_connected('dumb_camera', OnConnectedObjectDetectionHandler(mqtt))
+        speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
+        camera = bind_on_connected('camera', OnConnectedHandlerLog(mqtt))
 
-    mqtt.add_subscribe([
-        MqttTopicFilterSubscription(
-            topic='motion/#',
-            qos=1,
-            topics=[
-                MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
-                MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
-                MqttTopicSubscription('motion/video/+/+', on_motion_video),
-            ],
-        ),
-        MqttTopicFilterSubscription(
-            # ping/{service_name}/{device_id}
-            topic='ping/+/+',
-            qos=1,
-            topics=[
-                MqttTopicSubscription('ping/+/+', on_ping)
-            ]
-        ),
-        camera,
-        speaker,
-        object_detection,
-        dumb_camera,
-    ])
+        mqtt.add_subscribe([
+            MqttTopicFilterSubscription(
+                topic='motion/#',
+                qos=1,
+                topics=[
+                    MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
+                    MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
+                    MqttTopicSubscription('motion/video/+/+', on_motion_video),
+                ],
+            ),
+            MqttTopicFilterSubscription(
+                # ping/{service_name}/{device_id}
+                topic='ping/+/+',
+                qos=1,
+                topics=[
+                    MqttTopicSubscription('ping/+/+', on_ping)
+                ]
+            ),
+            camera,
+            speaker,
+            object_detection,
+            dumb_camera,
+        ])
+
+    mqtt.on_connected_callbacks.append(inner)

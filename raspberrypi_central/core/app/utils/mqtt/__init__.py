@@ -18,6 +18,7 @@ class MQTT:
     def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
         self._mqtt_client_constructor = mqtt_client_constructor
+        self.on_connected_callbacks: List[Callable[[MQTT], None]] = []
         self._client = self._init_mqtt_client()
 
     def _init_mqtt_client(self) -> mqtt.Client:
@@ -36,8 +37,9 @@ class MQTT:
 
         return client
 
-    def _mqtt_on_disconnect(self, _client, _userdata, rc):
-        print(f'_mqtt_on_disconnect reasoncode: {mqtt.connack_string(rc)}')
+    @staticmethod
+    def _mqtt_on_disconnect(_client, _userdata, rc):
+        print(f'_mqtt_on_disconnect reason code: {mqtt.connack_string(rc)}')
 
     def _mqtt_on_connect(self, _client, _userdata, _flags, rc: ReasonCodes, _properties):
         # print(_client._protocol)
@@ -49,6 +51,9 @@ class MQTT:
                 mqtt.connack_string(rc),
             )
             return
+
+        for callback in self.on_connected_callbacks:
+            callback(self)
 
     @staticmethod
     def _wrap_subscription_callback(subscription: MqttTopicSubscription):

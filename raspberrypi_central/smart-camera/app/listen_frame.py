@@ -71,9 +71,7 @@ class FrameReceiver:
         from_device_id = data['device_id']
 
         image = io.BytesIO(message.payload)
-
         camera = self._connected_devices.connected_devices.get(from_device_id, None)
-        print(f'analyze picture for device {from_device_id} {camera}')
 
         if camera:
             camera.process_frame(image)

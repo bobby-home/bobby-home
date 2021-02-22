@@ -28,9 +28,7 @@ class NotifyAlarmStatus:
         }
 
         if status.running is True:
-            payload = {
-                'rois': {}
-            }
+            payload['rois'] = {}
 
             if len(rois) > 0:
                 payload['rois']['definition_width'] = camera_roi.define_picture.width

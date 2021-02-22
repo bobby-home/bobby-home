@@ -118,7 +118,8 @@ class NotifyAlarmStatusTestCase(TestCase):
                 'definition_width': CameraROIFactoryConf.default_image_width,
                 'definition_height': CameraROIFactoryConf.default_image_height,
                 'rectangles': [model_to_dict(self.roi1), model_to_dict(self.roi2)]
-            }
+            },
+            'is_dumb': self.alarm_status.is_dumb,
         }
 
         expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, payload)]
@@ -149,7 +150,8 @@ class NotifyAlarmStatusTestCase(TestCase):
                 'definition_width': CameraROIFactoryConf.default_image_width,
                 'definition_height': CameraROIFactoryConf.default_image_height,
                 'rectangles': [self.roi1, self.roi2]
-            }
+            },
+            'is_dumb': self.alarm_status.is_dumb,
         }
 
         expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, payload)]

@@ -86,6 +86,11 @@ class CamerasManager(Runnable):
             self._connected_devices.remove(device_id)
             return None
 
+        if data is not None:
+            is_dumb = data.get('is_dumb', False)
+            if is_dumb is False:
+                return None
+
         camera_analyze_object = roi_camera_from_args(data)
 
         if self._connected_devices.has(device_id):

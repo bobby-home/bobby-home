@@ -8,8 +8,9 @@ from celery import shared_task
 from notification.consts import SeverityChoice
 from notification.tasks import send_video, create_and_send_notification
 from utils.date import is_time_newer_than
-from .business.alarm_schedule_change_status import AlarmScheduleChangeStatus
-from alarm.communication.camera_motion import camera_motion_factory, camera_video
+from .business import in_motion
+from .business.alarm_change_status import AlarmScheduleChangeStatus
+from alarm.communication.camera_motion import camera_motion_factory
 from alarm.models import AlarmStatus, Ping
 
 
@@ -102,7 +103,36 @@ def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status
 
 @shared_task(name='security.camera_motion_video')
 def camera_motion_video(device_id: str, video_ref: str, is_same_device: bool = False) -> None:
-    camera_video(device_id, video_ref, is_same_device)
+    """Save camera video reference to the database. It adds/extracts useful information.
+
+     Parameters
+     ----------
+     device_id : str
+        The device_id that sent the `video_ref`.
+
+     video_ref : str
+         A string that represents a video_ref, ex: '49efa0b4-2003-44e4-920c-4eb0e6eea358-1'
+             composed by two parts: the first one, the `event_ref` and the `record_number`.
+
+     is_same_device : bool
+        Either or not the `device_id` (so the device) is the same as the one that executes the function.
+
+     Returns
+     -------
+     None
+     """
+
+    video_file = f'{video_ref}.h264'
+
+    if is_same_device:
+        # The system has some latency to save the video,
+        # so we add a little countdown so the video will more likely be available after x seconds.
+        process_video.apply_async(kwargs={'video_file': video_file}, countdown=3)
+    else:
+        retrieve_and_process_video.apply_async(kwargs={'video_file': video_file, 'device_id': device_id},
+                                                           countdown=3)
+
+    in_motion.save_camera_video(video_ref)
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):

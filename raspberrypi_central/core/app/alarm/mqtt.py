@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 
 from hello_django.loggers import LOGGER
-from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
+from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.tasks import camera_motion_detected
 
-from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
+from utils.mqtt.mqtt_status_handler import bind_on_connected
 from .business.alarm import ping
 from .communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler, \
     OnConnectedCamera
@@ -131,11 +131,6 @@ def on_ping_data_from_topic(topic: str) -> PingData:
 def on_ping(message: MqttMessage) -> None:
     data = on_ping_data_from_topic(message.topic)
     ping(data.device_id, data.service_name)
-
-def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:
-    on_status = OnStatus(handler_instance)
-
-    return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
 
 
 def register(mqtt: MQTT):

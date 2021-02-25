@@ -7,7 +7,7 @@ from devices.models import Device
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 import mqtt_services.tasks as mqtt_tasks
 from utils.mqtt import MQTT, MqttMessage
-
+from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean
 
 
 def split_camera_topic(topic: str):
@@ -23,7 +23,7 @@ def split_camera_topic(topic: str):
             'device_id': data[2]
         }
     except IndexError as err:
-        raise ValueError(f'cannot extract data from {topic}. Should be like `type/service/device_id`.') from err
+        raise ValueError(f'cannot extract data from {topic}. Should be like `connected/[service]/[device_id]`.') from err
 
 
 class OnConnectedHandler(ABC):
@@ -100,3 +100,9 @@ class OnStatus:
             self._handler.on_connect(service_name, device_id)
         else:
             self._handler.on_disconnect(service_name, device_id)
+
+
+def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:
+    on_status = OnStatus(handler_instance)
+
+    return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)

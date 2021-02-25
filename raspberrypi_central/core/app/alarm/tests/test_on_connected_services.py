@@ -1,8 +1,6 @@
 from unittest.mock import Mock, patch
-
 from django.test import TestCase
-
-from alarm.communication.on_connected_services import OnConnectedObjectDetectionHandler
+from alarm.communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedCamera
 from alarm.factories import AlarmStatusFactory
 from devices.factories import DeviceFactory
 
@@ -14,7 +12,7 @@ class OnConnectedServices(TestCase):
         self.mqtt = Mock()
 
     def test_on_connect_send_data(self):
-        handler = OnConnectedObjectDetectionHandler(self.mqtt)
+        handler = OnConnectedCamera(self.mqtt)
 
         with patch('alarm.communication.out_alarm.notify_alarm_status_factory') as notify_alarm_status_factory:
             notify = Mock()

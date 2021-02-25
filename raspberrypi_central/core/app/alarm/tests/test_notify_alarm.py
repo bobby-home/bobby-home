@@ -5,6 +5,7 @@ from unittest.mock import Mock, call, patch
 from django.forms import model_to_dict
 from django.test import TestCase
 from django.utils import timezone
+from freezegun import freeze_time
 
 from alarm.communication.out_alarm import NotifyAlarmStatus
 from alarm.factories import AlarmStatusFactory
@@ -156,27 +157,3 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, payload)]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
-
-
-class NotifyAlarmStatusCalledTestCase(TestCase):
-    def setUp(self) -> None:
-        self.alarm_status: AlarmStatus = AlarmStatusFactory()
-
-    @skip
-    def test_notify_when_status_change(self):
-        with patch.object(NotifyAlarmStatus, 'publish_status_changed', return_value=None) as mock:
-            self.alarm_status.running = False
-            self.alarm_status.save()
-
-            expected_call = [call(self.alarm_status.device.pk, False)]
-            mock.assert_called_once()
-            mock.assert_has_calls(expected_call)
-
-            mock.reset_mock()
-
-            self.alarm_status.running = True
-            self.alarm_status.save()
-
-            expected_call = [call(self.alarm_status.device.pk, True)]
-            mock.assert_called_once()
-            mock.assert_has_calls(expected_call)

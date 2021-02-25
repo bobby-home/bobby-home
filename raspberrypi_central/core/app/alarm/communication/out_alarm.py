@@ -3,6 +3,7 @@ import logging
 from django.forms import model_to_dict
 
 import alarm.business.alarm_status as alarm_status
+from alarm.communication import checks
 from alarm.communication.alarm_consts import ROITypes
 from alarm.messaging import alarm_messaging_factory, AlarmMessaging
 from camera.models import CameraROI, CameraRectangleROI
@@ -13,6 +14,7 @@ from alarm.models import AlarmStatus
 
 
 LOGGER = logging.getLogger(__name__)
+
 
 class NotifyAlarmStatus:
     def __init__(self, alarm_messaging: AlarmMessaging):
@@ -40,6 +42,8 @@ class NotifyAlarmStatus:
         if status.running is False and alarm_status.can_turn_off(device) is False and force is False:
             LOGGER.info(f'The alarm on device {device.device_id} should turn off but stay on because a motion is being detected.')
             return
+
+        checks.verify_services_status(device.device_id, status.running, status.is_dumb)
 
         self._alarm_messaging \
             .publish_alarm_status(device.device_id, status.running, status.is_dumb, payload)

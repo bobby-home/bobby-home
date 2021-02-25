@@ -61,9 +61,9 @@ class MQTT:
 
     def add_subscribe(self, subscriptions: List[Subscription]):
 
-        def _mqtt_add_callback(subscription: MqttTopicSubscription):
-            subscription_callback = self._wrap_subscription_callback(subscription)
-            self._client.message_callback_add(subscription.topic, subscription_callback)
+        def _mqtt_add_callback(sub: MqttTopicSubscription):
+            subscription_callback = self._wrap_subscription_callback(sub)
+            self._client.message_callback_add(sub.topic, subscription_callback)
 
         for subscription in subscriptions:
             """
@@ -88,7 +88,26 @@ class MQTT:
                 _mqtt_add_callback(subscription)
 
     @staticmethod
-    def _mqtt_on_message_wrapper(subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
+    def _mqtt_on_message_wrapper(subscription: MqttTopicSubscription, _mqttc, _userdata, msg: mqtt.MQTTMessage) -> None:
+        """Callback given to Paho mqtt which calls it when it receives a mqtt message. Then it calls `subscription.callback` with computed `MqttMessage`.
+        Used to extract data given by Paho mqtt and to call our `subscription.callback`.
+        Thanks to this, our system is not concerned by the library.
+
+        Parameters
+        ----------
+        subscription : MqttTopicSubscription
+            The
+        _mqttc
+            Paho mqtt client.
+        _userdata
+            Paho mqtt user data.
+        msg : mqtt.MQTTMessage
+            MQTTMessage object given by Paho mqtt.
+
+        Returns
+        -------
+        None
+        """
         timestamp = dt_utils.utcnow()
 
         subscription.callback(MqttMessage(

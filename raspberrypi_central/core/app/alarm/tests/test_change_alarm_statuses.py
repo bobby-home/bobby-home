@@ -3,7 +3,7 @@ import uuid
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
-from alarm.business.alarm_schedule_change_status import AlarmScheduleChangeStatus
+from alarm.business.alarm_change_status import AlarmScheduleChangeStatus
 from alarm.factories import AlarmScheduleFactory, AlarmStatusFactory
 from alarm.models import AlarmSchedule, AlarmStatus
 from camera.models import CameraMotionDetected

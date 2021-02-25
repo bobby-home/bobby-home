@@ -23,12 +23,12 @@ class NotifyAlarmStatus:
         The only method that actually send an mqtt message.
         It formats the mqtt payload and decide whether or not a mqtt call has to be done.
         """
-        payload = None
+        payload = {
+            'is_dumb': status.is_dumb
+        }
 
         if status.running is True:
-            payload = {
-                'rois': {}
-            }
+            payload['rois'] = {}
 
             if len(rois) > 0:
                 payload['rois']['definition_width'] = camera_roi.define_picture.width

@@ -21,7 +21,7 @@ build-docker:
 
 .PHONY: test
 test:
-	$(drtest) camera python -m unittest test/test_camera.py #
+	$(drtest) camera python -m unittest test/test_run_listen_frame.py #
 
 .PHONY: docker-build-release
 docker-build-release:

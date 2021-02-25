@@ -47,7 +47,7 @@ class ManageRecord:
 
         return data
 
-    def _on_record(self, client, userdata, message) -> None:
+    def _on_record(self, _client, _userdata, message) -> None:
         data = self._extract_data_from_topic(message.topic)
         print(f'dumb_camera: on_record {data}')
 

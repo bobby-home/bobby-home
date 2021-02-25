@@ -38,7 +38,7 @@ class AlarmMessagingTestCase(TestCase):
                 'since_time': timezone.now()
             }
 
-            self.verify_service_status.apply_async.assert_called_once_with(kwargs=kwargs, countdown=5)
+            self.verify_service_status.apply_async.assert_called_once_with(kwargs=kwargs, countdown=15)
 
         _test(False)
         self.verify_service_status.reset_mock()
@@ -63,6 +63,6 @@ class AlarmMessagingTestCase(TestCase):
         }
 
         self.verify_service_status.apply_async.assert_has_calls([
-            call(kwargs=kwargs_object_detection, countdown=5),
-            call(kwargs=kwargs_dumb_camera, countdown=5),
+            call(kwargs=kwargs_object_detection, countdown=15),
+            call(kwargs=kwargs_dumb_camera, countdown=15),
         ])

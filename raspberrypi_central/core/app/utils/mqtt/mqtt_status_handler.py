@@ -3,9 +3,11 @@ from typing import Optional
 
 from django.db.models import Model
 import alarm.business.alarm as alarm
+from devices.models import Device
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 import mqtt_services.tasks as mqtt_tasks
 from utils.mqtt import MQTT, MqttMessage
+
 
 
 def split_camera_topic(topic: str):
@@ -90,6 +92,9 @@ class OnStatus:
         topic = split_camera_topic(message.topic)
         device_id = topic['device_id']
         service_name = topic['service']
+
+        if not Device.objects.filter(device_id=device_id).exists():
+            return None
 
         if message.payload is True:
             self._handler.on_connect(service_name, device_id)

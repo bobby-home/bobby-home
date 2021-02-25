@@ -26,7 +26,6 @@ class AlarmMessaging:
         When the system turns on the camera, the object_detection should be up a bit later.
         """
 
-        # @TODO: for dumb camera we have 2 services: 'dumb_camera' (that sends frames) and 'object_detection' (that analyzes frames).
         kwargs = {
             'device_id': device_id,
             'service_name': 'object_detection',
@@ -34,7 +33,12 @@ class AlarmMessaging:
             'since_time': timezone.now()
         }
 
-        self._verify_service_status.apply_async(kwargs=kwargs, countdown=15)
+        if is_dumb is True and status is False:
+            # weird case, the service object_detection does not publish off
+            # for dumb cameras.
+            pass
+        else:
+            self._verify_service_status.apply_async(kwargs=kwargs, countdown=15)
 
         if is_dumb is True:
             kwargs_dumb = {

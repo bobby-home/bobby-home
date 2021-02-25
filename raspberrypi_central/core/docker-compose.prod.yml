@@ -53,25 +53,25 @@ services:
         restart: unless-stopped
 
     rabbit_worker:
-        image: mxmaxime/core:0.2.1
+        image: mxmaxime/core:0.2.5
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
 
     celery_beat:
-        image: mxmaxime/core:0.2.1
+        image: mxmaxime/core:0.2.5
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
 
     telegram_bot:
-        image: mxmaxime/core:0.2.1
+        image: mxmaxime/core:0.2.5
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
 
     web:
-        image: mxmaxime/core:0.2.1
+        image: mxmaxime/core:0.2.5
         #        command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
         ports:
             - 8000:8000
@@ -80,7 +80,7 @@ services:
         restart: unless-stopped
 
     python_process_mqtt:
-        image: mxmaxime/core:0.2.1
+        image: mxmaxime/core:0.2.5
         logging: *loki-logging
         restart: unless-stopped
         <<: *env

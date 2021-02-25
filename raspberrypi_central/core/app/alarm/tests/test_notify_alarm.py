@@ -26,6 +26,11 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         self.alarm_messaging_mock = Mock()
 
+    def _except_publish_alarm_status_call(self):
+        expected_payload = {'is_dumb': self.alarm_status.is_dumb}
+        expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, expected_payload)]
+        self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
+
     def test_publish_false(self):
         self.alarm_status.running = False
         self.alarm_status.save()
@@ -35,8 +40,7 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         self.alarm_messaging_mock.publish_alarm_status.assert_called_once()
 
-        expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, None)]
-        self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
+        self._except_publish_alarm_status_call()
 
     def test_no_publish_motion_being(self):
         self.alarm_status.running = False
@@ -60,8 +64,7 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_status_changed(self.device.id, self.alarm_status, force=True)
-
-        self.alarm_messaging_mock.publish_alarm_status.assert_called_once_with(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, None)
+        self._except_publish_alarm_status_call()
 
     def test_publish_false_motion_ended(self):
         self.alarm_status.running = False
@@ -77,9 +80,7 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_status_changed(self.device.id, self.alarm_status)
-
-        expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, None)]
-        self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
+        self._except_publish_alarm_status_call()
 
     def test_publish_false_last_motion_being_done(self):
         """
@@ -104,8 +105,7 @@ class NotifyAlarmStatusTestCase(TestCase):
         notify = NotifyAlarmStatus(self.alarm_messaging_mock)
         notify.publish_status_changed(self.device.id, self.alarm_status)
 
-        expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, None)]
-        self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
+        self._except_publish_alarm_status_call()
 
     def test_publish_true_with_roi(self):
         notify = NotifyAlarmStatus(self.alarm_messaging_mock)
@@ -118,7 +118,8 @@ class NotifyAlarmStatusTestCase(TestCase):
                 'definition_width': CameraROIFactoryConf.default_image_width,
                 'definition_height': CameraROIFactoryConf.default_image_height,
                 'rectangles': [model_to_dict(self.roi1), model_to_dict(self.roi2)]
-            }
+            },
+            'is_dumb': self.alarm_status.is_dumb,
         }
 
         expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, payload)]
@@ -149,7 +150,8 @@ class NotifyAlarmStatusTestCase(TestCase):
                 'definition_width': CameraROIFactoryConf.default_image_width,
                 'definition_height': CameraROIFactoryConf.default_image_height,
                 'rectangles': [self.roi1, self.roi2]
-            }
+            },
+            'is_dumb': self.alarm_status.is_dumb,
         }
 
         expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, payload)]

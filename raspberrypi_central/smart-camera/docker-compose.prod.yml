@@ -9,16 +9,16 @@ x-logging: &loki-logging
 
 services:
     camera:
-        image: mxmaxime/camera:0.2.2
+        image: mxmaxime/camera:0.2.3
         logging: *loki-logging
         restart: unless-stopped
 
     sound:
-        image: mxmaxime/camera:0.2.2
+        image: mxmaxime/camera:0.2.3
         logging: *loki-logging
         restart: unless-stopped
 
     listen_frame:
-        image: mxmaxime/camera:0.2.2
+        image: mxmaxime/camera:0.2.3
         logging: *loki-logging
         restart: unless-stopped

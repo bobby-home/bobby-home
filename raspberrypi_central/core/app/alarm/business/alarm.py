@@ -13,7 +13,7 @@ def is_status_exists(model_ref: Model, device_id: str, running: bool) -> bool:
 
     return False
 
-def ping(device_id: str, service_name: str) -> None:
+def register_ping(device_id: str, service_name: str) -> None:
     Ping.objects.update_or_create(
         device_id=device_id, service_name=service_name,
         defaults={'last_update': timezone.now()}

@@ -8,7 +8,7 @@ import alarm.tasks as tasks
 from alarm.tasks import camera_motion_detected
 
 from utils.mqtt.mqtt_status_handler import bind_on_connected
-from .business.alarm import ping
+from .business.alarm import register_ping
 from .communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler, \
     OnConnectedCamera
 import os
@@ -130,7 +130,7 @@ def on_ping_data_from_topic(topic: str) -> PingData:
 
 def on_ping(message: MqttMessage) -> None:
     data = on_ping_data_from_topic(message.topic)
-    ping(data.device_id, data.service_name)
+    register_ping(data.device_id, data.service_name)
 
 
 def register(mqtt: MQTT):

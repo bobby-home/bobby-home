@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf public/assets && npx rollup -c rollup.config.js && touch public/assets/time",
+    "build": "rm -rf public/assets && npx vite build",
     "dev": "rm -rf public/assets/time && npx vite"
   },
   "author": "",
@@ -24,8 +24,8 @@
     "rollup-plugin-root-import": "^1.0.0",
     "sass": "^1.26.5",
     "@koa/cors": "^3.1.0",
-    "vite": "^1.0.0-rc.9",
-    "@prefresh/vite": "^0.9.0",
-    "@vue/compiler-sfc": "^3.0.4"
+    "@vitejs/plugin-vue": "^1.1.5",
+    "@vue/compiler-sfc": "^3.0.5",
+    "vite": "^2.0.5"
   }
 }

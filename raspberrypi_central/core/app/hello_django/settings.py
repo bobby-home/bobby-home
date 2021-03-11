@@ -25,6 +25,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
+# can be either 'prod', 'dev', 'testing'.
+ENV = os.environ.get("ENV", default='prod')
+
 TESTING = int(os.environ.get("TESTING", default=0))
 
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
@@ -158,11 +161,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/public/'
 
 if not TESTING:
     STATICFILES_DIRS = [
-        f"{BASE_DIR}/static",
+        f"{BASE_DIR}/public",
     ]
 
 if DEBUG and not TESTING:

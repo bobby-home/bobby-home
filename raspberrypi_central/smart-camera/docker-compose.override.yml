@@ -1,0 +1,25 @@
+version: "3.8"
+
+
+x-build: &build
+    build:
+        context: ./app
+        args:
+            USER_ID: ${USER_ID}
+            GROUP_ID: ${GROUP_ID}
+
+services:
+    camera:
+        <<: *build
+        volumes:
+            - ./app/:/usr/src/app/
+
+    sound:
+        <<: *build
+        volumes:
+            - ./app/:/usr/src/app/
+
+    listen_frame:
+        <<: *build
+        volumes:
+            - ./app/:/usr/src/app/

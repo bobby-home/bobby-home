@@ -1,10 +1,11 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 import numpy as np
 
 from roi.roi import RectangleROI
 
 
 class TestRectangleROI(TestCase):
+    @skip
     def test_get_contours(self):
         x = 10
         y = 10
@@ -20,6 +21,7 @@ class TestRectangleROI(TestCase):
 
         np.testing.assert_array_equal(contours, expected)
 
+    @skip
     def test_equals(self):
         x = 10
         y = 10

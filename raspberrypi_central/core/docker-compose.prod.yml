@@ -1,0 +1,90 @@
+version: '3.8'
+
+x-logging: &loki-logging
+    driver: loki
+    options:
+        loki-url: "http://localhost:3100/api/prom/push"
+
+# https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields
+x-env: &env
+    env_file:
+        - .env
+        - ~/.device
+
+services:
+    rabbit:
+        logging: *loki-logging
+        restart: unless-stopped
+
+    database:
+        logging: *loki-logging
+        restart: unless-stopped
+
+    mqtt_broker:
+        logging: *loki-logging
+        restart: unless-stopped
+
+    loki:
+        image: grafana/loki:2.1.0
+        ports:
+            - "3100:3100"
+        command: -config.file=/etc/loki/local-config.yaml
+        volumes:
+            - type: bind
+              source: ./config/loki/local-config.yml
+              target: /etc/loki/local-config.yaml
+        restart: unless-stopped
+
+    promtail:
+        image: grafana/promtail:2.1.0
+        volumes:
+            - /var/log:/var/log
+        restart: unless-stopped
+
+    grafana:
+        image: grafana/grafana:7.4.0
+        # run grafana with this user (host user), so we don't have any right conflict.
+        # https://grafana.com/docs/grafana/latest/administration/configure-docker/#run-grafana-container-using-bind-mounts
+        ports:
+            - "3000:3000"
+        user: "472"
+        volumes:
+            - grafana-data:/var/lib/grafana
+        restart: unless-stopped
+
+    rabbit_worker:
+        image: mxmaxime/core:0.2.7
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+    celery_beat:
+        image: mxmaxime/core:0.2.7
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+    telegram_bot:
+        image: mxmaxime/core:0.2.7
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+    web:
+        image: mxmaxime/core:0.2.7
+        #        command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
+        ports:
+            - 8000:8000
+        <<: *env
+        logging: *loki-logging
+        restart: unless-stopped
+
+    python_process_mqtt:
+        image: mxmaxime/core:0.2.7
+        logging: *loki-logging
+        restart: unless-stopped
+        <<: *env
+
+volumes:
+    grafana-data:
+        driver: local

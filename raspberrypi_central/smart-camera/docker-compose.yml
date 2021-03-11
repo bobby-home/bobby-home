@@ -1,26 +1,47 @@
 version: "3.8"
 
 
+x-env: &env
+    env_file:
+        - .env
+        - ~/.device
+
 services:
-    py:
-        build: ./app
-        command: bash -c "chmod +x ./scripts/wait-for-it.sh && ./scripts/wait-for-it.sh -t 0 mqtt:8883 -- python alarm.py"
-        env_file:
-            - .env
-        networks: 
+    camera:
+        command: python alarm.py
+        <<: *env
+        networks:
             - backend_mqtt
             - motion
-
         # Give access to the rpi camera device.
         privileged: true
         environment:
                 - LD_LIBRARY_PATH=/opt/vc/lib
         volumes:
-            - ./app/:/usr/src/app/
+            - camera_videos/:/var/lib/camera/media
+            - tf-models/:/var/lib/camera/tf-models
             - /opt/vc:/opt/vc
-
         devices:
                 - "/dev/vchiq:/dev/vchiq"
+
+    sound:
+        command: python sound.py
+        <<: *env
+        networks:
+            - backend_mqtt
+            - motion
+        # Give access to the rpi audio device. Otherwise it cannot play sound! see issue #126
+        privileged: true
+
+    listen_frame:
+        command: bash -c "python listen_frame.py"
+        volumes:
+            - tf-models/:/var/lib/camera/tf-models
+        <<: *env
+        networks:
+            - backend_mqtt
+            - motion
+
 
 networks:
     motion:
@@ -28,3 +49,9 @@ networks:
     backend_mqtt:
         external:
             name: backend_mqtt
+
+volumes:
+    camera_videos:
+        external: true
+    tf-models:
+        driver: local

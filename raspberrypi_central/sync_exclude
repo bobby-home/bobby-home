@@ -1,4 +1,6 @@
 node_modules
-psql-data
-mosquitto-data
-media
+__pycache__
+.idea
+.pytest_cache
+.vscode
+mosquitto

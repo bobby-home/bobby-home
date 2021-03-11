@@ -1,42 +1,65 @@
-from picamera.array import PiRGBArray
-from picamera import PiCamera
+import io
+import time
 
+from picamera import PiCamera
+import os
+
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 class PiVideoStream:
-    def __init__(self, processFrame, resolution, framerate, **kwargs):
-        self.processFrame = processFrame
 
+    BASE_VIDEO_PATH = os.environ['MEDIA_FOLDER']
+
+    def __init__(self, process_frame, resolution, framerate, **kwargs):
+        self.process_frame = process_frame
+        self.resolution = resolution
+        self.framerate = framerate
+        self.kwargs = kwargs
+
+        self.camera = None
+        self._record = False
+
+    def run(self):
         self.camera = PiCamera()
+        # Camera warm-up time
+        time.sleep(2)
 
-        # set camera parameters
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
+        camera = self.camera
+
+        camera.resolution = self.resolution
+        camera.framerate = self.framerate
 
         # set optional camera parameters (refer to PiCamera docs)
-        for (arg, value) in kwargs.items():
-            setattr(self.camera, arg, value)
+        for (arg, value) in self.kwargs.items():
+            setattr(camera, arg, value)
 
-        # initialize the stream
-        self.rawCapture = PiRGBArray(self.camera, size=resolution)
-        self.stream = self.camera.capture_continuous(self.rawCapture, format='jpeg', use_video_port=True)
+        raw_capture = io.BytesIO()
+        for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
+            raw_capture.seek(0)
 
-        self._update()
+            self.process_frame(raw_capture)
 
-    def _update(self):
-        for f in self.stream:
-            # grab the frame from the stream and clear the stream in
-            # preparation for the next frame
-            frame = f.array
-            self.processFrame(frame)
-            # grab the frame from the stream and clear the stream in
-            # preparation for the next frame
-            frame = f.array
-            self.processFrame(frame)
-            self.rawCapture.truncate(0)
+            # "Rewind" the stream to the beginning so we can read its content
+            raw_capture.seek(0)
+            raw_capture.truncate()
 
-            # TODO issue #79: release resources when turning off the camera.
-            # if self.stopped:
-            # 	self.stream.close()
-            # 	self.rawCapture.close()
-            # 	self.camera.close()
-            # 	return
+    def start_recording(self, video_ref: str) -> None:
+        if self._record is False:
+            LOGGER.info(f'start recording video_ref={video_ref}')
+            self._record = True
+            self.camera.start_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
+
+    def stop_recording(self) -> None:
+        if self._record is True:
+            LOGGER.info('stop recording')
+            self.camera.stop_recording()
+            self._record = False
+
+    def split_recording(self, video_ref: str) -> None:
+        if self._record is True:
+            LOGGER.info(f'split_recording video_ref={video_ref}')
+
+            # Continue the recording in the specified output; close existing output.
+            self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))

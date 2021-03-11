@@ -1,7 +1,5 @@
+numpy==1.19.*
 picamera==1.13
 pygame==1.9.*
-boto3==1.14.*
-requests==2.24.*
-aiohttp==3.6.*
 paho-mqtt==1.5.*
-Pillow==2.2.0
+Pillow==8.0.*

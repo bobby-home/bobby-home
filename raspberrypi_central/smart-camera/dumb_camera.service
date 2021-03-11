@@ -1,0 +1,18 @@
+[Unit]
+Description=Dumb camera
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/camera/app/
+ExecStart=/home/pi/camera/app/entrypoint_dumb_camera.sh
+
+SyslogIdentifier=dumb_camera
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

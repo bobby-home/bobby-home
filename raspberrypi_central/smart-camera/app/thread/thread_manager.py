@@ -1,11 +1,11 @@
 from multiprocessing import Process
-from typing import Callable
-from functools import partial
 
+from loggers import LOGGER
+from service_manager.runnable import Runnable
 from service_manager.service_manager import RunService
 
 
-class ThreadManager:
+class ThreadManager(Runnable):
 
     def __init__(self, run_service: RunService):
         self._is_running = False
@@ -22,22 +22,20 @@ class ThreadManager:
             """
             self._run_service.prepare_run(data)
 
-            # TODO: add log see #102
             self._process = Process(target=self._run_service.run)
             self._process.start()
+            LOGGER.info(f'Start {self._run_service}.')
+
         elif self._run_service.is_restart_necessary(data):
-            # TODO: see #102
-            print(f'Restart camera because configuration changed')
+            LOGGER.info(f'Restart {self._run_service} because restart is necessary (configuration data changed)')
             self._stop_process()
             self._start_process(data)
         else:
-            # TODO: see #102
-            print(f"Dit not restart because the configuration remains the same for {self._run_service}")
+            LOGGER.info(f"Dit not restart because the configuration remains the same for {self._run_service}")
 
     def _stop_process(self):
         if self._process:
-            # TODO: add log, see #102
-            self._run_service.stop()
+            LOGGER.info(f'Stop process for {self._run_service}')
             self._process.terminate()
             self._process = None
 
@@ -45,8 +43,9 @@ class ThreadManager:
     def running(self):
         return self._is_running
 
-    def run(self, status: bool, data=None):
+    def run(self, _device_id: str, status: bool, data=None) -> None:
         self._is_running = status
+
         if status is True:
             self._start_process(data)
         elif status is False:

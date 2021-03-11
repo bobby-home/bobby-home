@@ -7,8 +7,8 @@ from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog
 
 class OnConnectedObjectDetectionHandler(OnConnectedHandlerLog):
 
-    def __init__(self, client: MQTT):
-        super().__init__(client, AlarmStatus)
+    # def __init__(self, client: MQTT):
+        # super().__init__(client, AlarmStatus)
 
     def on_connect(self, service_name: str, device_id: str) -> None:
         camera_motion.close_unclosed_camera_motions(device_id)
@@ -21,8 +21,9 @@ class OnConnectedObjectDetectionHandler(OnConnectedHandlerLog):
         return super().on_disconnect(service_name, device_id)
 
 class OnConnectedDumbCamera(OnConnectedHandlerLog):
-    def __init__(self, client: MQTT):
-        super().__init__(client, AlarmStatus)
+    pass
+    # def __init__(self, client: MQTT):
+        # super().__init__(client, AlarmStatus)
 
 class OnConnectedCamera(OnConnectedHandlerLog):
     def on_connect(self, service_name: str, device_id: str) -> None:

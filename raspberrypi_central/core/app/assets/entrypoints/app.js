@@ -3,7 +3,7 @@ import '../css/app.scss'
 import {createApp} from 'vue'
 import App from '../App.vue'
 import {DialogManager} from '../state/dialog-state'
-import {FormHandler} from "../js/form/form-handler";
+import {FormHandler} from '../js/form/form-handler'
 
 const app = createApp(App)
 const mounted = app.mount('#app')

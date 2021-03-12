@@ -15,7 +15,7 @@
             {% if request.user.is_authenticated %}
                 {{ request.user.first_name }}
             {% else %}
-                Please login
+                <a href="{% url 'login' %}">Login</a>
             {% endif %}
         </ul>
     </nav>

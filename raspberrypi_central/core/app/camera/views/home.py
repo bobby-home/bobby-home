@@ -6,7 +6,7 @@ from alarm.models import AlarmStatus
 
 
 class AlarmHome(TemplateView):
-    template_name = "alarm/home.html"
+    template_name = "camera/home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

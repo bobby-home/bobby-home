@@ -1,0 +1,28 @@
+{% csrf_token %}
+{# Include the hidden fields #}
+{% for hidden in form.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% if form.non_field_errors %}
+<div class="form-errors">
+    {% svg_icon 'exclamation' %}
+    <ul>
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{# Include the visible fields #}
+{% for field in form.visible_fields %}
+    <div class="form-group">
+        {{ field.errors }}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+    </div>
+{% endfor %}

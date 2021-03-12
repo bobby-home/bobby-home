@@ -3,11 +3,10 @@
 .copy.variant--box {
   --paddingTop: #{space(3)};
   --paddingBottom: #{space(3)};
-  --boxBorderRadius: 3px;
 
-  background: var(--background-light);
+  background-color: var(--background-light);
   box-shadow: var(--box-shadow);
-  border-radius: var(--boxBorderRadius);
+  border-radius: var(--borderRadius);
   overflow: hidden;
 
   padding-top: var(--paddingTop);

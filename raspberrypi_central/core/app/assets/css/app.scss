@@ -19,6 +19,7 @@
  */
 
  @import "modules/topbar";
+ @import "modules/form";
 
 /**
  * Variables
@@ -43,10 +44,13 @@
   --buttonBackground: var(--accentColor);
 
   --border: #D5E3EC;
+  --borderRadius: 5px;
   --border-light: #D5E3EC7F;
-  --contrast: #4869EE;
+  --contrast: hsl(228, 83%, 61%);
+  --contrast-light: hsl(228, 83%, 90%);
 
-  --accentColor: #345995;
+
+  --accentColor: hsl(220, 93%, 35%);
 
   --background: hsl(0, 0%, 97%);
   --background-light: #FFF;
@@ -82,7 +86,7 @@
 
 .copy {
   display: grid;
-  row-gap: var(--rowGap);
+  row-gap: var(--rowGapNormal);
 }
 
 .copy.variant--section {

@@ -183,3 +183,6 @@ MEDIA_URL = '/media/'
 
 # MEDIA_FOLDER env variable is defined in Dockerfile
 MEDIA_ROOT = os.path.join(os.environ['MEDIA_FOLDER'])
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

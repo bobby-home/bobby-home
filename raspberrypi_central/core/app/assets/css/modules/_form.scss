@@ -1,0 +1,49 @@
+.form-group input,
+.form-group textarea,
+.choices__inner,
+.form-group select,
+%input {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--color);
+  padding: space(1.5) space(1);
+  display: block;
+  width: 100%;
+  outline: none;
+  min-height: 44px;
+}
+
+.form-group {
+  label {
+    display: block;
+    margin-bottom: space(1);
+  }
+}
+
+/**
+ * Accessibility
+ */
+.form-group input:focus,
+.form-check input:focus + label::before,
+select:focus,
+textarea:focus,
+form button:focus,
+input:focus + label .switch,
+%input-active {
+  border-color: var(--contrast);
+  box-shadow: 0 0 0 3px var(--contrast-light);
+  background-color: var(--background-light);
+}
+
+.form-errors svg {
+  width: 18px;
+  height: 18px;
+}
+
+.form-errors {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  grid-gap: space(1.5);
+  color: var(--red);
+}

@@ -52,11 +52,17 @@ html {
   margin: 0 auto;
 }
 
+.l-mini-container {
+  @extend .l-container;
+  max-width: 31rem;
+}
+
 /**
  * Stacks
  */
 %l-stack,
 .l-stack {
+  --gap: 2;
   display: grid;
   grid-template-columns: 1fr;
   align-content: flex-start;

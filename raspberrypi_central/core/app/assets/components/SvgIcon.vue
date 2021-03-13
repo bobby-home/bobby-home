@@ -16,7 +16,7 @@ export default {
     },
 
     href() {
-      return `/static/sprite.svg#${this.name}`
+      return `/public/svg/sprite.svg#${this.name}`
     }
   }
 }

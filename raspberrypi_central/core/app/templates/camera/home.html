@@ -1,36 +1,35 @@
 {% extends '_layout.html' %}
 
 {% block body %}
-<div class="l-container">
-    <div class="l-section">
+    <div class="l-container">
+        <div class="l-section">
+            <div class="l-row alarms">
+                {% for alarm in alarms %}
 
-        <div class="l-row">
-            {% for alarm in alarms %}
-            <div class="copy variant--box variant--content">
-                <div class="copy__body">
-                    <p>
-                        Alarm is {{ alarm.running }} on device {{ alarm.device.name }} located in {{ alarm.device.location }}
-                    </p>
-                </div>
-                <div class="copy__cta">
-                    <a class="btn" href="{% url 'alarm:status-edit' alarm.pk %}">Change status</a>
-                </div>
-            </div>
-            {% endfor %}
+                    <div class="copy variant--box variant--content l-stack">
+                        <div class="copy__body l-stack">
+                            <p class="flex items-center">
+                                {% if alarm.running %}
+                                    {% svg_icon 'shield' %}
+                                {% else %}
+                                    {% svg_icon 'shield-exclamation' %} <span class="l-ml1">Alarme désactivée</span>
+                                {% endif %}
+                            </p>
+                            <p class="flex items-center">
+                                {% svg_icon 'location' %} <span class="l-ml1">{{ alarm.device.location }}</span>
+                            </p>
+                            <p class="flex items-center">
+                                {% svg_icon 'server' %} <span class="l-ml1">{{ alarm.device.name }}</span>
+                            </p>
+                        </div>
+                        <div class="copy__cta">
+                            <a class="btn" href="{% url 'alarm:status-edit' alarm.pk %}">Change status</a>
+                        </div>
+                    </div>
 
-            <div class="copy variant--box">
-                <div class="copy__body">
-                    {% for alarm in alarms %}
-                    <p>
-                        Alarm is {{ alarm.running }} on device {{ alarm.device.name }} located in {{ alarm.device.location }}
-                    </p>
-                    <a href="{% url 'alarm:status-edit' alarm.pk %}">Change status</a>
-                    {% endfor %}
-                </div>
+                {% endfor %}
             </div>
         </div>
 
     </div>
-
-</div>
 {% endblock body %}

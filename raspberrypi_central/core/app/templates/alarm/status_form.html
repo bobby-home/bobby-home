@@ -10,21 +10,30 @@
 {% block body %}
 
     <main class="l-container">
-        <div class="l-section">
+        <section class="l-section">
             <div class="copy variant--content variant--box">
-                <div class="copy__body">
-                    {{ alarmstatus.device.location }}
-                    <form action="" method="post" class="ajaxify"
+                <div class="copy__body l-stack">
+                    <section class="l-stack l-stack-title">
+                        <h2 class="h5">Modifier le status de l'alarme</h2>
+                        <p class="flex items-center">
+                            {% svg_icon 'location' %} <span class="l-ml1">{{ alarmstatus.device.location }}</span>
+                        </p>
+                        <p class="flex items-center">
+                            {% svg_icon 'server' %} <span class="l-ml1">{{ alarmstatus.device.name }}</span>
+                        </p>
+                    </section>
+                    <form action="" method="post" class="ajaxify l-stack"
                           data-dialog=""
                           data-dialog-title="{% trans 'Do you really want to change the status of your alarm?' %}"
                           data-dialog-content="{% trans 'This will stop or run your alarm immediately!' %}"
                     >
-                        {{ form }}
-                        <input type="submit" value="Submit">
+                        {% include "partials/_form.html" %}
+                        {% include "partials/_form_actions.html" with btn_text="Save" %}
                     </form>
+
                 </div>
             </div>
-        </div>
+        </section>
     </main>
 
 {% endblock body %}

@@ -9,7 +9,8 @@
 
   position: relative;
   overflow: hidden;
-  padding: space(1.5) space(3);
+  padding: space(0.8) space(3);
+  font-weight: 400;
 
   // otherwise it's override by focus form style.
   background-color: var(--buttonBackground)!important;

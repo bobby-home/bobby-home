@@ -15,7 +15,7 @@
         </div>
         <div class="dialog-box-actions flex">
           <button class="btn" @click="onValidate">{{ validText }}</button>
-          <button class="btn btn-transparent" @click="onCancel">{{ cancelText  }}</button>
+          <button class="btn btn-transparent" @click="onCancel">{{ cancelText }}</button>
         </div>
       </div>
     </div>

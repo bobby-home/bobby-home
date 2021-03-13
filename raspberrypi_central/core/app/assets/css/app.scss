@@ -18,8 +18,13 @@
  * Modules
  */
 
- @import "modules/topbar";
- @import "modules/form";
+@import "modules/topbar";
+@import "modules/form";
+
+/**
+ * Pages
+ */
+@import "pages/alarm";
 
 /**
  * Variables
@@ -41,14 +46,13 @@
   --linkColor: var(--accentColor);
 
   --buttonColor: var(--lightColor);
-  --buttonBackground: var(--accentColor);
+  --buttonBackground: var(--contrast);
 
   --border: #D5E3EC;
   --borderRadius: 5px;
   --border-light: #D5E3EC7F;
   --contrast: hsl(228, 83%, 61%);
   --contrast-light: hsl(228, 83%, 90%);
-
 
   --accentColor: hsl(220, 93%, 35%);
 
@@ -114,4 +118,13 @@ body {
 ::selection {
   background: var(--contrast);
   color: #fff;
+}
+
+/**
+  Icons
+ */
+
+.icon {
+  width: 24px;
+  height: 24px;
 }

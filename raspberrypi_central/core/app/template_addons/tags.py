@@ -48,6 +48,6 @@ def assets(filename: str):
 def svg_icon(name: str):
     return format_html(f"""
     <svg class="icon icon-{name}">
-      <use xlink:href="/{public_asset}/sprite.svg#{name}"></use>
+      <use xlink:href="/public/svg/sprite.svg#{name}"></use>
     </svg>
     """)

@@ -31,6 +31,10 @@ export async function jsonFetch(url, csrf, params = {}) {
         ...params
     }
 
+    if (typeof url !== 'string') {
+        throw new TypeError(`url parameter should be a string not ${typeof url}.`)
+    }
+
     const response = await fetch(url, params)
     if (response.status === 204) {
         return null

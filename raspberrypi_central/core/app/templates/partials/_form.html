@@ -1,3 +1,6 @@
+{# Partials to be included inside a <form> HTMLElement #}
+{# Include logic to render necessary inputs, errors and so on. #}
+
 {% csrf_token %}
 {# Include the hidden fields #}
 {% for hidden in form.hidden_fields %}
@@ -17,12 +20,24 @@
 
 {# Include the visible fields #}
 {% for field in form.visible_fields %}
+
+    {% if field.field.widget.input_type == 'checkbox' %}
+    <div class="form-group form-switch">
+        {{ field }}
+        <label class="form-check-label" for="{{ field.id_for_label }}">
+           <span class="switch"></span>
+            {{ field.label }}
+        </label>
+    </div>
+    {% else %}
     <div class="form-group">
         {{ field.errors }}
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {{ field }}
+
         {% if field.help_text %}
             <p class="help">{{ field.help_text|safe }}</p>
         {% endif %}
     </div>
+    {% endif %}
 {% endfor %}

@@ -47,3 +47,58 @@ input:focus + label .switch,
   grid-gap: space(1.5);
   color: var(--red);
 }
+
+// Switch
+// ==================
+.form-switch {
+  position: relative;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+    min-height: auto;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+    margin-bottom: 0 !important;
+  }
+}
+.switch {
+  flex: none;
+  width: 50px;
+  height: 23px;
+  display: inline-block;
+  background: var(--background);
+  border: 1px solid var(--border);
+
+  border-radius: 100px;
+  margin-right: space(1);
+  transition: background .2s ease-in;
+
+  &::before {
+    content: '';
+    display: block;
+    height: 21px;
+    width: 21px;
+    background: var(--background-light);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(213, 222, 233, 0.2);
+    border-radius: 100px;
+    transition: transform .2s ease-in;
+  }
+}
+input:checked + label .switch {
+  background-color: var(--contrast);
+}
+
+input:checked + label .switch::before {
+  transform: translateX(28px);
+}

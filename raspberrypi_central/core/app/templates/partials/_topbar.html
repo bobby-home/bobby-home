@@ -13,9 +13,10 @@
 
         <ul class="topbar__nav__side">
             {% if request.user.is_authenticated %}
-                {{ request.user.first_name }}
+                <p class="copy__body">{{ request.user.first_name }}</p>
+                <a class="flex items-center" href="{% url 'logout' %}">Logout <span class="l-ml1">{% svg_icon 'logout' %}</span></a>
             {% else %}
-                <a href="{% url 'login' %}">Login</a>
+                <a class="copy__body" href="{% url 'login' %}">Login</a>
             {% endif %}
         </ul>
     </nav>

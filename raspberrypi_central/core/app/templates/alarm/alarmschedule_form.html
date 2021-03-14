@@ -1,11 +1,5 @@
 {% extends '_layout.html' %}
-
 {% load i18n %}
-
-
-{% block header %}
-    <h1 class="h3">Alarm ROI</h1>
-{% endblock header %}
 
 {% block body %}
 
@@ -14,14 +8,13 @@
             <div class="copy variant--content variant--box">
                 <div class="copy__body l-stack">
                     <section class="l-stack l-stack-bottom-separator">
-                        <h2 class="h5">Modifier le status de l'alarme</h2>
-                        {% include 'partials/_alarm_status_info.html' %}
+                        {% if object %}
+                            <h2 class="h5">{% trans 'Change alarm schedule' %}</h2>
+                        {% else %}
+                            <h2 class="h5">{% trans 'Create alarm schedule' %}</h2>
+                        {% endif %}
                     </section>
-                    <form action="" method="post" class="ajaxify l-stack"
-                          data-dialog=""
-                          data-dialog-title="{% trans 'Do you really want to change the status of your alarm?' %}"
-                          data-dialog-content="{% trans 'This will stop or run your alarm immediately!' %}"
-                    >
+                    <form action="" method="post" class="ajaxify l-stack">
                         {% include "partials/_form.html" %}
                         {% include "partials/_form_actions.html" with btn_text="Save" %}
                     </form>

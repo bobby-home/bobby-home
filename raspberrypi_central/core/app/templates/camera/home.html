@@ -8,19 +8,7 @@
 
                     <div class="copy variant--box variant--content l-stack">
                         <div class="copy__body l-stack">
-                            <p class="flex items-center">
-                                {% if alarm.running %}
-                                    {% svg_icon 'shield' %}
-                                {% else %}
-                                    {% svg_icon 'shield-exclamation' %} <span class="l-ml1">Alarme désactivée</span>
-                                {% endif %}
-                            </p>
-                            <p class="flex items-center">
-                                {% svg_icon 'location' %} <span class="l-ml1">{{ alarm.device.location }}</span>
-                            </p>
-                            <p class="flex items-center">
-                                {% svg_icon 'server' %} <span class="l-ml1">{{ alarm.device.name }}</span>
-                            </p>
+                            {% include 'partials/_alarm_status_info.html' %}
                         </div>
                         <div class="copy__cta">
                             <a class="btn" href="{% url 'alarm:status-edit' alarm.pk %}">Change status</a>

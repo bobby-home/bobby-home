@@ -1,8 +1,9 @@
 from django.urls import reverse_lazy
-from django.views.generic import ListView, UpdateView
+from django.views.generic import ListView, UpdateView, DetailView
 from django.views.generic.edit import CreateView
 
-from alarm.models import AlarmStatus
+from alarm.business.alarm_schedule import DAYS_OF_WEEK
+from alarm.models import AlarmStatus, AlarmSchedule
 from utils.django.json_view import JsonableResponseMixin
 
 
@@ -18,6 +19,9 @@ class AlarmStatusUpdate(JsonableResponseMixin, UpdateView):
     template_name = 'alarm/status_form.html'
     success_url = reverse_lazy('alarm:status-list')
 
+    context_object_name = 'alarm'
+    queryset = AlarmStatus.objects.with_device_and_location()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         print(context)
@@ -28,3 +32,25 @@ class AlarmStatusList(ListView):
     queryset = AlarmStatus.objects.all()
     template_name = 'alarm/status_list.html'
     context_object_name = 'statuses'
+
+
+class AlarmStatusSchedules(DetailView):
+    model = AlarmStatus
+    template_name = 'alarm/status_schedules.html'
+    context_object_name = 'alarm'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # alarm_status: AlarmStatus = context[self.context_object_name]
+
+        context['DAYS_OF_WEEK'] = DAYS_OF_WEEK
+
+        return context
+
+class AlarmScheduleUpdate(JsonableResponseMixin, UpdateView):
+    model = AlarmSchedule
+    fields = '__all__'
+
+class AlarmScheduleCreate(CreateView):
+    model = AlarmSchedule
+    fields = '__all__'

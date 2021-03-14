@@ -11,7 +11,7 @@ class AlarmHome(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        alarms: List[AlarmStatus] = AlarmStatus.objects.select_related('device__location')
+        alarms: List[AlarmStatus] = AlarmStatus.objects.select_related('device__location').order_by('device__device_id')
         context['alarms'] = alarms
 
         return context

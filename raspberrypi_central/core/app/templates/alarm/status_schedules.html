@@ -1,0 +1,53 @@
+{% extends '_layout.html' %}
+
+{% block header %}
+    <h1 class="h3">Alarm status list</h1>
+
+{% endblock header %}
+
+{% block body %}
+    <main class="l-container">
+        <section class="l-section l-row">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <div class="l-stack-bottom-separator">
+                        <h3 class="h5">Information sur l'alarme</h3>
+                    </div>
+                    <div class="copy__body l-stack">
+                        {% include 'partials/_alarm_status_info.html' %}
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="h4">
+                Liste des plannings
+            </h2>
+
+            {% for schedule in alarm.alarm_schedules.all %}
+                <div class="copy variant--content variant--box">
+                    <div class="copy__body l-stack">
+                        <p class="flex items-center">
+                            {% svg_icon 'shield' %}
+                            <span class="l-ml1">L'alarme s'allume de {{ schedule.start_time }} à {{ schedule.end_time }}</span>
+                        </p>
+                        <div class="alarm-schedule-days">
+                            {% for day in DAYS_OF_WEEK %}
+                                <div class="badge">
+                                    {% if schedule|get_obj_attr:day %}
+                                        <span class="badge-active-status"></span>
+                                    {% else %}
+                                        <span class="badge-unactive-status"></span>
+                                    {% endif %}
+                                    <span>{{ day }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <a class="btn" href="{% url 'alarm:schedule-edit' schedule.pk %}">Modifier</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+    </main>
+
+{% endblock body %}

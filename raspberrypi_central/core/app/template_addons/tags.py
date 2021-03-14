@@ -51,3 +51,22 @@ def svg_icon(name: str):
       <use xlink:href="/public/svg/sprite.svg#{name}"></use>
     </svg>
     """)
+
+
+@register.filter
+def get_obj_attr(obj, attr):
+    """
+    Allows us to access property by variable value inside our templates.
+    Example: `data={'monday': True}`, `day='monday'`, then we can do: `{{ data|get_obj_attr:day }}`
+
+
+    Parameters
+    ----------
+    obj
+    attr
+
+    Returns
+    -------
+    Attribute of obj
+    """
+    return getattr(obj, attr)

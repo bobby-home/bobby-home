@@ -20,6 +20,7 @@
 
 @import "modules/topbar";
 @import "modules/form";
+@import "modules/badge";
 
 /**
  * Pages
@@ -51,13 +52,14 @@
   --border: #D5E3EC;
   --borderRadius: 5px;
   --border-light: #D5E3EC7F;
+
+  --accentColor: hsl(220, 93%, 35%);
+  --color-light: hsl(220, 43%, 95%);
+  --background: hsl(0, 0%, 97%);
+  --background-light: #FFF;
   --contrast: hsl(228, 83%, 61%);
   --contrast-light: hsl(228, 83%, 90%);
 
-  --accentColor: hsl(220, 93%, 35%);
-
-  --background: hsl(0, 0%, 97%);
-  --background-light: #FFF;
 
   --shadow: #D8E1E8;
   --space-section: 150px;

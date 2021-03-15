@@ -1,3 +1,7 @@
+.theme-dark .topbar {
+    --backgroundColor: hsl(220, 50%, 20%);
+}
+
 .topbar {
   --backgroundColor: var(--accentColor);
   background-color: var(--backgroundColor); // Bdazzled blue

@@ -27,6 +27,15 @@
  */
 @import "pages/alarm";
 
+.theme-dark {
+    --background: hsl(220, 50%, 10%);
+    --background-light: hsl(220, 50%, 20%);
+    --color: #fff;
+    --titleColor: #fff;
+    --color-light: hsl(220, 60%, 30%);
+    --border: hsl(220, 60%, 20%);
+}
+
 /**
  * Variables
  */
@@ -49,17 +58,17 @@
   --buttonColor: var(--lightColor);
   --buttonBackground: var(--contrast);
 
-  --border: #D5E3EC;
+  --border: hsl(203, 38%, 88%);
   --borderRadius: 5px;
   --border-light: #D5E3EC7F;
 
   --accentColor: hsl(220, 93%, 35%);
+  --color: black;
   --color-light: hsl(220, 43%, 95%);
   --background: hsl(0, 0%, 97%);
   --background-light: #FFF;
   --contrast: hsl(228, 83%, 61%);
   --contrast-light: hsl(228, 83%, 90%);
-
 
   --shadow: #D8E1E8;
   --space-section: 150px;
@@ -103,8 +112,17 @@
   --rowGap: var(--rowGapNormal);
 }
 
-.copy__body, .copy__cta {
+.copy__body, .copy__footer {
   padding: 0 var(--paddingLeft) 0 var(--paddingRight);
+}
+
+.copy__footer {
+  margin-top: calc(2 * var(--space));
+}
+.copy__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(2 * var(--space));
 }
 
 
@@ -114,6 +132,7 @@
 
 body {
   background: var(--background);
+  color: var(--color);
   // scroll-margin: 100px 0 0 0; // What is this?
 }
 

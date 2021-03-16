@@ -24,7 +24,9 @@
                 <span>L'alarme va s'éteindre à {{ alarm.get_next_off_schedule.end_time }}</span>
             {% endif %}
 
-            <a href="{% url 'alarm:status-schedules' alarm.pk %}">Voir les plannings</a>
+            {% if see_schedules is not False %}
+                <a href="{% url 'alarm:status-schedules' alarm.pk %}">Voir les plannings</a>
+            {% endif %}
         </div>
     </div>
 {% endif %}

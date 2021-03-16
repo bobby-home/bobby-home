@@ -83,13 +83,17 @@ input:focus + label .switch,
     margin-bottom: 0 !important;
   }
 }
+
 .switch {
+  --color-text-toggle-checked-icon: #fff;
+
   flex: none;
   width: 50px;
   height: 23px;
   display: inline-block;
   background: var(--background);
   border: 1px solid var(--border);
+  position: relative;
 
   border-radius: 100px;
   margin-right: space(1);
@@ -106,11 +110,38 @@ input:focus + label .switch,
     border-radius: 100px;
     transition: transform .2s ease-in;
   }
+
+  // Check mark
+  &::after {
+    content: '';
+    display: block;
+
+    position: absolute;
+    top: 0.6rem;
+    left: 1rem;
+    width: .7rem;
+    height: .3rem;
+
+    border-bottom: 2px solid var(--color-text-toggle-checked-icon);
+    border-left: 2px solid var(--color-text-toggle-checked-icon);
+    transform: translate3d(-50%,-50%,0) rotate(-45deg);
+    opacity: 0;
+  }
 }
+
+.theme-dark .switch::before {
+  background: var(--color);
+  border-color: var(--color-light);
+}
+
 input:checked + label .switch {
   background-color: var(--contrast);
 }
 
 input:checked + label .switch::before {
   transform: translateX(28px);
+}
+
+input:checked + label .switch::after {
+  opacity: 1;
 }

@@ -3,20 +3,7 @@
 {% block body %}
     <div class="l-container">
         <div class="l-section">
-            <div class="l-row alarms">
-                {% for alarm in alarms %}
-                    <div class="copy variant--box variant--content l-stack">
-                        <div class="copy__body l-stack">
-                            {% include 'partials/_alarm_status_info.html' %}
-                        </div>
-                        <div class="copy__cta">
-                            <a class="btn" href="{% url 'alarm:status-edit' alarm.pk %}">Change status</a>
-                        </div>
-                    </div>
-
-                {% endfor %}
-            </div>
+            {% include 'partials/_alarm_list.html' %}
         </div>
-
     </div>
 {% endblock body %}

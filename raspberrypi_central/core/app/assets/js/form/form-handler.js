@@ -45,6 +45,12 @@ export class FormHandler {
             body: data
         }).then(() => {
             console.log('Request has been made - ok.')
+        }).catch(e => {
+            if (e.status === 400) {
+                console.log(this.form.elements)
+                console.log('wrong form')
+            }
+            console.error(e)
         })
 
     }

@@ -19,15 +19,16 @@ export class ThemeChoice extends HTMLElement {
     connectedCallback () {
         this.classList.add('theme-choice')
         this.innerHTML = `
-        <input type="checkbox" is="input-switch" id="theme-switcher" aria-label="Changer de thème">
-        <label for="theme-switcher">
-            <svg class="icon icon-moon">
-                <use xlink:href="${window.SPRITE}#moon"></use>
-              </svg>
-              <svg class="icon icon-sun">
-                <use xlink:href="${window.SPRITE}#sun"></use>
-              </svg>
-        </label>`
+        <div class="form-group form-switch">
+            <input type="checkbox" is="input-switch" id="theme-switcher" aria-label="Changer de thème">
+            <label for="theme-switcher" class="form-check-label">
+                <svg class="icon icon-moon l-mr1">
+                    <use xlink:href="${window.SPRITE}#moon"></use>
+                </svg>
+                Dark theme
+              <span class="switch l-ml1"></span>
+            </label>
+        </div>`
 
         const input = this.querySelector('input')
         input.addEventListener('change', e => {

@@ -14,7 +14,8 @@
                             <h2 class="h5">{% trans 'Create alarm schedule' %}</h2>
                         {% endif %}
                     </section>
-                    <form action="" method="post" class="ajaxify l-stack">
+                    {# ajaxify #}
+                    <form action="" method="post" class="l-stack">
                         {% include "partials/_form.html" %}
                         {% include "partials/_form_actions.html" with btn_text="Save" %}
                     </form>

@@ -21,6 +21,7 @@
 @import "modules/topbar";
 @import "modules/form";
 @import "modules/badge";
+@import "modules/footer";
 
 /**
  * Pages
@@ -28,12 +29,12 @@
 @import "pages/alarm";
 
 .theme-dark {
-    --background: hsl(220, 50%, 10%);
-    --background-light: hsl(220, 50%, 20%);
-    --color: #fff;
-    --titleColor: #fff;
-    --color-light: hsl(220, 60%, 30%);
-    --border: hsl(220, 60%, 20%);
+  --background: hsl(220, 50%, 10%);
+  --background-light: hsl(220, 50%, 20%);
+  --color: #fff;
+  --titleColor: #fff;
+  --color-light: hsl(220, 60%, 30%);
+  --border: hsl(220, 60%, 20%);
 }
 
 /**
@@ -97,6 +98,14 @@
   --rowGapNormal: #{space(1)};
   --rowGapMedium: #{space(3)};
   --rowGapLarge: #{space(4)};
+}
+
+.main-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
 }
 
 .copy {

@@ -7,16 +7,29 @@
     <title>{% block title %}Mx tech house{% endblock %}</title>
     {% assets 'entrypoints/app.js' %}
 </head>
+{# class="theme-dark" #}
 <body>
-    {% include "partials/_topbar.html" %}
-    <div>
-        {% block body %}{% endblock %}
-    </div>
+    <div class="main-wrapper">
+        {% include "partials/_topbar.html" %}
+        <div class="main-page">
+            {% block body %}{% endblock %}
+        </div>
 
-    <div id="app"></div>
+        <div id="app"></div>
+
+        <footer class="main-footer">
+            <div class="l-container">
+                <div class="l-row">
+                    <theme-choice></theme-choice>
+                </div>
+            </div>
+        </footer>
+
+    </div>
 
     <script>
         window.CSRF = "{{ csrf_token }}"
+        window.SPRITE = '/public/svg/sprite.svg'
     </script>
 </body>
 </html>

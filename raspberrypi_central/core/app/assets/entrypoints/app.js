@@ -5,6 +5,7 @@ import App from '../App.vue'
 import {DialogManager} from '../state/dialog-state'
 import {FormHandler} from '../js/form/form-handler'
 import {ThemeChoice} from "../js/elements/ThemeChoice";
+import {Copyable} from "../js/elements/Copyable";
 
 const app = createApp(App)
 const mounted = app.mount('#app')
@@ -15,7 +16,8 @@ const dialogManager = new DialogManager(mounted)
 const forms = document.querySelectorAll('form.ajaxify')
 
 forms.forEach(form => {
-  new FormHandler(form, dialogManager)
+    new FormHandler(form, dialogManager)
 })
 
 customElements.define('theme-choice', ThemeChoice)
+customElements.define('copyable-value', Copyable)

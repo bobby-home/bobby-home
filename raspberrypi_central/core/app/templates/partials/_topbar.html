@@ -9,6 +9,9 @@
             <li>
                 <a class="copy__body" href="{% url 'alarm:home' %}">{% svg_icon 'shield' %} {% trans "Alarm" %}</a>
             </li>
+            <li>
+                <a href="{% url 'configuration' %}" class="copy__body">{% svg_icon 'cog' %}{% trans "Configuration" %}</a>
+            </li>
         </ul>
 
         <ul class="topbar__nav__side">

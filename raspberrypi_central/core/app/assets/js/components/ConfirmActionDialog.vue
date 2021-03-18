@@ -70,8 +70,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../css/helpers/_space.scss';
-@import "../css/tools/_responsive.scss";
+@import '../../css/helpers/_space.scss';
+@import "../../css/tools/_responsive.scss";
 
 /**
   Animation on mobile: from bottom to "top" with some fadeout.

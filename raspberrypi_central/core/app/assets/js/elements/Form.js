@@ -1,44 +1,52 @@
 import {jsonFetch} from '../ajaxify'
+import {dialogManager} from "../mount-vue-app"
 
-export class FormHandler {
+export class Form extends HTMLFormElement {
 
-    /**
-     *
-     * @param {HTMLFormElement} form
-     * @param {DialogManager} dialogManager
-     */
-    constructor(form, dialogManager) {
-        this.form = form
-        this.isDialog = 'dialog' in form.dataset
+    constructor() {
+        super()
         this.dialogManager = dialogManager
 
-        this.submit = this.submit.bind(this)
+        this.submitListener = null
+        this.form = null
 
+        this.asyncSubmit = this.asyncSubmit.bind(this)
+    }
+
+    connectedCallback() {
+        const form = this
+        this.form = this
+
+        this.isDialog = 'dialog' in form.dataset
         if (this.isDialog) {
-            console.log(form.dataset)
             this.dialog = {
                 title: form.dataset.dialogTitle,
                 content: form.dataset.dialogContent
             }
         }
 
-        this.form.addEventListener('submit', e => {
+        this.submitListener = form.addEventListener('submit', e => {
             e.preventDefault()
 
             if (this.isDialog) {
                 this.openDialog()
             } else {
-                this.submit()
+                this.asyncSubmit()
             }
-
         })
     }
 
-    openDialog() {
-        this.dialogManager.open(this.dialog, this.submit)
+    disconnectedCallback() {
+        if (this.this.submitListener) {
+            this.removeEventListener('click', this.submitListener)
+        }
     }
 
-    submit() {
+    openDialog() {
+        this.dialogManager.open(this.dialog, this.asyncSubmit)
+    }
+
+    asyncSubmit() {
         const data = new FormData(this.form)
 
         jsonFetch(this.form.action, CSRF, {

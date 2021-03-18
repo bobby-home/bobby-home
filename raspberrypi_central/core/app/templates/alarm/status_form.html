@@ -17,7 +17,7 @@
                         <h2 class="h5">Modifier le status de l'alarme</h2>
                         {% include 'partials/_alarm_status_info.html' %}
                     </section>
-                    <form action="" method="post" class="ajaxify l-stack"
+                    <form is="custom-form" action="" method="post" class="ajaxify l-stack"
                           data-dialog=""
                           data-dialog-title="{% trans 'Do you really want to change the status of your alarm?' %}"
                           data-dialog-content="{% trans 'This will stop or run your alarm immediately!' %}"

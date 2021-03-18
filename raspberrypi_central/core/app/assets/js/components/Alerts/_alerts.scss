@@ -1,0 +1,97 @@
+@import '../../../css/helpers/_space.scss';
+@import "../../../css/tools/_responsive.scss";
+
+.alerts {
+  position: absolute;
+  right: calc(4*var(--space));
+  z-index: 999;
+}
+
+.alert-block .alert + .alert {
+  margin-top: space(2);
+}
+
+.alert {
+  --background-color: hsl(235, 26%, 30%);
+  --background-color-dark: hsl(235, 26%, 20%);
+
+  cursor: pointer;
+  display: flex;
+  z-index: 9999;
+  background-color: var(--background-color);
+  border-radius: var(--borderRadius);
+  color: #fff;
+  min-height: 50px;
+  overflow: hidden;
+}
+
+.alert-bubble {
+  width: 50px;
+  min-width: 50px;
+  background-color: var(--background-color-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.alert-bubble--type {
+  display: block;
+  height: 15px;
+  width: 15px;
+  border-radius: 15px;
+}
+
+.alert-bubble--error {
+  background-color: var(--red)
+}
+
+//.alert-bubble--warning {
+//  background-color: var(--orange);
+//}
+
+.alert-bubble--success {
+  background-color: var(--green);
+}
+
+/**
+ * Animations
+ */
+$enterTime: .3s;
+$leaveTime: .25s;
+
+.alert-enter-active {
+  transition: transform $enterTime;
+  transition-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.alert-leave-active {
+  transition: transform $leaveTime;
+  transition-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
+}
+
+.alert-enter, .alert-leave-to {
+  transform: translateY(100%);
+}
+
+@include up($small) {
+  .alert-enter, .alert-leave-to {
+    transform: translateX(100%);
+  }
+}
+
+/**
+ * Responsive
+ */
+
+@include up($small) {
+  .alerts {
+    top: calc(5*var(--space));
+  }
+}
+
+@include down($small) {
+  .alerts {
+    left: calc(4*var(--space));
+    bottom: 0;
+  }
+}

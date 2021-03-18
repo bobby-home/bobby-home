@@ -1,12 +1,11 @@
 <template>
   <transition name="dialog">
-      <confirm-action-dialog v-if="isDialog" v-bind="confirmDialog" />
+    <confirm-action-dialog v-if="isDialog" v-bind="confirmDialog" />
   </transition>
 </template>
 
 <script>
 import ConfirmActionDialog from "./components/ConfirmActionDialog.vue"
-
 
 export default {
   name: 'App',

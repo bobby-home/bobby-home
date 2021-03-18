@@ -11,7 +11,8 @@
 <body>
     <div class="main-wrapper">
         {% include "partials/_topbar.html" %}
-        <div class="main-page">
+        <div class="main-page relative">
+            <div class="alerts" id="alerts"></div>
             {% block body %}{% endblock %}
         </div>
 

@@ -29,6 +29,10 @@
  */
 @import "pages/alarm";
 
+.relative {
+  position: relative;
+}
+
 .theme-dark {
   --background: hsl(220, 50%, 10%);
   --background-light: hsl(220, 50%, 20%);

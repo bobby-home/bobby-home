@@ -11,6 +11,8 @@ export class Copyable extends HTMLElement {
             </div>
         `
         const copyable = this.querySelector('.copyable')
+        const self = this
+
         copyable.addEventListener('click', function() {
             const range = document.createRange()
             range.selectNode(this)
@@ -19,15 +21,32 @@ export class Copyable extends HTMLElement {
             try {
                 // Now that we've selected the anchor text, execute the copy command
                 const successful = document.execCommand('copy')
-                const msg = successful ? 'successful' : 'unsuccessful'
-                console.log('Copy command was ' + msg)
+                if (successful) {
+                    self.successCb()
+                } else {
+                    self.errorCb()
+                }
             } catch(err) {
-                console.log('Oops, unable to copy')
+                self.errorCb()
             }
 
             // Remove the selections - NOTE: Should use
             // removeRange(range) when it is supported
             window.getSelection().removeAllRanges()
+        })
+    }
+
+    successCb() {
+        window.sendAlert({
+            type: 'success',
+            message: 'Copied to clipboard'
+        })
+    }
+
+    errorCb() {
+        window.sendAlert({
+            type: 'error',
+            message: 'Cannot copy to clipboard.'
         })
     }
 }

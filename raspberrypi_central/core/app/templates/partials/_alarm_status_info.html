@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <p class="flex items-center">
     {% if alarm.running %}
         {% svg_icon 'shield' %} <span class="l-ml1">Alarme activée</span>
@@ -27,6 +29,13 @@
             {% if see_schedules is not False %}
                 <a href="{% url 'alarm:status-schedules' alarm.pk %}">Voir les plannings</a>
             {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="flex items-center">
+        {% svg_icon 'clock' %}
+        <div class="flex flex-col l-ml1">
+            <a href="{% url 'alarm:schedule-add'%}">{% trans "Create schedule" %}</a>
         </div>
     </div>
 {% endif %}

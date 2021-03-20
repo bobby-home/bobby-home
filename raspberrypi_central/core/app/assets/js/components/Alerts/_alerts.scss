@@ -2,7 +2,7 @@
 @import "../../../css/tools/_responsive.scss";
 
 .alerts {
-  position: absolute;
+  position: fixed;
   right: calc(4*var(--space));
   z-index: 999;
 }
@@ -22,6 +22,7 @@
   border-radius: var(--borderRadius);
   color: #fff;
   min-height: 50px;
+  min-width: 250px;
   overflow: hidden;
 }
 
@@ -45,9 +46,9 @@
   background-color: var(--red)
 }
 
-//.alert-bubble--warning {
-//  background-color: var(--orange);
-//}
+.alert-bubble--warning {
+  background-color: var(--orange);
+}
 
 .alert-bubble--success {
   background-color: var(--green);
@@ -85,7 +86,7 @@ $leaveTime: .25s;
 
 @include up($small) {
   .alerts {
-    top: calc(5*var(--space));
+    top: calc(10*var(--space));
   }
 }
 

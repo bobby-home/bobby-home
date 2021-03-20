@@ -20,13 +20,13 @@ export default {
   methods: {
     sendAlert(alert) {
       this.alerts.push(alert)
-      window.setTimeout(() => {
-        console.log('remove automaticaly')
-      }, 3500)
 
+      window.setTimeout(() => {
+        this.removeAlert(alert)
+      }, 3500)
     },
     removeAlert(alert) {
-      this.alerts = this.alerts.filter(a => a !== alert)
+      this.alerts.splice(this.alerts.indexOf(alert), 1);
     }
   },
 }

@@ -9,14 +9,6 @@ export const mounted = app.mount('#app')
 const alertsApp = createApp(MountAlerts)
 export const alertsAppMounted = alertsApp.mount('#alerts')
 
-alertsAppMounted.sendAlert({
-    type: 'success',
-    message: 'hello world'
-})
-
-alertsAppMounted.sendAlert({
-    type: 'error',
-    message: 'hello world'
-})
+window.sendAlert = alertsAppMounted.sendAlert
 
 export const dialogManager = new DialogManager(mounted)

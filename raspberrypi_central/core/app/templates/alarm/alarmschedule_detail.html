@@ -1,0 +1,18 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+    <main class="l-container">
+        <section class="l-section l-row">
+            {% with box_title='Schedule information' %}
+                {% include 'partials/_alarm_schedule_info.html' %}
+            {% endwith %}
+            <h2 class="h4">
+                {% trans 'List of linked alarms' %}
+            </h2>
+
+            {% include 'partials/_alarm_list.html' with alarms=schedule.alarm_statuses.all %}
+        </section>
+    </main>
+
+{% endblock body %}

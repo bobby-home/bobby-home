@@ -1,5 +1,47 @@
 {% extends '_layout.html' %}
 
 {% block body %}
-    <h1>Hello world</h1>
+<div class="l-container">
+    <div class="l-section">
+        <div class="l-row">
+
+            <div class="copy variant--box">
+                <div class="copy__body">
+                    Hello, everything seems to be fine!
+                    {% for running_alarm in running_alarms %}
+                    <p>
+                        Alarm is running on device {{ running_alarm.device.name }} located in {{ running_alarm.device.location }}
+                    </p>
+                    <button class="l-btn" id="test">Launch confirm dialog</button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="copy variant--box">
+                <div class="copy__body">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab animi dicta ducimus fugit nihil nobis ratione recusandae reiciendis soluta temporibus. Eos magni numquam officiis pariatur quo reiciendis rem similique velit.
+                </div>
+            </div>
+
+            <div class="copy variant--box">
+                <div class="copy__body">
+                    <form action="#">
+                        <div class="l-stack">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="text" id="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
 {% endblock body %}

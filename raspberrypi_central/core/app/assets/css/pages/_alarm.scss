@@ -1,0 +1,16 @@
+.alarms {
+  grid-template-columns: repeat(3 , 1fr);
+}
+
+.alarm-schedule-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space(1);
+}
+
+.alarm-schedule-days .badge {
+  width: 100%;
+  @include up($medium) {
+    width: auto;
+  }
+}

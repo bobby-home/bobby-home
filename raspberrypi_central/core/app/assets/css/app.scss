@@ -1,5 +1,5 @@
 @import "./helpers/colors";
-@import "helpers/space";
+@import "./helpers/space";
 
 /**
  * Tools
@@ -18,30 +18,128 @@
  * Modules
  */
 
- @import "modules/topbar";
+@import "modules/topbar";
+@import "modules/form";
+@import "modules/badge";
+@import "modules/footer";
+
+@import "elements/copyable";
+/**
+ * Pages
+ */
+@import "pages/alarm";
+
+.relative {
+  position: relative;
+}
+
+.theme-dark {
+  --background: hsl(220, 50%, 10%);
+  --background-light: hsl(220, 50%, 20%);
+  --color: #fff;
+  --titleColor: #fff;
+  --color-light: hsl(220, 60%, 30%);
+  --border: hsl(220, 60%, 20%);
+}
 
 /**
  * Variables
  */
 :root {
-  --gap: 20px;
+  --fontWeightLight: 200;
+  --fontWeightNormal: 300;
+  --fontWeightSemibold: 425;
+  --fontWeightBold: 500;
+
+  --gap: 2;
+
   --space: 8px;
 
-  --border: #D5E3EC;
+  --titleColor: hsl(180, 0%, 18%);
+  --textColor: blue;
+  --lightColor: #fff;
+
+  --linkColor: var(--accentColor);
+
+  --buttonColor: var(--lightColor);
+  --buttonBackground: var(--contrast);
+
+  --border: hsl(203, 38%, 88%);
+  --borderRadius: 5px;
   --border-light: #D5E3EC7F;
-  --contrast: #4869EE;
 
-  --accent-color: #{color('mx-purple', 'base')};
-
-  --background: hsl(240, 33%, 95%);
+  --accentColor: hsl(220, 93%, 35%);
+  --color: black;
+  --color-light: hsl(220, 43%, 95%);
+  --background: hsl(0, 0%, 97%);
   --background-light: #FFF;
+  --contrast: hsl(228, 83%, 61%);
+  --contrast-light: hsl(228, 83%, 90%);
 
   --shadow: #D8E1E8;
   --space-section: 150px;
   --red: #FB4635;
   --green: #41CF7C;
   --yellow: #FEB32B;
+  --orange: hsl(35, 91%, 61%);
+
+  --hoverTransition: 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+  --box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 0 1px rgba(0,0,0,.20);
+
+  --buttonShadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+
+  --enterTime: .25s;
+  --leaveTime: 0.15s;
+  --leaveTimingFunction: cubic-bezier(0.4, 0.0, 1, 1);
+  --enterTimingFunction: cubic-bezier(0.0, 0.0, 0.2, 1);
+
+  --paddingLeft: #{space(2)};
+  --paddingRight: #{space(2)};
+  --paddingTop: 0px;
+  --paddingBottom: 0px;
+
+  --container-padding: 20px;
+  --columnPaddingNormal: 16px;
+
+  --rowGapNormal: #{space(1)};
+  --rowGapMedium: #{space(3)};
+  --rowGapLarge: #{space(4)};
 }
+
+.main-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+}
+
+.copy {
+  display: grid;
+  row-gap: var(--rowGapNormal);
+}
+
+.copy.variant--section {
+  --rowGap: var(--rowGapMedium);
+}
+
+.copy.variant--content {
+  --rowGap: var(--rowGapNormal);
+}
+
+.copy__body, .copy__footer {
+  padding: 0 var(--paddingLeft) 0 var(--paddingRight);
+}
+
+.copy__footer {
+  margin-top: calc(2 * var(--space));
+}
+.copy__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(2 * var(--space));
+}
+
 
 /**
  * Generic
@@ -49,10 +147,20 @@
 
 body {
   background: var(--background);
+  color: var(--color);
   // scroll-margin: 100px 0 0 0; // What is this?
 }
 
 ::selection {
   background: var(--contrast);
   color: #fff;
+}
+
+/**
+  Icons
+ */
+
+.icon {
+  width: 24px;
+  height: 24px;
 }

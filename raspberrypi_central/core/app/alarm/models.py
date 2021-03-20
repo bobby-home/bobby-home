@@ -4,7 +4,8 @@ import uuid
 from django.utils import timezone
 from django.db import models
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
-from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_schedule
+from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_schedule, get_device_next_off_schedule, \
+    get_device_next_on_schedule
 from devices.models import Device
 from house.models import House
 from django.db import transaction
@@ -24,19 +25,41 @@ class Ping(models.Model):
     def __str__(self):
         return f'Service {self.service_name} on device {self.device_id} last ping at {self.last_update}'
 
+class AlarmStatusManager(models.Manager):
+    def with_device_and_location(self):
+        return self.select_related('device', 'device__location')
+
 class AlarmStatus(models.Model):
-    running = models.BooleanField()
-    device = models.OneToOneField(Device, on_delete=models.CASCADE)
-    is_dumb = models.BooleanField(default=True)
+    objects = AlarmStatusManager()
+
+    running = models.BooleanField(
+        help_text='Either or not the alarm is running on the device. If it runs, it monitor the device camera to react if a danger is recognized.'
+    )
+
+    device = models.OneToOneField(
+        Device, on_delete=models.CASCADE,
+        help_text="The device that is controlled by the alarm status."
+    )
+    is_dumb = models.BooleanField(
+        default=True,
+        help_text='Either or not the device is dumb, which means it runs the dumb camera software. Typically used for low-end devices such as RaspberryPi zero, esp...'
+    )
 
     def __str__(self):
         return f'Status is {self.running} for {self.device}'
 
+    def get_next_off_schedule(self):
+        return get_device_next_off_schedule(timezone.now(), self.device.pk)
+
+    def get_next_on_schedule(self):
+        return get_device_next_on_schedule(timezone.now(), self.device.pk)
 
 class AlarmScheduleManager(models.Manager):
+    # @TODO: could be useless to have this method here.
     def get_next_off(self):
         return get_next_off_schedule(timezone.now(), self)
 
+    # @TODO: could be useless to have this method here.
     def get_next_on(self):
         return get_next_on_schedule(timezone.now(), self)
 
@@ -46,8 +69,12 @@ class AlarmSchedule(models.Model):
 
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(
+        help_text='When the alarm should start to monitor if a danger is recognized to react.'
+    )
+    end_time = models.TimeField(
+        help_text='When the alarm should stop the monitoring and thus it will not react to anything.'
+    )
 
     monday    = models.BooleanField()
     tuesday   = models.BooleanField()
@@ -57,7 +84,7 @@ class AlarmSchedule(models.Model):
     saturday  = models.BooleanField()
     sunday    = models.BooleanField()
 
-    is_disabled_by_system = models.BooleanField(default=False)
+    is_disabled_by_system = models.BooleanField(default=False, editable=False)
 
     turn_on_task = models.OneToOneField(
         PeriodicTask,
@@ -75,7 +102,8 @@ class AlarmSchedule(models.Model):
 
     alarm_statuses = models.ManyToManyField(
         AlarmStatus,
-        related_name='alarm_schedules'
+        related_name='alarm_schedules',
+        help_text='List of alarm statuses to impact.'
     )
 
     def delete(self, *args, **kwargs):

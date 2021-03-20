@@ -9,94 +9,51 @@
 
   position: relative;
   overflow: hidden;
-  padding: space(1.5) space(3);
-
-  background-color: color('mx-purple', 'base');
+  padding: space(0.8) space(3);
+  font-weight: 400;
 
   border: 1px solid;
-  border-color: transparent;
   border-radius: var(--border-radius);
 
-  // box-shadow: $small-shadow;
+  box-shadow: var(--buttonShadow);
 
-  color: #fff;
   text-align: center;
 
-  transition: .25s background-color;
+  transition: .25s background-color ease-in;
 
   &:hover {
-    background-color: color('mx-purple', 'dark');
+    filter: brightness(90%);
   }
 
   .icon {
-    margin-left: 15px;
+    margin-left: 5px;
+    height: 1rem;
+    width: 1rem;
+    transition: .15s transform cubic-bezier(0.215,0.61,0.355,1);
+  }
+
+  &:hover .icon {
+    transform: translateX(10px);
   }
 }
 
-.hover\:bgc\:transparent:hover {
-  background-color: transparent;
+.btn-primary {
+  @extend .btn;
+  // otherwise it's override by focus form style.
+  background-color: var(--buttonBackground)!important;
+  border-color: var(--buttonBackground);
+  color: var(--lightColor);
 }
 
-.btn--flat {
-  background-color: transparent;
-  color: hsl(253, 26%, 60%);
-  border: 2px solid hsl(253, 26%, 80%);
-  box-shadow: none;
-  &:hover {
-    background-color: transparent;
-  }
+.btn-secondary {
+  @extend .btn;
+  background-color: var(--color-light)!important;
+  color: var(--color);
+  border-color: var(--border);
 }
 
 
 .btn--small {
   padding: space(1) space(2);
   font-size: .9rem;
-}
-
-.btn--white {
-  color: color('mx-purple', 'dark');
-  background-color: #fff;
-  border-color: color('mx-purple', 'base');
-
-  &:hover {
-    color: #fff;
-    background-color: $accent-color;
-  }
-}
-
-.btn--green {
-  border-color: color('green', 'base');
-  background-color: color('green', 'base');
-
-  &:hover {
-    color: color('green', 'base');
-    border-color: color('green', 'base');
-    background-color: #fff;
-  }
-}
-
-.btn--transparent {
-  background-color: transparent;
-  border-color: color('mx-purple', 'base');
-  color: color('mx-purple', 'dark');
-  &:hover {
-    background-color: color('mx-purple', 'base');
-    border-color: color('mx-purple', 'base');
-    color: #fff;
-  }
-}
-
-.btn--transparent--green {
-  border-color: color('green', 'base');
-  color: color('green', 'base');
-  &:hover {
-    background-color: color('green', 'base');
-    border-color: color('green', 'base');
-    color: #fff;
-  }
-}
-
-.btn--transparent--white {
-  border-color: #fff;
-  color: #fff;
 }

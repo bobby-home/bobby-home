@@ -21,14 +21,7 @@ class House(models.Model):
 
 class TelegramBotManager(models.Manager):
     def house_token(self):
-        i = self.all().first()
-
-        if not i:
-            raise self.model.DoesNotExist(
-                "No telegram bot token found."
-            )
-
-        return i
+        return self.all().first()
 
 class TelegramBot(models.Model):
     objects = TelegramBotManager()

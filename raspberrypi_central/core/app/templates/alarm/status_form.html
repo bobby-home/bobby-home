@@ -1,19 +1,36 @@
 {% extends '_layout.html' %}
 
-{% block header %}
-    <h1 class="h3">Alarm ROI</h1>
+{% load i18n %}
 
-{% endblock header %}
 
 {% block body %}
+
     <main class="l-container">
-        <div class="box">
-            <div class="box__body">
-                <form action="" method="post" class="ajaxify">
-                    {{ form }}
-                    <input type="submit" value="Submit">
-                </form>
+        <section class="l-section">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <section class="l-stack l-stack-bottom-separator">
+                        {% if object %}
+                            <h2 class="h5">{% trans 'Change alarm status' %}</h2>
+                            {% include 'partials/_alarm_status_info.html' %}
+                        {% else %}
+                            <h2 class="h5">{% trans 'Create alarm status' %}</h2>
+                        {% endif %}
+                    </section>
+                    <form is="custom-form" action="" method="post" class="l-stack vertical-form"
+{#                          data-dialog=""#}
+{#                          data-dialog-title="{% trans 'Do you really want to change the status of your alarm?' %}"#}
+{#                          data-dialog-content="{% trans 'This will stop or run your alarm immediately!' %}"#}
+                          data-true-success="{% trans 'Your alarm is now on.' %}"
+                          data-false-success="{% trans 'Your alarm is now off.' %}"
+                          data-status-field="running"
+                    >
+                        {% include "partials/_form.html" %}
+                        {% include "partials/_form_actions.html" with btn_text="Save" %}
+                    </form>
+                </div>
             </div>
-        </div>
+        </section>
     </main>
+
 {% endblock body %}

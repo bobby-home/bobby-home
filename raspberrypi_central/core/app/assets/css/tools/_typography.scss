@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Inter:400,500,600,700,800&display=swap');
 
 $font: 'Inter', Arial, Helvetica, Verdana, sans-serif;
 // $mono-font-family: "Source Code Pro", Consolas, "Lucida Console", Courier, monospace;
@@ -30,7 +30,7 @@ body {
 }
 
 .title, %headings {
-  color: color('grey', 'darken-1');
+  color: var(--titleColor);
   font-weight: 700;
   & > .title-small {
     font-size: .8em;

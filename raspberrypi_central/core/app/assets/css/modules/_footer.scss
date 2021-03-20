@@ -1,0 +1,11 @@
+.theme-dark .main-footer {
+  --border-light: var(--background-light);
+}
+
+.main-footer {
+  background-color: var(--background-light);
+  margin-top: auto;
+  padding-top: calc(5 * var(--space));
+  padding-bottom: calc(5 * var(--space));
+  border-top: solid 2px var(--border-light);
+}

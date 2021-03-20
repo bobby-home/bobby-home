@@ -1,0 +1,28 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+
+    <main class="l-container">
+        <section class="l-section">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <section class="l-stack l-stack-bottom-separator">
+                        {% if object %}
+                            <h2 class="h5">{% trans 'Change alarm schedule' %}</h2>
+                        {% else %}
+                            <h2 class="h5">{% trans 'Create alarm schedule' %}</h2>
+                        {% endif %}
+                    </section>
+                    {# ajaxify #}
+                    <form action="" method="post" class="l-stack vertical-form">
+                        {% include "partials/_form.html" %}
+                        {% include "partials/_form_actions.html" with btn_text="Save" %}
+                    </form>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+{% endblock body %}

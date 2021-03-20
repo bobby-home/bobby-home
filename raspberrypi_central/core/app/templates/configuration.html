@@ -1,0 +1,47 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+    <div class="l-container">
+        <div class="l-section">
+            <div class="l-row">
+
+                <div class="copy variant--box">
+                    <div class="copy__body">
+                        <p class="flex items-center">
+                            {% svg_icon 'clock' %}
+                            <span class="l-ml1">{% trans 'The timezone is' %} {{ house.timezone }} UTC{{ utc_offset }}</span>
+                        </p>
+                    </div>
+                    <div class="copy__footer">
+                        <div class="copy__cta">
+                            <a class="btn-secondary" href="{% url 'admin:house_house_change' house.pk %}">{% trans 'Update' %}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="copy variant--box">
+                    <div class="copy__body">
+                        <p class="flex items-center">
+                            {% svg_icon 'key' %}
+                            {% if telegram_bot %}
+                                <span class="l-ml1">{% trans 'Telegram bot api key' %}</span> <copyable-value class="l-ml1" value="{{ telegram_bot.token }}"></copyable-value>
+                            {% else %}
+                                <span class="l-ml1">{% trans 'Not found. Your application is not able to send notification through Telegram.' %}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="copy__footer">
+                        <div class="copy__cta">
+                            {% if telegram_bot %}
+                                <a class="btn-secondary" href="{% url 'admin:house_telegrambot_change' telegram_bot.pk %}">{% trans 'Update' %}</a>
+                            {% else %}
+                                <a class="btn-secondary" href="{% url 'admin:house_telegrambot_add' %}">{% trans 'Create' %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

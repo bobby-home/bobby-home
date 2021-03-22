@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from setup.models import StepDone
+
+admin.site.register(StepDone)

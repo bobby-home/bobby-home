@@ -2,6 +2,7 @@ from django.db import IntegrityError
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
 from django.shortcuts import redirect
+from django.http import HttpRequest, HttpResponse
 
 # Create your views here.
 from django.urls import reverse
@@ -10,11 +11,22 @@ from django.views.generic import TemplateView
 from setup.models import StepDone
 
 
-def setup_view(request):
+def setup_view(request: HttpRequest) -> HttpResponse:
+    """
+    Redirect to step to do/validate.
+    Register the progress thanks to the querystring `?validated_step={step_slug}`.
+
+    Parameters
+    ----------
+    request : HttpRequest
+
+    Returns
+    -------
+    HttpResponse
+    """
     from setup.steps import STEPS, get_current_step, get_step
 
     validated_step_slug = request.GET.get('validated_step', None)
-    print(f'validated step = {validated_step_slug}')
 
     if validated_step_slug:
         validated_step = get_step(validated_step_slug)
@@ -39,11 +51,3 @@ class SetupDoneView(TemplateView):
     success_url = ''
     template_name = 'setup/done.html'
 
-# def setup_step(request, slug: str):
-#     step = get_step(slug)
-#
-#     if step is None:
-#         return HttpResponseNotFound()
-#
-#     print(step.view)
-#     return step.view.as_view()

@@ -8,11 +8,7 @@
             <div class="copy variant--content variant--box">
                 <div class="copy__body l-stack">
                     <section class="l-stack l-stack-bottom-separator">
-                        {% if object %}
-                            <h2 class="h5">{% trans 'Change alarm schedule' %}</h2>
-                        {% else %}
-                            <h2 class="h5">{% trans 'Create alarm schedule' %}</h2>
-                        {% endif %}
+                        <h2 class="h5">{{ title }}</h2>
                     </section>
 
                     <form action="" method="post" class="l-stack vertical-form">

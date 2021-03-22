@@ -4,15 +4,14 @@
 {% block body %}
     <main class="l-container">
         <section class="l-section l-row">
-{#            <div class="copy variant--content variant--box">#}
-{#                <div class="copy__body l-stack">#}
-{#                    #}
-{#                </div>#}
-{#            </div>#}
-
-            <h2 class="h4">
-                {% trans 'Setup is done' %}
-            </h2>
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <h2 class="h4">
+                        {% trans 'Setup is done' %}
+                    </h2>
+                    <a href="{% url 'home' %}" class="btn btn-primary">{% trans 'Go to the home page' %}</a>
+                </div>
+            </div>
         </section>
     </main>
 {% endblock body %}

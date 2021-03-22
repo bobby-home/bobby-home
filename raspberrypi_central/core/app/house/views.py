@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from django.views.generic import CreateView
 
-# Create your views here.
+from house.models import House
+from utils.django.forms import ChangeForm
+
+
+class HouseCreateView(ChangeForm, CreateView):
+    model = House
+    fields = '__all__'

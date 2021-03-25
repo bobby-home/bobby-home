@@ -10,16 +10,22 @@
                 <a class="copy__body" href="{% url 'alarm:home' %}">{% svg_icon 'shield' %} {% trans "Alarm" %}</a>
             </li>
             <li>
-                <a href="{% url 'configuration' %}" class="copy__body">{% svg_icon 'cog' %}{% trans "Configuration" %}</a>
+                <a class="copy__body" href="{% url 'configuration' %}">{% svg_icon 'cog' %}{% trans "Configuration" %}</a>
             </li>
         </ul>
 
         <ul class="topbar__nav__side">
             {% if request.user.is_authenticated %}
-                <p class="copy__body">{{ request.user.first_name }}</p>
-                <a class="flex items-center" href="{% url 'logout' %}">Logout <span class="l-ml1">{% svg_icon 'logout' %}</span></a>
+                <li>
+                    <p class="copy__body">{{ request.user.first_name }}</p>
+                </li>
+                <li>
+                    <a class="copy__body" href="{% url 'logout' %}">Logout <span class="l-ml1">{% svg_icon 'logout' %}</span></a>
+                </li>
             {% else %}
-                <a class="copy__body" href="{% url 'login' %}">Login</a>
+                <li>
+                    <a class="copy__body" href="{% url 'login' %}">Login</a>
+                </li>
             {% endif %}
         </ul>
     </nav>

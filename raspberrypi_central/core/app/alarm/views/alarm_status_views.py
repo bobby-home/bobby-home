@@ -4,6 +4,7 @@ from django.views.generic.edit import CreateView
 
 from alarm.business.alarm_schedule import DAYS_OF_WEEK
 from alarm.models import AlarmStatus, AlarmSchedule
+from utils.django.forms import ChangeForm
 from utils.django.json_view import JsonableResponseMixin
 
 
@@ -47,15 +48,14 @@ class AlarmStatusSchedules(DetailView):
 
         return context
 
-class AlarmScheduleUpdate(JsonableResponseMixin, UpdateView):
+class AlarmScheduleUpdate(JsonableResponseMixin, ChangeForm, UpdateView):
     model = AlarmSchedule
     fields = '__all__'
 
     def get_success_url(self):
-        print(self.object)
         return reverse('alarm:schedule-detail', args=(self.object.id,))
 
-class AlarmScheduleCreate(CreateView):
+class AlarmScheduleCreate(ChangeForm, CreateView):
     model = AlarmSchedule
     fields = '__all__'
 

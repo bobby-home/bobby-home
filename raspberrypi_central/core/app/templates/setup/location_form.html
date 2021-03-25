@@ -1,0 +1,8 @@
+{% extends 'generics/_change_form.html' %}
+
+{% block form_header %}
+    <p class="flex items-center">
+        {% svg_icon 'server' %} <span class="l-ml1">{{ main_device.name }} - {{ main_device.device_type.type }}</span>
+    </p>
+{% endblock %}
+

@@ -29,7 +29,7 @@
   }
 }
 
-.topbar__nav__list {
+.topbar__nav__list, .topbar__nav__side {
   display: grid;
   align-items: center;
   grid-auto-flow: column;
@@ -41,12 +41,17 @@
     position: relative;
   }
 
+  li > * {
+    // goes above the "::before" element.
+    z-index: 1;
+  }
+
   li > a {
+    text-decoration: none;
     display: flex;
     align-items: center;
     height: 100%;
     position: relative;
-    z-index: 1;
   }
 
   li::before {

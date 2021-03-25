@@ -2,6 +2,12 @@
   grid-template-columns: repeat(3 , 1fr);
 }
 
+@include down($medium) {
+  .alarms {
+    grid-template-columns: 1fr;
+  }
+}
+
 .alarm-schedule-days {
   display: flex;
   flex-wrap: wrap;

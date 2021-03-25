@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'house',
     'notification',
     'mqtt_services',
+    'setup',
 
     # third parties
     'django_extensions',
@@ -76,7 +77,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'django.middleware.locale.LocaleMiddleware'
+    'django.middleware.locale.LocaleMiddleware',
+
+    'setup.middlewares.SetupSecurityMiddleware',
 ]
 
 

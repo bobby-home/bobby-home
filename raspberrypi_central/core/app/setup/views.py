@@ -6,9 +6,13 @@ from django.http import HttpRequest, HttpResponse
 
 # Create your views here.
 from django.urls import reverse
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, CreateView
 
+from devices.models import Device
+from house.models import Location, TelegramBot, TelegramBotStart
+from notification.models import UserTelegramBotChatId
 from setup.models import StepDone
+from utils.django.forms import ChangeForm
 
 
 def setup_view(request: HttpRequest) -> HttpResponse:
@@ -51,3 +55,45 @@ class SetupDoneView(TemplateView):
     success_url = ''
     template_name = 'setup/done.html'
 
+
+class TelegramBotView(ChangeForm, CreateView):
+    model = TelegramBot
+    fields = '__all__'
+    template_name = 'setup/telegrambot_form.html'
+
+class TelegramBotStartView(ChangeForm, CreateView):
+    model = UserTelegramBotChatId
+    fields = '__all__'
+    template_name = 'setup/telegrambotstart_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['starts'] = TelegramBotStart.objects.all()
+        return context
+
+
+class MainDeviceLocationView(ChangeForm, CreateView):
+    model = Location
+    fields = '__all__'
+    template_name = 'setup/location_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['main_device'] = Device.objects.main_device()
+
+        return context
+
+    def form_valid(self, form) -> HttpResponse:
+        response = super().form_valid(form)
+
+        main_device = Device.objects.main_device()
+        main_device.location = self.object
+        main_device.save()
+
+        return response
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # update initial field defaults with custom set default values:
+        # initial.update({'charfield1': 'foo', 'charfield2': 'bar'})
+        return initial

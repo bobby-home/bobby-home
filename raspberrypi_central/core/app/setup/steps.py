@@ -4,8 +4,9 @@ from typing import Type, Optional
 from django.views import View
 
 from account.views import SignUpView
-from setup.views import SetupDoneView
-
+from house.views import HouseCreateView
+from setup.views import SetupDoneView, MainDeviceLocationView, TelegramBotView, TelegramBotStartView
+from django.contrib.auth import views as auth_views
 
 @dataclass
 class Step:
@@ -17,25 +18,31 @@ create_account_step = Step(
     view=SignUpView
 )
 
-# house_timezone = Step(
-#     slug='house',
-#     description=''
-# )
-#
-# main_device_location = Step(
-#     slug='device_location',
-#     description=''
-# )
-#
-# telegram_bot_step = Step(
-#     slug='telegram_bot',
-#     description='Some description given to the user'
-# )
-#
-# telegram_bot_start = Step(
-#     slug='telegram_bot_start',
-#     description=''
-# )
+login_account_step = Step(
+    slug='login',
+    view=auth_views.LoginView
+)
+
+house_timezone = Step(
+    slug='house',
+    view=HouseCreateView
+)
+
+main_device_location = Step(
+    slug='device_location',
+    view=MainDeviceLocationView,
+)
+
+telegram_bot_step = Step(
+    slug='telegram_bot',
+    view=TelegramBotView
+)
+
+
+telegram_bot_start = Step(
+    slug='telegram_bot_start',
+    view=TelegramBotStartView
+)
 
 done_step = Step(
     slug='done',
@@ -44,11 +51,12 @@ done_step = Step(
 
 STEPS = [
     create_account_step,
+    login_account_step,
+    house_timezone,
+    main_device_location,
+    telegram_bot_step,
+    telegram_bot_start,
     done_step,
-    # house_timezone,
-    # main_device_location,
-    # telegram_bot_step,
-    # telegram_bot_start
 ]
 
 def get_step(slug: str) -> Optional[Step]:

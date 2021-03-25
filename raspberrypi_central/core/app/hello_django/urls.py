@@ -13,7 +13,8 @@ urlpatterns = [
     path('camera/', include('camera.urls', namespace='camera')),
     path('accounts/', include('account.urls')),
     path('setup/', include('setup.urls', namespace='setup')),
-    path('configuration/', ConfigurationView.as_view(), name='configuration')
+    path('configuration/', ConfigurationView.as_view(), name='configuration'),
+    path('house/', include('house.urls', namespace='house')),
 ]
 
 if settings.DEBUG:

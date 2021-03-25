@@ -4,11 +4,13 @@
 {% block body %}
 
     <main class="l-container">
-        <section class="l-section">
+        <section class="l-section l-row">
             <div class="copy variant--content variant--box">
                 <div class="copy__body l-stack">
                     <section class="l-stack l-stack-bottom-separator">
                         <h2 class="h5">{{ title }}</h2>
+                        {% block form_header %}
+                        {% endblock %}
                     </section>
 
                     <form action="" method="post" class="l-stack vertical-form">
@@ -19,6 +21,8 @@
                 </div>
             </div>
         </section>
+        {% block main_after_form %}
+        {% endblock %}
     </main>
 
 {% endblock body %}

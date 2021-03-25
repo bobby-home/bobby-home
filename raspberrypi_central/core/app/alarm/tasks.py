@@ -144,12 +144,17 @@ def set_alarm_on(alarm_status_uui):
     AlarmScheduleChangeStatus().turn_on(alarm_status_uui)
 
 
-def check_ping(status: AlarmStatus) -> Tuple[bool, Optional[Ping]]:
+def check_ping(status: AlarmStatus) -> Tuple[bool, Ping]:
     try:
         ping = Ping.objects.get(device_id=status.device.device_id, service_name='object_detection')
+
+        if ping.last_update is None:
+            return False, ping
+
         return is_time_newer_than(ping.last_update, 60), ping
     except Ping.DoesNotExist:
-        return False, None
+        ping = Ping.objects.create(device_id=status.device.device_id, service_name='object_detection', last_update=None)
+        return False, ping
 
 class CheckPings:
     def __init__(self):
@@ -162,16 +167,12 @@ class CheckPings:
             result, ping = check_ping(status)
             device = status.device
 
-            if ping is None:
-                msg = f'The service object_detection for the device {device} does not send any ping.'
-                create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
-                return None
-
             if result is False:
                 ping.consecutive_failures += 1
 
                 if ping.consecutive_failures == 3:
-                    msg = f'The service object_detection for the device {device} does not send any ping since {ping.last_update}.'
+                    since_msg = f' since {ping.last_update}' if ping.last_update else ''
+                    msg = f'The service object_detection for the device {device} does not send any ping{since_msg}.'
                     create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
 
                 ping.save()

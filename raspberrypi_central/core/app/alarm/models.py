@@ -14,7 +14,9 @@ from django.db import transaction
 class Ping(models.Model):
     device_id = models.CharField(max_length=8)
     service_name = models.CharField(max_length=100)
-    last_update = models.DateTimeField()
+
+    # it's possible that a service never sent any ping.
+    last_update = models.DateTimeField(default=None, blank=True, null=True)
 
     consecutive_failures = models.IntegerField(default=0)
     failures = models.IntegerField(default=0)

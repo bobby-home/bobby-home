@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{% block title %}Mx tech house{% endblock %}</title>
+    <title>{% block title %}{{ title }} | {{ site_title|default:_('Mx tech house') }}{% endblock %}</title>
     {% assets 'entrypoints/app.js' %}
 </head>
-{# class="theme-dark" #}
+
 <body>
     <div class="main-wrapper relative">
         {% include "partials/_topbar.html" %}

@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
@@ -49,19 +50,19 @@ def setup_view(request: HttpRequest) -> HttpResponse:
 
     return redirect(reverse(f'setup:{current_step.slug}'))
 
-class SetupDoneView(TemplateView):
+class SetupDoneView(LoginRequiredMixin, TemplateView):
     # not used but its needed because setup inject `success_url` in every step view.
     # otherwise: TypeError: SetupDoneView() received an invalid keyword 'success_url'. as_view only accepts arguments that are already attributes of the class.
     success_url = ''
     template_name = 'setup/done.html'
 
 
-class TelegramBotView(ChangeForm, CreateView):
+class TelegramBotView(LoginRequiredMixin, ChangeForm, CreateView):
     model = TelegramBot
     fields = '__all__'
     template_name = 'setup/telegrambot_form.html'
 
-class TelegramBotStartView(ChangeForm, CreateView):
+class TelegramBotStartView(LoginRequiredMixin, ChangeForm, CreateView):
     model = UserTelegramBotChatId
     fields = '__all__'
     template_name = 'setup/telegrambotstart_form.html'
@@ -72,7 +73,7 @@ class TelegramBotStartView(ChangeForm, CreateView):
         return context
 
 
-class MainDeviceLocationView(ChangeForm, CreateView):
+class MainDeviceLocationView(LoginRequiredMixin, ChangeForm, CreateView):
     model = Location
     fields = '__all__'
     template_name = 'setup/location_form.html'

@@ -36,10 +36,10 @@ def assets(filename: str):
         print(f'ext={ext} file={path}')
 
         if ext == 'css':
-            to_inject += '<link rel="stylesheet" media="screen" href="{}">'.format(path)
+            to_inject += f'<link rel="stylesheet" media="screen" href="/{path}">'
 
         if ext == 'js':
-            to_inject += '<script type="module" src="{}" defer></script>'.format(path)
+            to_inject += f'<script type="module" src="/{path}" defer></script>'
 
     return format_html(to_inject)
 

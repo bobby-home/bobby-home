@@ -1,5 +1,6 @@
 from typing import List
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
 from alarm.models import AlarmStatus
@@ -17,7 +18,7 @@ class HomeView(TemplateView):
 
         return context
 
-class ConfigurationView(TemplateView):
+class ConfigurationView(LoginRequiredMixin, TemplateView):
     template_name = "configuration.html"
 
     def get_context_data(self, **kwargs):

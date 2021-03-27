@@ -1,17 +1,19 @@
 import json
+
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
 
 from camera.models import CameraMotionDetected, CameraMotionDetectedPicture
 from utils.json.decimal_encoder import DecimalEncoder
 
 
-class CameraMotionDetectedList(ListView):
+class CameraMotionDetectedList(LoginRequiredMixin, ListView):
     template_name = 'camera/camera_motion_detected_list.html'
     queryset = CameraMotionDetected.objects.order_by('-motion_started_at')
     context_object_name = 'motions'
 
 
-class CameraMotionDetectedDetail(DetailView):
+class CameraMotionDetectedDetail(LoginRequiredMixin, DetailView):
     model = CameraMotionDetected
     template_name = 'camera/camera_motion_detected_detail.html'
     context_object_name = 'motion'

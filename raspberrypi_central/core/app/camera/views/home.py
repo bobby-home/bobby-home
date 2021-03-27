@@ -1,11 +1,12 @@
 from typing import List
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
 from alarm.models import AlarmStatus
 
 
-class AlarmHome(TemplateView):
+class AlarmHome(LoginRequiredMixin, TemplateView):
     template_name = "alarm/home.html"
 
     def get_context_data(self, **kwargs):

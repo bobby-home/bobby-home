@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView, ListView
@@ -17,13 +18,13 @@ def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
     notify_alarm_status_factory().publish_roi_changed(device_id, camera_roi, rectangle_rois)
 
 
-class CameraROIList(ListView):
+class CameraROIList(LoginRequiredMixin, ListView):
     queryset = CameraROI.objects.all()
     template_name = 'camera/camera_roi_list.html'
     context_object_name = 'rois'
 
 
-class CameraROIDelete(DeleteView):
+class CameraROIDelete(LoginRequiredMixin, DeleteView):
     model = CameraROI
     success_url = reverse_lazy('camera:camera_roi-list')
 
@@ -36,7 +37,7 @@ class CameraROIDelete(DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-class CameraROIUpdate(JsonableResponseMixin, UpdateView):
+class CameraROIUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
     template_name = 'camera/camera_roi_form.html'
     model = CameraROI
     form_class = CameraROIUpdateForm
@@ -88,7 +89,7 @@ class CameraROIUpdate(JsonableResponseMixin, UpdateView):
 
 
 
-class CameraROICreate(JsonableResponseMixin, FormView):
+class CameraROICreate(LoginRequiredMixin, JsonableResponseMixin, FormView):
     template_name = 'camera/camera_roi_form.html'
     model = CameraROI
     form_class = CameraROIForm

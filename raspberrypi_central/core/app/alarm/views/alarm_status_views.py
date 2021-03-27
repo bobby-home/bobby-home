@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, UpdateView, DetailView
 from django.views.generic.edit import CreateView
@@ -8,13 +9,13 @@ from utils.django.forms import ChangeForm
 from utils.django.json_view import JsonableResponseMixin
 
 
-class AlarmStatusCreate(CreateView):
+class AlarmStatusCreate(LoginRequiredMixin, CreateView):
     model = AlarmStatus
     fields = '__all__'
     template_name = 'alarm/status_form.html'
 
 
-class AlarmStatusUpdate(JsonableResponseMixin, UpdateView):
+class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
     model = AlarmStatus
     fields = ['running']
     template_name = 'alarm/status_form.html'
@@ -29,13 +30,13 @@ class AlarmStatusUpdate(JsonableResponseMixin, UpdateView):
         return context
 
 
-class AlarmStatusList(ListView):
+class AlarmStatusList(LoginRequiredMixin, ListView):
     queryset = AlarmStatus.objects.all()
     template_name = 'alarm/status_list.html'
     context_object_name = 'statuses'
 
 
-class AlarmStatusSchedules(DetailView):
+class AlarmStatusSchedules(LoginRequiredMixin, DetailView):
     model = AlarmStatus
     template_name = 'alarm/status_schedules.html'
     context_object_name = 'alarm'
@@ -48,14 +49,14 @@ class AlarmStatusSchedules(DetailView):
 
         return context
 
-class AlarmScheduleUpdate(JsonableResponseMixin, ChangeForm, UpdateView):
+class AlarmScheduleUpdate(LoginRequiredMixin, JsonableResponseMixin, ChangeForm, UpdateView):
     model = AlarmSchedule
     fields = '__all__'
 
     def get_success_url(self):
         return reverse('alarm:schedule-detail', args=(self.object.id,))
 
-class AlarmScheduleCreate(ChangeForm, CreateView):
+class AlarmScheduleCreate(LoginRequiredMixin, ChangeForm, CreateView):
     model = AlarmSchedule
     fields = '__all__'
 

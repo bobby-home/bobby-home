@@ -15,7 +15,14 @@
                         {% endblock %}
                     </section>
 
-                    <form action="" method="post" class="l-stack vertical-form">
+                    <form
+                            is="{{ formOptions.isCustomForm|yesno:'custom-form,' }}" action="" method="post" class="l-stack vertical-form"
+                            data-status-field="{{ formOptions.statusField }}"
+                            data-true-success="{{ formOptions.trueSuccess }}"
+                            data-false-success="{{ formOptions.falseSuccess }}"
+                            data-dialog-title="{{ formOptions.dialogTitle }}"
+                            data-dialog-content="{{ dialogContent }}"
+                    >
                         {% include "partials/_form.html" %}
                         {% include "partials/_form_actions.html" with btn_text="Save" %}
                     </form>

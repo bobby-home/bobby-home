@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpRequest, HttpResponse
@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 from django.views.generic import TemplateView, CreateView
 
+from alarm.views.alarm_status_views import AlarmStatusCreate
 from devices.models import Device
 from house.models import Location, TelegramBot, TelegramBotStart
 from notification.models import UserTelegramBotChatId
@@ -93,8 +94,43 @@ class MainDeviceLocationView(LoginRequiredMixin, ChangeForm, CreateView):
 
         return response
 
+
+class MainDeviceAlarmView(AlarmStatusCreate):
+    template_name = 'setup/alarm_status_form.html'
+
+    def get_success_url(self):
+        # django fix: if its GET request (self.object None), direct redirect.
+        # otherwise get error about "None" does not have __dict__ attribute.
+        if not self.object:
+            return self.success_url
+
+        return super().get_success_url()
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+
+        if 'ignore' in self.request.GET:
+            return HttpResponseRedirect(self.get_success_url())
+
+        return response
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        form.fields.pop('is_dumb', None)
+
+        return form
+
+    def form_valid(self, form):
+        form.instance.is_dumb = False
+        return super().form_valid(form)
+
     def get_initial(self):
         initial = super().get_initial()
-        # update initial field defaults with custom set default values:
-        # initial.update({'charfield1': 'foo', 'charfield2': 'bar'})
+        device = Device.objects.main_device()
+
+        initial.update({
+            'device': device,
+        })
+
         return initial

@@ -5,17 +5,27 @@ from django.views.generic.edit import CreateView
 
 from alarm.business.alarm_schedule import DAYS_OF_WEEK
 from alarm.models import AlarmStatus, AlarmSchedule
+from devices.models import Device
 from utils.django.forms import ChangeForm
 from utils.django.json_view import JsonableResponseMixin
+from utils.views import HTMLFormMessageFieldBased
 
 
-class AlarmStatusCreate(LoginRequiredMixin, CreateView):
+class AlarmStatusCreate(LoginRequiredMixin, ChangeForm, CreateView):
     model = AlarmStatus
     fields = '__all__'
-    template_name = 'alarm/status_form.html'
+    # template_name = 'alarm/status_form.html'
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        # Device -> Alarm is a OneToOne relationship.
+        # If a device is already linked to an alarm status, don't propose it through the form.
+        form.fields['device'].queryset = Device.objects.filter(alarmstatus=None)
+        return form
 
 
-class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
+class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, ChangeForm, UpdateView):
     model = AlarmStatus
     fields = ['running']
     template_name = 'alarm/status_form.html'
@@ -26,7 +36,16 @@ class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(context)
+
+        formOptions = HTMLFormMessageFieldBased(
+            trueSuccess='Your alarm is now on.',
+            falseSuccess='Your alarm is now off.',
+            statusField='running',
+            isCustomForm=True
+        )
+
+        context['formOptions'] = formOptions
+
         return context
 
 

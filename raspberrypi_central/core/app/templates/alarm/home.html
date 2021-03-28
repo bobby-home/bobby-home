@@ -1,9 +1,12 @@
 {% extends '_layout.html' %}
+{% load i18n %}
 
 {% block body %}
     <div class="l-container">
-        <div class="l-section">
+        <div class="l-section l-row">
             {% include 'partials/_alarm_list.html' %}
+
+            <a class="btn-secondary" href="{% url 'alarm:status-add' %}">{% trans 'Create alarm' %}</a>
         </div>
     </div>
 {% endblock body %}

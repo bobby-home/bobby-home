@@ -1,0 +1,22 @@
+{% extends 'generics/_change_form.html' %}
+{% load i18n %}
+
+{% block main_before_form %}
+    <section class="l-section l-row">
+        <div class="copy variant--content variant--box">
+            <div class="copy__body l-stack">
+                <div class="l-stack l-stack-bottom-separator">
+                    <h2 class="h5">{% trans 'Information' %}</h2>
+                </div>
+                <p>
+                    {% trans 'If you do not connect a camera to your main device to make it as an alarm station, then ignore this step. Otherwise you need to create a status linked to it through the form below.' %}
+                </p>
+            </div>
+            <div class="copy__footer">
+                <div class="copy__cta">
+                    <a href="?ignore" class="btn-secondary">{% trans 'Ignore' %}</a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

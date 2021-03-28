@@ -33,13 +33,16 @@ def assets(filename: str):
 
     for path in paths:
         ext = path.split('.')[-1]
-        print(f'ext={ext} file={path}')
+
+        # prod: it's file to be served on the same host.
+        # dev: it's another host (dev server).
+        path = f'/{path}' if settings.ENV == 'prod' else path
 
         if ext == 'css':
-            to_inject += f'<link rel="stylesheet" media="screen" href="/{path}">'
+            to_inject += f'<link rel="stylesheet" media="screen" href="{path}">'
 
         if ext == 'js':
-            to_inject += f'<script type="module" src="/{path}" defer></script>'
+            to_inject += f'<script type="module" src="{path}" defer></script>'
 
     return format_html(to_inject)
 

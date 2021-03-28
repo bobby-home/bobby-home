@@ -14,7 +14,8 @@
     {% svg_icon 'server' %} <span class="l-ml1">{% firstof alarm.device.name alarm.device.device_type.type %}</span>
 </p>
 
-{% if alarm.get_next_on_schedule or alarm.get_next_off_schedule %}
+
+{% if alarm.alarm_schedules.all %}
     <div class="flex items-center">
         {% svg_icon 'clock' %}
         <div class="flex flex-col l-ml1">
@@ -36,6 +37,15 @@
         {% svg_icon 'clock' %}
         <div class="flex flex-col l-ml1">
             <a href="{% url 'alarm:schedule-add'%}">{% trans "Create schedule" %}</a>
+        </div>
+    </div>
+{% endif %}
+
+{% if alarm.device.camera_motions.all %}
+    <div class="flex items-center">
+        {% svg_icon 'eye' %}
+        <div class="flex flex-col l-ml1">
+            <a href="{% url 'device:camera-motion-list' alarm.device.pk %}">See linked motions</a>
         </div>
     </div>
 {% endif %}

@@ -2,33 +2,14 @@
 
 {% load i18n %}
 
-{% block header %}
-    <h1 class="h3">Camera motion list</h1>
-
-{% endblock header %}
+{% block title %}
+    Camera motion list
+{% endblock title %}
 
 {% block body %}
     <main class="l-container">
-        <div class="box">
-            <div class="box__body">
-                <h2>Camera motion list</h2>
-                {{ get_current_language }}
-
-                {% language 'fr' %}
-                    {% trans "This is the title." %}
-                {% endlanguage %}
-
-                <ul>
-                    {% for motion in motions %}
-                        <li>
-                            <a href="{% url 'camera:camera_motion_detected-detail' motion.pk %}">
-                                {{ motion.pk }} {{ motion.created_at }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+        <section class="l-section">
+            {% include 'partials/_camera_motion_list.html' %}
+        </section>
     </main>
-
 {% endblock body %}

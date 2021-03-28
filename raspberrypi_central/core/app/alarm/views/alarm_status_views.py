@@ -1,12 +1,26 @@
+from typing import List
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, UpdateView, DetailView
+from django.views.generic import ListView, UpdateView, DetailView, TemplateView
 from django.views.generic.edit import CreateView
 
 from alarm.business.alarm_schedule import DAYS_OF_WEEK
 from alarm.models import AlarmStatus, AlarmSchedule
 from utils.django.forms import ChangeForm
 from utils.django.json_view import JsonableResponseMixin
+
+
+class AlarmHome(LoginRequiredMixin, TemplateView):
+    template_name = "alarm/home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        alarms: List[AlarmStatus] = AlarmStatus.objects.select_related('device__location').order_by('device__device_id').prefetch_related('alarm_schedules')
+        context['alarms'] = alarms
+
+        return context
 
 
 class AlarmStatusCreate(LoginRequiredMixin, CreateView):
@@ -28,12 +42,6 @@ class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         print(context)
         return context
-
-
-class AlarmStatusList(LoginRequiredMixin, ListView):
-    queryset = AlarmStatus.objects.all()
-    template_name = 'alarm/status_list.html'
-    context_object_name = 'statuses'
 
 
 class AlarmStatusSchedules(LoginRequiredMixin, DetailView):

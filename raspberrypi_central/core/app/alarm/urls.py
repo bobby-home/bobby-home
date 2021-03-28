@@ -1,15 +1,14 @@
 from django.urls import include, path
 
-from alarm.views.alarm_status_views import AlarmStatusList, AlarmStatusUpdate, AlarmStatusCreate, AlarmStatusSchedules, \
+from alarm.views.alarm_status_views import AlarmStatusUpdate, AlarmStatusCreate, AlarmStatusSchedules, \
     AlarmScheduleUpdate, AlarmScheduleCreate, AlarmScheduleDetail
 from camera.views.camera_motion_views import CameraMotionDetectedList, CameraMotionDetectedDetail
 from camera.views.camera_roi_views import CameraROICreate, CameraROIUpdate, CameraROIList, CameraROIDelete
-from camera.views.home import AlarmHome
+from alarm.views.alarm_status_views import AlarmHome
 
 app_name = 'alarm'
 
 status_patterns = [
-    path('', AlarmStatusList.as_view(), name='status-list'),
     path('<int:pk>/edit', AlarmStatusUpdate.as_view(), name='status-edit'),
     path('add', AlarmStatusCreate.as_view(), name='status-add'),
     path('<int:pk>/schedules', AlarmStatusSchedules.as_view(), name='status-schedules')
@@ -36,7 +35,7 @@ motions_pattern = [
 
 urlpatterns = [
     path('', AlarmHome.as_view(), name='home'),
-    path('status/', include(status_patterns)),
+    path('', include(status_patterns)),
     path('schedule/', include(schedule_patterns)),
     path('camera_roi/', include(roi_patterns)),
     path('camera_motion/', include(motions_pattern)),

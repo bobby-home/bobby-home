@@ -48,7 +48,7 @@ class CameraMotionDetected(models.Model):
 
     closed_by_system = models.BooleanField(default=False)
 
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT, related_name='camera_motions')
     in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
 
 class CameraMotionDetectedBoundingBox(models.Model):

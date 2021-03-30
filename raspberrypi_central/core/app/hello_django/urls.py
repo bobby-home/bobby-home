@@ -8,7 +8,7 @@ from hello_django.views import HomeView, ConfigurationView
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path(r'admin/', admin.site.urls),
-    path('device/', include('devices.urls')),
+    path('device/', include('devices.urls', namespace='device')),
     path('alarm/', include('alarm.urls', namespace='alarm')),
     path('camera/', include('camera.urls', namespace='camera')),
     path('accounts/', include('account.urls')),

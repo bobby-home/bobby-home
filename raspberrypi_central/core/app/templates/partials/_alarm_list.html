@@ -4,7 +4,9 @@
     {% for alarm in alarms %}
         <div class="copy variant--box variant--content">
             <div class="copy__body l-stack">
-                {% include 'partials/_alarm_status_info.html' %}
+                {% with see_schedules=True %}
+                    {% include 'partials/_alarm_status_info.html' %}
+                {% endwith %}
             </div>
             <div class="copy__footer flex items-end">
                 <div class="copy__cta">

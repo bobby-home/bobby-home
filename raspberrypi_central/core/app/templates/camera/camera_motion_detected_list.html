@@ -8,7 +8,10 @@
 
 {% block body %}
     <main class="l-container">
-        <section class="l-section">
+        <section class="l-section l-row">
+            <h2 class="h4">
+                {% trans 'List of camera motions' %}
+            </h2>
             {% include 'partials/_camera_motion_list.html' %}
         </section>
     </main>

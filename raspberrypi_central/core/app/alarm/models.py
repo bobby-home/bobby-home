@@ -40,8 +40,9 @@ class AlarmStatus(models.Model):
 
     device = models.OneToOneField(
         Device, on_delete=models.CASCADE,
-        help_text="The device that is controlled by the alarm status."
+        help_text="The device that is controlled by the alarm. If you do not find the desired device, it means that an alarm is already linked to it."
     )
+
     is_dumb = models.BooleanField(
         default=True,
         help_text='Either or not the device is dumb, which means it runs the dumb camera software. Typically used for low-end devices such as RaspberryPi zero, esp...'

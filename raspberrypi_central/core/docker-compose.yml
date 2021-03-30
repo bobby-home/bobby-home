@@ -40,7 +40,7 @@ services:
         networks:
             webapp_backend:
             backend_mqtt:
-                ipv4_address: 172.19.0.100
+                ipv4_address: 172.80.0.100
 
     rabbit_worker:
         command: bash -c "celery -A hello_django worker --loglevel=info"

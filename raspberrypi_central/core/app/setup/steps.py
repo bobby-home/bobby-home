@@ -5,7 +5,8 @@ from django.views import View
 
 from account.views import SignUpView
 from house.views import HouseCreateView
-from setup.views import SetupDoneView, MainDeviceLocationView, TelegramBotView, TelegramBotStartView
+from setup.views import SetupDoneView, MainDeviceLocationView, TelegramBotView, TelegramBotStartView, \
+    MainDeviceAlarmView
 from django.contrib.auth import views as auth_views
 
 @dataclass
@@ -33,6 +34,11 @@ main_device_location = Step(
     view=MainDeviceLocationView,
 )
 
+main_device_alarm = Step(
+    slug='main_alarm',
+    view=MainDeviceAlarmView,
+)
+
 telegram_bot_step = Step(
     slug='telegram_bot',
     view=TelegramBotView
@@ -54,6 +60,7 @@ STEPS = [
     login_account_step,
     house_timezone,
     main_device_location,
+    main_device_alarm,
     telegram_bot_step,
     telegram_bot_start,
     done_step,

@@ -20,7 +20,8 @@ class SetupSecurityMiddleware:
         match = SETUP_MATCHER.match(path)
 
         if match:
-            step = match.groups()
+            groups = match.groupdict()
+            step = groups['step']
             if StepDone.objects.filter(slug=step).exists():
                 return HttpResponse(status=HTTPStatus.FORBIDDEN)
 

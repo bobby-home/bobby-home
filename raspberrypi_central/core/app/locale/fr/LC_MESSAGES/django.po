@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-20 13:55+0000\n"
+"POT-Creation-Date: 2021-03-31 13:06+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,45 +18,79 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: alarm/telegram/alarm_status.py:63
+#: alarm/notifications.py:11
+#, python-format
+msgid "People has been detected in %(structure)s %(sub_structure)s"
+msgstr ""
+"Une présence étrangère a été détectée chez vous depuis %(structure)s "
+"%(sub_structure)s"
+
+#: alarm/notifications.py:27
+#, python-format
+msgid ""
+"People detected in %(structure)s %(sub_structure)s is no longer detected."
+msgstr ""
+"La présence étrangère précédemment détectée chez vous depuis %(structure)s "
+"%(sub_structure)s ne l'est plus."
+
+#: alarm/notifications.py:42
+#, python-format
+msgid "since %(since)s"
+msgstr ""
+
+#: alarm/notifications.py:45
+#, python-format
+msgid ""
+"The service object_detection for the device %(device) does not send any ping"
+"%(since)s."
+msgstr ""
+
+#: alarm/notifications.py:54
+#, python-format
+msgid ""
+"The service object_detection for the device %(device_name)s was not pinging "
+"but it does now. Everything is back to normal."
+msgstr ""
+
+#: alarm/telegram/alarm_status.py:66
 #, python-format
 msgid "Your alarm %(alarm)s is on."
 msgstr "Votre alarme %(alarm)s est allumée."
 
-#: alarm/telegram/alarm_status.py:66
+#: alarm/telegram/alarm_status.py:69
 #, python-format
 msgid "Your alarm %(alarm)s is off."
 msgstr "Votre alarme %(alarm)s est éteinte."
 
-#: alarm/telegram/alarm_status.py:70
+#: alarm/telegram/alarm_status.py:73
 msgid "Deactivate all"
 msgstr "Tout désactiver"
 
-#: alarm/telegram/alarm_status.py:71
+#: alarm/telegram/alarm_status.py:74
 msgid "Activate all"
 msgstr "Tout activer"
 
-#: alarm/telegram/alarm_status.py:81
+#: alarm/telegram/alarm_status.py:87
 msgid "All of your alarms are on."
 msgstr "Toutes vos alarmes sont allumées."
 
-#: alarm/telegram/alarm_status.py:86
+#: alarm/telegram/alarm_status.py:92
 msgid "All of your alarms are off."
 msgstr "Toutes vos alarmes sont éteintes."
 
-#: alarm/telegram/alarm_status.py:89
+#: alarm/telegram/alarm_status.py:95
 msgid "Something went wrong."
 msgstr "Nous avons rencontré un problème technique."
 
-#: mqtt_services/tasks.py:13
+#: mqtt_services/notifications.py:7
 msgid "turn on"
 msgstr "s'allumer"
 
-#: mqtt_services/tasks.py:14
+#: mqtt_services/notifications.py:8
 msgid "turn off"
 msgstr "s'éteindre"
 
-#: mqtt_services/tasks.py:20
+#: mqtt_services/notifications.py:16
 #, python-format
 msgid ""
 "Your service %(service)s, on the device %(device)s in %(location)s, should "
@@ -67,23 +101,23 @@ msgstr ""
 "%(status_text)s mais le système n'a pas reçu signe de vie. Il doit y avoir "
 "un problème."
 
-#: mqtt_services/tasks.py:32
+#: mqtt_services/notifications.py:24
 msgid "has turned on"
 msgstr "s'allumer"
 
-#: mqtt_services/tasks.py:33
+#: mqtt_services/notifications.py:25
 msgid "has turned off"
 msgstr "s'éteindre"
 
-#: mqtt_services/tasks.py:34
+#: mqtt_services/notifications.py:26
 msgid "off"
 msgstr "éteint"
 
-#: mqtt_services/tasks.py:35
+#: mqtt_services/notifications.py:27
 msgid "on"
 msgstr "allumé"
 
-#: mqtt_services/tasks.py:45
+#: mqtt_services/notifications.py:37
 #, python-format
 msgid ""
 "Your service %(service)s, on the device %(device)s in %(location)s, %(turn)s "
@@ -92,6 +126,155 @@ msgstr ""
 "Le service %(service)s, sur l'appareil %(device)s dans %(location)s, "
 "%(turn)s mais il devrait être %(status)s. Il doit y avoir un problème."
 
-#: templates/camera/camera_motion_detected_list.html:18
-msgid "This is the title."
-msgstr "C'est un titre"
+#: templates/_layout.html:7
+msgid "Mx tech house"
+msgstr ""
+
+#: templates/alarm/alarmschedule_detail.html:11
+msgid "List of linked alarms"
+msgstr ""
+
+#: templates/alarm/home.html:9
+msgid "Create alarm"
+msgstr ""
+
+#: templates/alarm/status_schedules.html:10
+msgid "Alarm information"
+msgstr ""
+
+#: templates/alarm/status_schedules.html:21
+msgid "Schedules"
+msgstr ""
+
+#: templates/camera/camera_motion_detected_list.html:13
+msgid "List of camera motions"
+msgstr ""
+
+#: templates/configuration.html:13
+msgid "The timezone is"
+msgstr ""
+
+#: templates/configuration.html:18 templates/configuration.html:37
+#: templates/partials/_alarm_list.html:13
+#: templates/partials/_alarm_schedule_info.html:31
+msgid "Update"
+msgstr ""
+
+#: templates/configuration.html:28
+msgid "Telegram bot api key"
+msgstr ""
+
+#: templates/configuration.html:30
+msgid ""
+"Not found. Your application is not able to send notification through "
+"Telegram."
+msgstr ""
+
+#: templates/configuration.html:39
+msgid "Create"
+msgstr ""
+
+#: templates/device/device_camera_motion_list.html:9
+msgid "List of linked camera motions"
+msgstr ""
+
+#: templates/home.html:14
+msgid "Hello"
+msgstr ""
+
+#: templates/partials/_alarm_schedule_info.html:33
+#: templates/partials/_camera_motion_list.html:13
+msgid "See more"
+msgstr ""
+
+#: templates/partials/_alarm_status_info.html:39
+msgid "Create schedule"
+msgstr ""
+
+#: templates/partials/_topbar.html:4
+msgid "Main navigation"
+msgstr ""
+
+#: templates/partials/_topbar.html:7
+msgid "Home"
+msgstr ""
+
+#: templates/partials/_topbar.html:10
+msgid "Alarm"
+msgstr ""
+
+#: templates/partials/_topbar.html:13
+msgid "Configuration"
+msgstr ""
+
+#: templates/registration/signup.html:9 templates/registration/signup.html:14
+msgid "Create your account"
+msgstr ""
+
+#: templates/setup/alarm_status_form.html:9
+msgid "Information"
+msgstr ""
+
+#: templates/setup/alarm_status_form.html:12
+msgid ""
+"If you do not connect a camera to your main device to make it as an alarm "
+"station, then ignore this step. Otherwise you need to create a status linked "
+"to it through the form below."
+msgstr ""
+
+#: templates/setup/alarm_status_form.html:17
+msgid "Ignore"
+msgstr ""
+
+#: templates/setup/done.html:10
+msgid "Setup is done"
+msgstr ""
+
+#: templates/setup/done.html:12
+msgid "Congratulations your system is ready. Enjoy!"
+msgstr ""
+
+#: templates/setup/done.html:16
+msgid "Go to the home page"
+msgstr ""
+
+#: templates/setup/telegrambotstart_form.html:7
+msgid "You can now run the telegram service: `make telegram_bot`."
+msgstr ""
+
+#: templates/setup/telegrambotstart_form.html:10
+msgid "To chat to your bot and send him \"/start\"."
+msgstr ""
+
+#: templates/setup/telegrambotstart_form.html:13
+msgid ""
+"Refresh the page. Chat information will be displayed. Copy the `chat_id` you "
+"want and link it to the user that you want thanks to the form below."
+msgstr ""
+
+#: templates/setup/telegrambotstart_form.html:24
+msgid "List of chats"
+msgstr ""
+
+#: templates/setup/telegrambotstart_form.html:27
+msgid ""
+"The bot did not receive any chat. Send him the message '/start' and refresh "
+"the page."
+msgstr ""
+
+#: templates/setup/telegrambotstart_form.html:47
+msgid "Chat id"
+msgstr ""
+
+#: utils/django/forms.py:20
+#, python-format
+msgid "Add %s"
+msgstr ""
+
+#: utils/django/forms.py:22
+#, python-format
+msgid "Change %s"
+msgstr ""
+
+#~ msgid "This is the title."
+#~ msgstr "C'est un titre"

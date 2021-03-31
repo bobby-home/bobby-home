@@ -32,6 +32,10 @@ class AlarmStatusManager(models.Manager):
         return self.select_related('device', 'device__location')
 
 class AlarmStatus(models.Model):
+    class Meta:
+        verbose_name = 'alarm status'
+        verbose_name_plural = 'alarm statuses'
+
     objects = AlarmStatusManager()
 
     running = models.BooleanField(

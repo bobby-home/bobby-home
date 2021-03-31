@@ -90,8 +90,8 @@ db-login:
 
 .PHONY: messages
 messages:
-	$(dr) $(web_image) django-admin makemessages -l fr
+	$(dr-dev) $(web_image) django-admin makemessages -l fr --ignore=node_modules
 
 .PHONY: compile-messages
 compile-messages:
-	$(dr) $(web_image) django-admin compilemessages
+	$(dr-dev) $(web_image) django-admin compilemessages

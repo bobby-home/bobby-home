@@ -38,9 +38,7 @@ def object_no_more_detected(device: Device, location: Location) -> None:
 
 
 def service_no_ping(status: AlarmStatus, ping: Ping) -> None:
-    since_info = _('since %(since)s') % {'since': format_utc_datetime('%Y-%m-%d %H:%M:%S', ping.last_update)}
-
-    since_msg = ' ' + since_info if ping.last_update else ''
+    since_msg = ' ' + _('since %(since)s') % {'since': format_utc_datetime('%Y-%m-%d %H:%M:%S', ping.last_update)} if ping.last_update else ''
     msg = _('The service object_detection for the device %(device)s does not send any ping%(since)s.') % {
         'device': status.device,
         'since': since_msg

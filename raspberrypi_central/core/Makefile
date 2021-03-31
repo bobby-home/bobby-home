@@ -95,3 +95,7 @@ messages:
 .PHONY: compile-messages
 compile-messages:
 	$(dr-dev) $(web_image) django-admin compilemessages
+
+.PHONY: generate-mqtt-password
+generate-mqtt-password:
+	docker run -it --rm -v $(PWD)/config/mosquitto:/mosquitto/config eclipse-mosquitto mosquitto_passwd -c /mosquitto/config/passwd $(user)

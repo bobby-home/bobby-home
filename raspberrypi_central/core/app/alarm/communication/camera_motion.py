@@ -7,8 +7,8 @@ from alarm.communication.out_alarm import notify_alarm_status_factory
 from alarm.communication.play_sound import play_sound
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetectedPicture
-from devices.models import SeverityChoice, Device
-
+from devices.models import Device
+import alarm.notifications as alarm_notifications
 
 LOGGER = logging.getLogger(__name__)
 
@@ -60,29 +60,14 @@ class CameraMotion:
         location = device.location
 
         if status is True:
-            message = f'Une présence étrangère a été détectée chez vous depuis {device_id} {location.structure} {location.sub_structure}'
+            alarm_notifications.object_detected(device, location)
         else:
-            message = f"La présence étrangère précédemment détectée chez vous depuis {device_id} {location.structure} {location.sub_structure} ne l'est plus."
+            alarm_notifications.object_no_more_detected(device, location)
             if AlarmStatus.objects.get(device=device).running is False:
                 LOGGER.info(f'The alarm on device {device.device_id} did not turn off because a motion was here. Not here anymore, turning off.')
                 # we need to turn off the service
                 self.notify_alarm_status_factory().publish_status_changed(device.pk, False)
 
-        kwargs = {
-            'severity': SeverityChoice.HIGH,
-            'device_id': device_id,
-            'message': message
-        }
-
-        """
-        TODO: check if this is a correct way to create & run multiple jobs.
-        ! They are not related, they have to run in total parallel.
-
-        send_message can run multiple time for one notification See issue #94
-        If something goes wrong in this function after the real send notification, then
-        it will retry it -> notify the user multiple times.
-        """
-        self.create_and_send_notification.apply_async(kwargs=kwargs)
         self.play_sound(device_id, status)
 
 def camera_motion_factory():

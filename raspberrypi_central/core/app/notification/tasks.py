@@ -1,7 +1,8 @@
 from celery import shared_task
 
 from devices.models import Device
-from .models import SeverityChoice, SystemNotification
+from .models import SystemNotification
+from .consts import SeverityChoice
 from notification.out.messaging import messaging_factory
 
 

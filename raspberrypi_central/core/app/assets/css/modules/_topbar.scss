@@ -1,21 +1,88 @@
+.theme-dark .topbar {
+    --backgroundColor: hsl(220, 50%, 20%);
+}
+
 .topbar {
-  background-color: color("mx-purple", "black-darker");
-  background-color: #0F53BD;
-  color: color("mx-purple", "grey");
+  --backgroundColor: var(--accentColor);
+  background-color: var(--backgroundColor); // Bdazzled blue
+  line-height: 1;
+  height: 60px;
+  color: #fff;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .topbar__nav {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 100%;
+
+  ul {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
 }
 
-.topbar__nav__menu {
+.topbar__nav__list, .topbar__nav__side {
   display: grid;
   align-items: center;
   grid-auto-flow: column;
-  grid-gap: space(4);
+
+  li {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    position: relative;
+  }
+
+  li > * {
+    // goes above the "::before" element.
+    z-index: 1;
+  }
+
+  li > a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    position: relative;
+  }
+
+  li::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background-color: var(--backgroundColor);
+    filter: brightness(80%);
+
+    transform: scaleX(0);
+    transition: transform .2s ease-in-out;
+  }
+
+  li:hover::before {
+    transform: scaleX(1);
+  }
+
+  a > svg {
+    margin-right: space(1);
+  }
 }
 
-.topbar__nav__menu a {
-  display: block;
-  padding: space(3) 0;
+@include down(600) {
+  .topbar {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+  }
 }

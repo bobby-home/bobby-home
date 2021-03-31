@@ -1,0 +1,15 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+    <main class="l-container">
+        <section class="l-section l-row">
+
+            <h2 class="h4">
+                {% trans 'List of linked camera motions' %}
+            </h2>
+            {% include 'partials/_camera_motion_list.html' with motions=device.camera_motions.all %}
+        </section>
+    </main>
+{% endblock body %}
+

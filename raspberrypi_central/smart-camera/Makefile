@@ -4,7 +4,7 @@ dc := USER_ID=$(user) GROUP_ID=$(group) docker-compose
 de := docker-compose exec
 
 # -f docker-compose.test.yml
-drtest := $(dc) -f docker-compose.yml run --rm
+drtest := $(dc) run --rm
 dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
 
 .PHONY: prod-up
@@ -21,8 +21,8 @@ build-docker:
 
 .PHONY: test
 test:
-	$(drtest) camera python -m unittest test/test_rate_limit.py
+	$(drtest) camera python -m unittest test/test_run_listen_frame.py #
 
 .PHONY: docker-build-release
 docker-build-release:
-	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/camera ./app
+	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/camera:$(version) ./app

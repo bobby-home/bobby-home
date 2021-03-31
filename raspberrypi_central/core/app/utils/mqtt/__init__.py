@@ -1,11 +1,11 @@
 import os
 from functools import partial
-from typing import List
+from typing import List, Callable
 import logging
 import utils.date as dt_utils
+from paho.mqtt.reasoncodes import ReasonCodes
 from utils.mqtt.mqtt_data import MqttConfig, Subscription, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
 import paho.mqtt.client as mqtt
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,7 +18,8 @@ class MQTT:
     def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
         self._mqtt_client_constructor = mqtt_client_constructor
-        self.client = self._init_mqtt_client()
+        self.on_connected_callbacks: List[Callable[[MQTT], None]] = []
+        self._client = self._init_mqtt_client()
 
     def _init_mqtt_client(self) -> mqtt.Client:
         config = self._config
@@ -32,20 +33,27 @@ class MQTT:
         client.on_connect = self._mqtt_on_connect
 
         # TODO: what do we do when disconnect happens? It is very bad!
-        # client.on_disconnect = self._mqtt_on_disconnect
+        client.on_disconnect = self._mqtt_on_disconnect
 
         return client
 
-    def _mqtt_on_connect(self, _idk, _mqttc, _userdata, _flags, result_code: int):
-        # pylint: disable=import-outside-toplevel
-        import paho.mqtt.client as mqtt
+    @staticmethod
+    def _mqtt_on_disconnect(_client, _userdata, rc):
+        print(f'_mqtt_on_disconnect reason code: {mqtt.connack_string(rc)}')
 
-        if result_code != mqtt.CONNACK_ACCEPTED:
+    def _mqtt_on_connect(self, _client, _userdata, _flags, rc: ReasonCodes, _properties):
+        # print(_client._protocol)
+        print(f'_mqtt_on_connect rc: {rc}')
+
+        if rc != mqtt.CONNACK_ACCEPTED:
             _LOGGER.error(
                 "Unable to connect to the MQTT broker: %s",
-                mqtt.connack_string(result_code),
+                mqtt.connack_string(rc),
             )
             return
+
+        for callback in self.on_connected_callbacks:
+            callback(self)
 
     @staticmethod
     def _wrap_subscription_callback(subscription: MqttTopicSubscription):
@@ -53,9 +61,9 @@ class MQTT:
 
     def add_subscribe(self, subscriptions: List[Subscription]):
 
-        def _mqtt_add_callback(subscription: MqttTopicSubscription):
-            subscription_callback = self._wrap_subscription_callback(subscription)
-            self.client.message_callback_add(subscription.topic, subscription_callback)
+        def _mqtt_add_callback(sub: MqttTopicSubscription):
+            subscription_callback = self._wrap_subscription_callback(sub)
+            self._client.message_callback_add(sub.topic, subscription_callback)
 
         for subscription in subscriptions:
             """
@@ -80,7 +88,26 @@ class MQTT:
                 _mqtt_add_callback(subscription)
 
     @staticmethod
-    def _mqtt_on_message_wrapper(subscription: MqttTopicSubscription, _mqttc, _userdata, msg):
+    def _mqtt_on_message_wrapper(subscription: MqttTopicSubscription, _mqttc, _userdata, msg: mqtt.MQTTMessage) -> None:
+        """Callback given to Paho mqtt which calls it when it receives a mqtt message. Then it calls `subscription.callback` with computed `MqttMessage`.
+        Used to extract data given by Paho mqtt and to call our `subscription.callback`.
+        Thanks to this, our system is not concerned by the library.
+
+        Parameters
+        ----------
+        subscription : MqttTopicSubscription
+            The
+        _mqttc
+            Paho mqtt client.
+        _userdata
+            Paho mqtt user data.
+        msg : mqtt.MQTTMessage
+            MQTTMessage object given by Paho mqtt.
+
+        Returns
+        -------
+        None
+        """
         timestamp = dt_utils.utcnow()
 
         subscription.callback(MqttMessage(

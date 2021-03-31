@@ -2,37 +2,47 @@ import os
 
 from django import template
 from django.utils.html import format_html
+from django.conf import settings
 
 from template_addons.assets_helper import AssetsHelper
 
 register = template.Library()
 
 
-assets_uri = os.getenv('ASSETS_DEV_SERVER', None)
-asset = os.getenv('WEBPACK_ASSSET', None)
+assets_uri = os.environ['ASSETS_DEV_SERVER']
+public_asset = os.environ['PUBLIC_ASSET']
+env = os.getenv('ENV', 'prod')
 
-if not assets_uri and not asset:
-    raise Exception("ASSETS_DEV_SERVER and WEBPACK_ASSSET environment variables are not defined so we cannot render assets.")
+assets_helper = AssetsHelper(env, public_asset, assets_uri, 'manifest.json')
 
-assets_helper = AssetsHelper(asset, assets_uri)
+def _inject_vite_dev():
+    return f'<script type="module" src="{assets_uri}/@vite/client"></script>'
 
+INIT = False
 
 @register.simple_tag()
 def assets(filename: str):
-    path = assets_helper.path(filename)
-
+    global INIT
     to_inject = ''
 
-    # It seems that Vite does this for us.
-    # if self._is_hmr_injected is False and settings.DEBUG:
-    #     to_inject += self._add_hmr_script()
+    if INIT is False and settings.ENV == 'dev':
+        INIT = True
+        to_inject += _inject_vite_dev()
 
-    name, ext = filename.split('.')
-    if ext == 'css':
-        to_inject += '<link rel="stylesheet" href="{}">'.format(path)
+    paths = assets_helper.path(filename)
 
-    if ext == 'js':
-        to_inject += '<script type="module" src="{}"></script>'.format(path)
+    for path in paths:
+        ext = path.split('.')[-1]
+
+        # prod: it's file to be served on the same host.
+        # dev: it's another host (dev server).
+        path = f'/{path}' if settings.ENV == 'prod' else path
+
+        if ext == 'css':
+            to_inject += f'<link rel="stylesheet" media="screen" href="{path}">'
+
+        if ext == 'js':
+            to_inject += f'<script type="module" src="{path}" defer></script>'
 
     return format_html(to_inject)
 
@@ -41,6 +51,25 @@ def assets(filename: str):
 def svg_icon(name: str):
     return format_html(f"""
     <svg class="icon icon-{name}">
-      <use xlink:href="/static/sprite.svg#{name}"></use>
+      <use xlink:href="/public/svg/sprite.svg#{name}"></use>
     </svg>
     """)
+
+
+@register.filter
+def get_obj_attr(obj, attr):
+    """
+    Allows us to access property by variable value inside our templates.
+    Example: `data={'monday': True}`, `day='monday'`, then we can do: `{{ data|get_obj_attr:day }}`
+
+
+    Parameters
+    ----------
+    obj
+    attr
+
+    Returns
+    -------
+    Attribute of obj
+    """
+    return getattr(obj, attr)

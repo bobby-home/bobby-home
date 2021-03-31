@@ -25,6 +25,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
+# can be either 'prod', 'dev', 'testing'.
+ENV = os.environ.get("ENV", default='prod')
+
 TESTING = int(os.environ.get("TESTING", default=0))
 
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
     'house',
     'notification',
     'mqtt_services',
+    'setup',
 
     # third parties
     'django_extensions',
@@ -73,7 +77,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'django.middleware.locale.LocaleMiddleware'
+    'django.middleware.locale.LocaleMiddleware',
+
+    'setup.middlewares.SetupSecurityMiddleware',
 ]
 
 
@@ -158,11 +164,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/public/'
 
 if not TESTING:
     STATICFILES_DIRS = [
-        f"{BASE_DIR}/static",
+        f"{BASE_DIR}/public",
     ]
 
 if DEBUG and not TESTING:
@@ -180,3 +186,6 @@ MEDIA_URL = '/media/'
 
 # MEDIA_FOLDER env variable is defined in Dockerfile
 MEDIA_ROOT = os.path.join(os.environ['MEDIA_FOLDER'])
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

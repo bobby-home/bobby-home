@@ -18,7 +18,9 @@ device, created_device = Device.objects.get_or_create(
     device_id=device_id,
     defaults={
         'device_id': device_id,
-        'device_type': i_device_type
+        'device_type': i_device_type,
+        'is_main': True,
+        'name': 'Main device',
     }
 )
 

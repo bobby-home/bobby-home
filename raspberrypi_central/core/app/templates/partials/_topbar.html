@@ -1,19 +1,31 @@
+{% load i18n %}
+
 <div class="topbar">
-    <nav class="topbar__nav l-container" role="navigation" aria-label="Menu principal">
+    <nav class="topbar__nav l-container" role="navigation" aria-label="{% trans 'Main navigation' %}">
         <ul class="topbar__nav__list">
             <li>
-                <a href="#">{% svg_icon 'home' %} Accueil</a>
+                <a class="copy__body" href="{% url 'home' %}">{% svg_icon 'home' %} {% trans "Home" %}</a>
             </li>
             <li>
-                <a href="#">{% svg_icon 'shield' %} Alarme</a>
+                <a class="copy__body" href="{% url 'alarm:home' %}">{% svg_icon 'shield' %} {% trans "Alarm" %}</a>
+            </li>
+            <li>
+                <a class="copy__body" href="{% url 'configuration' %}">{% svg_icon 'cog' %}{% trans "Configuration" %}</a>
             </li>
         </ul>
 
         <ul class="topbar__nav__side">
             {% if request.user.is_authenticated %}
-                {{ request.user.first_name }}
+                <li>
+                    <p class="copy__body">{{ request.user.first_name }}</p>
+                </li>
+                <li>
+                    <a class="copy__body" href="{% url 'logout' %}">Logout <span class="l-ml1">{% svg_icon 'logout' %}</span></a>
+                </li>
             {% else %}
-                Please login
+                <li>
+                    <a class="copy__body" href="{% url 'login' %}">Login</a>
+                </li>
             {% endif %}
         </ul>
     </nav>

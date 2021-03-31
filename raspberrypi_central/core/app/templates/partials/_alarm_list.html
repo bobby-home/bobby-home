@@ -1,0 +1,18 @@
+{% load i18n %}
+
+<div class="l-row alarms">
+    {% for alarm in alarms %}
+        <div class="copy variant--box variant--content">
+            <div class="copy__body l-stack">
+                {% with see_schedules=True %}
+                    {% include 'partials/_alarm_status_info.html' %}
+                {% endwith %}
+            </div>
+            <div class="copy__footer flex items-end">
+                <div class="copy__cta">
+                    <a class="btn-primary" href="{% url 'alarm:status-edit' alarm.pk %}">{% trans 'Update' %}</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

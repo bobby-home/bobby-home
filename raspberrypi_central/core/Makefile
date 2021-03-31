@@ -6,11 +6,13 @@ de := docker-compose exec
 dc-prod := $(dc) -f docker-compose.yml -f docker-compose.prod.yml
 drtest := $(dc) -f docker-compose.yml -f docker-compose.test.yml run --rm
 dr := $(dc) -f docker-compose.yml -f docker-compose.prod.yml run --rm
+dr-dev := $(dc) run --rm
 
 web_image=web
 db_image=database
 
 manage := $(dr) $(web_image) python manage.py
+manage-dev := $(dr-dev) $(web_image) python manage.py
 
 .PHONY: create-folders
 create-folders:
@@ -55,7 +57,7 @@ build-docker:
 
 .PHONY: docker-build-release
 docker-build-release:
-	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/core ./app
+	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag mxmaxime/core:$(version) ./app
 
 .PHONY: test
 test:
@@ -63,11 +65,11 @@ test:
 
 .PHONY: migrations
 migrations:
-	$(manage) makemigrations
+	$(manage-dev) makemigrations
 
 .PHONY: migrate
-migrate: ## Migrate database /!\ docker-compose up should run.
-	$(manage) migrate
+migrate:
+	$(manage-dev) migrate
 
 .PHONY: tests
 tests:
@@ -88,8 +90,12 @@ db-login:
 
 .PHONY: messages
 messages:
-	$(dr) $(web_image) django-admin makemessages -l fr
+	$(dr-dev) $(web_image) django-admin makemessages -l fr --ignore=node_modules
 
 .PHONY: compile-messages
 compile-messages:
-	$(dr) $(web_image) django-admin compilemessages
+	$(dr-dev) $(web_image) django-admin compilemessages
+
+.PHONY: generate-mqtt-password
+generate-mqtt-password:
+	docker run -it --rm -v $(PWD)/config/mosquitto:/mosquitto/config eclipse-mosquitto mosquitto_passwd -c /mosquitto/config/passwd $(user)

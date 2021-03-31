@@ -1,43 +1,70 @@
 function drawImage(canvas, imageUrl) {
-  const img = new Image()
-  img.src = imageUrl
+    const img = new Image()
+    img.src = imageUrl
 
-  return new Promise((resolve, reject) => {
-    img.onload = function () {
-      const context = canvas.getContext('2d')
+    return new Promise((resolve, reject) => {
+        img.onload = function () {
+            const context = canvas.getContext('2d')
 
-      // we need to resize our canvas before drawing.
-      canvas.width = img.width
-      canvas.height = img.height
+            // we need to resize our canvas before drawing.
+            canvas.width = img.width
+            canvas.height = img.height
 
-      context.clearRect(0, 0, img.width, img.height)
-      context.drawImage(img, 0, 0)
+            context.clearRect(0, 0, img.width, img.height)
+            context.drawImage(img, 0, 0)
 
-      resolve(img)
-    }
-  })
+            resolve(img)
+        }
+    })
 }
+
 
 function drawRectangles(canvas, rectangles, color = 'red') {
-  const context2d = canvas.getContext('2d')
+    const context2d = canvas.getContext('2d')
 
-  for (const {x, y, w, h} of rectangles) {
-    context2d.beginPath()
-    context2d.strokeStyle = color
-    context2d.lineWidth = 2
+    for (const {x, y, w, h} of rectangles) {
+        context2d.beginPath()
+        context2d.strokeStyle = color
+        context2d.lineWidth = 2
 
-    context2d.rect(x, y, w, h)
+        context2d.rect(x, y, w, h)
 
-    context2d.closePath()
-    context2d.stroke()
-  }
+        context2d.closePath()
+        context2d.stroke()
+    }
 
 }
 
-const pictureCanvas = document.querySelector('#picture-canvas')
 
-drawImage(pictureCanvas, FILE_URL).then(() => {
-  console.log('loaded')
-  drawRectangles(pictureCanvas, BOUNDING_BOXES)
-  drawRectangles(pictureCanvas, CAMERA_ROI, 'blue')
-})
+class MotionPicture extends HTMLElement {
+    constructor() {
+        super()
+    }
+
+    connectedCallback() {
+        this.innerHTML = `
+        <canvas class="motion-picture"></canvas>
+        `
+
+        this.canvas = this.querySelector('.motion-picture')
+        this.pictureUrl = this.dataset.picture
+        if (!this.pictureUrl) {
+            throw Error(`data-picture should be defined as the picture url to render.`)
+        }
+
+        try {
+            this.boundingBoxes = JSON.parse(this.dataset.boundingBoxes)
+            this.cameraBoxes = JSON.parse(this.dataset.cameraBoxes)
+        } catch(e) {
+            // do nothing, just information won't be displayed.
+            // hint: cameraBoxes is often null because it watches the whole camera view.
+        }
+
+        drawImage(this.canvas, this.pictureUrl).then(() => {
+            drawRectangles(this.canvas, this.boundingBoxes)
+            drawRectangles(this.canvas, this.cameraBoxes, 'blue')
+        })
+    }
+}
+
+customElements.define('motion-picture', MotionPicture)

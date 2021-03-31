@@ -7,40 +7,41 @@ from typing import Tuple, Optional
 class CameraRecorder(ABC):
 
     @abstractmethod
-    def start_recording(self, video_ref: str, device_id: str) -> None:
+    def start_recording(self, video_ref: str) -> None:
         pass
 
     @abstractmethod
-    def stop_recording(self, device_id: str) -> None:
+    def split_recording(self, video_ref: str) -> None:
         pass
 
     @abstractmethod
-    def split_recording(self, video_ref: str, device_id: str) -> None:
+    def stop_recording(self) -> None:
         pass
 
 
-class DumbCameraRecord(CameraRecorder):
+class DumbCameraRecorder(CameraRecorder):
     """Class to communicate with dumb camera to orchestrate video recording.
     """
-    def __init__(self, mqtt_client):
+    def __init__(self, mqtt_client, device_id: str):
+        self._device_id = device_id
         self.mqtt_client = mqtt_client
 
-    def stop_recording(self, device_id: str) -> None:
-        self.mqtt_client.publish(f'camera/recording/{device_id}/end', qos=2)
+    def stop_recording(self) -> None:
+        self.mqtt_client.publish(f'camera/recording/{self._device_id}/end', qos=2)
 
-    def start_recording(self, video_ref: str, device_id: str) -> None:
-        self.mqtt_client.publish(f'camera/recording/{device_id}/start/{video_ref}', qos=2)
+    def start_recording(self, video_ref: str) -> None:
+        self.mqtt_client.publish(f'camera/recording/{self._device_id}/start/{video_ref}', qos=2)
 
-    def split_recording(self, video_ref: str, device_id: str) -> None:
-        self.mqtt_client.publish(f'camera/recording/{device_id}/split/{video_ref}', qos=2)
+    def split_recording(self, video_ref: str) -> None:
+        self.mqtt_client.publish(f'camera/recording/{self._device_id}/split/{video_ref}', qos=2)
 
 
-class CameraRecord(CameraRecorder):
+class MPCameraRecorder(CameraRecorder):
     SPLIT_RECORDING_TASK = 'split_recording'
 
     @staticmethod
     def is_split_recording_task(record_event_ref: str) -> Optional[str]:
-        match = re.search(f'^{CameraRecord.SPLIT_RECORDING_TASK}/', record_event_ref)
+        match = re.search(f'^{MPCameraRecorder.SPLIT_RECORDING_TASK}/', record_event_ref)
         if match:
             video_ref = record_event_ref[:match.start()] + record_event_ref[match.end():]
             return video_ref
@@ -51,14 +52,14 @@ class CameraRecord(CameraRecorder):
         self.queue = queue
         self.record_event = record_event
 
-    def stop_recording(self, device_id: str):
+    def stop_recording(self):
         # clear doesn't throw if the event is not True. It turns it to False even if it's already False.
         self.record_event.clear()
 
-    def start_recording(self, video_ref: str, _device_id: str) -> None:
+    def start_recording(self, video_ref: str) -> None:
         self.record_event.set()
         self.queue.put_nowait(video_ref)
 
-    def split_recording(self, video_ref: str, _device_id: str) -> None:
+    def split_recording(self, video_ref: str) -> None:
         if self.record_event.is_set():
-            self.queue.put(f'{CameraRecord.SPLIT_RECORDING_TASK}/{video_ref}')
+            self.queue.put(f'{MPCameraRecorder.SPLIT_RECORDING_TASK}/{video_ref}')

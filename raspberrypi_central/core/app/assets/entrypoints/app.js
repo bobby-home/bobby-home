@@ -1,20 +1,14 @@
 import '../css/app.scss'
-import {jsonFetch} from '../js/ajaxify'
 
+import {ThemeChoice} from "../js/elements/ThemeChoice"
+import {Copyable} from "../js/elements/Copyable"
+import {Form} from "../js/elements/Form"
+import {dialogManager} from "../js/mount-vue-app"
+import {ReloadBtn} from "../js/elements/ReloadBtn"
 
-const form = document.querySelector('.ajaxify')
+window.dialogManager = dialogManager
 
-if (form) {
-
-    form.addEventListener('submit', e => {
-        e.preventDefault()
-        const data = new FormData(form)
-
-        jsonFetch(form.action, CSRF, {
-            body: data
-        }).then(() => {
-          console.log('Request has been made - ok.')
-        })
-    })
-
-}
+customElements.define('custom-form', Form, {extends: 'form'})
+customElements.define('theme-choice', ThemeChoice)
+customElements.define('copyable-value', Copyable)
+customElements.define('reload-button', ReloadBtn)

@@ -1,0 +1,37 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+
+    <main class="l-container">
+        {% block main_before_form %}
+        {% endblock %}
+        <section class="l-section l-row">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <section class="l-stack l-stack-bottom-separator">
+                        <h2 class="h5">{{ title }}</h2>
+                        {% block form_header %}
+                        {% endblock %}
+                    </section>
+
+                    <form
+                            is="{{ formOptions.isCustomForm|yesno:'custom-form,' }}" action="" method="post" class="l-stack vertical-form"
+                            data-status-field="{{ formOptions.statusField }}"
+                            data-true-success="{{ formOptions.trueSuccess }}"
+                            data-false-success="{{ formOptions.falseSuccess }}"
+                            data-dialog-title="{{ formOptions.dialogTitle }}"
+                            data-dialog-content="{{ dialogContent }}"
+                    >
+                        {% include "partials/_form.html" %}
+                        {% include "partials/_form_actions.html" with btn_text="Save" %}
+                    </form>
+
+                </div>
+            </div>
+        </section>
+        {% block main_after_form %}
+        {% endblock %}
+    </main>
+
+{% endblock body %}

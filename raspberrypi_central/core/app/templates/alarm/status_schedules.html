@@ -1,0 +1,32 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+    <main class="l-container">
+        <section class="l-section l-row">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <div class="l-stack-bottom-separator">
+                        <h3 class="h5">{% trans 'Alarm information' %}</h3>
+                    </div>
+                    <div class="copy__body l-stack">
+                        {% with see_schedules=False %}
+                            {% include 'partials/_alarm_status_info.html' %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="h4">
+                {% trans 'Schedules' %}
+            </h2>
+
+            {% with see_more=True %}
+                {% for schedule in alarm.alarm_schedules.all %}
+                    {% include 'partials/_alarm_schedule_info.html' %}
+                {% endfor %}
+            {% endwith %}
+        </section>
+    </main>
+
+{% endblock body %}

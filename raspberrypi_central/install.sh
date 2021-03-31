@@ -17,7 +17,7 @@ sudo usermod -aG docker pi
 # enable the pi camera. Warning: need reboot (done at the end).
 sudo raspi-config nonint do_camera 0
 
-docker network create --gateway 172.19.0.1 --subnet 172.19.0.0/16 backend_mqtt
+docker network create --gateway 172.80.0.1 --subnet 172.80.0.0/16 backend_mqtt
 docker volume create --driver local --name camera_videos
 docker plugin install grafana/loki-docker-driver:arm-v7 --alias loki --grant-all-permissions
 

@@ -1,25 +1,14 @@
 @import "../helpers/space";
 
-:root {
-  --box-padding: #{space(3)};
-  --box-border-radius: 8px;
-}
+.copy.variant--box {
+  --paddingTop: #{space(3)};
+  --paddingBottom: #{space(3)};
 
-%box, .box {
-  background: var(--background-light);
-  @include box_shadow();
-  background-color: #fff;
-}
+  background-color: var(--background-light);
+  box-shadow: var(--box-shadow);
+  border-radius: var(--borderRadius);
+  overflow: hidden;
 
-.box--rounded {
-  @extend %box;
-  border-radius: var(--box-border-radius);
-}
-
-.box__body {
-  padding: var(--box-padding);
-}
-
-.separate-box {
-  margin-top: space(6);
+  padding-top: var(--paddingTop);
+  padding-bottom: var(--paddingBottom);
 }

@@ -1,0 +1,53 @@
+{% extends 'generics/_change_form.html' %}
+{% load i18n %}
+
+{% block form_header %}
+    <ol class="l-ml3">
+        <li>
+            {% trans 'You can now run the telegram service: `make telegram_bot`.' %}
+        </li>
+        <li>
+            {% trans 'To chat to your bot and send him "/start".' %}
+        </li>
+        <li>
+            {% trans 'Refresh the page. Chat information will be displayed. Copy the `chat_id` you want and link it to the user that you want thanks to the form below.' %}
+        </li>
+    </ol>
+{% endblock %}
+
+{% block main_after_form %}
+    <section class="l-section l-row">
+
+        <div class="l-stack">
+            <div>
+                <h2 class="h4">
+                    {% trans 'List of chats' %}
+                </h2>
+                {% if not starts %}
+                    {% trans "The bot did not receive any chat. Send him the message '/start' and refresh the page." %}
+                {% endif %}
+            </div>
+            {% if not starts %}
+                <reload-button>Refresh page</reload-button>
+            {% endif %}
+        </div>
+
+        {% for start in starts %}
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+                    <div class="flex items-center">
+                        {% svg_icon 'identification' %}
+                        <span class="l-ml1">
+                            {{ start.first_name }} - {{ start.last_name }} - @{{ start.username }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center">
+                        {% svg_icon 'key' %}
+                        <span class="l-ml1">{% trans 'Chat id' %}</span> <copyable-value class="l-ml1" value="{{ start.user_id }}"></copyable-value>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

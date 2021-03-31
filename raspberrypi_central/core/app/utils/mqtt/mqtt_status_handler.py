@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+
 from django.db.models import Model
 import alarm.business.alarm as alarm
+from devices.models import Device
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 import mqtt_services.tasks as mqtt_tasks
 from utils.mqtt import MQTT, MqttMessage
+from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean
 
 
 def split_camera_topic(topic: str):
@@ -19,7 +23,7 @@ def split_camera_topic(topic: str):
             'device_id': data[2]
         }
     except IndexError as err:
-        raise ValueError(f'cannot extract data from {topic}. Should be like `type/service/device_id`.') from err
+        raise ValueError(f'cannot extract data from {topic}. Should be like `connected/[service]/[device_id]`.') from err
 
 
 class OnConnectedHandler(ABC):
@@ -50,7 +54,7 @@ class OnConnectedHandlerLog(OnConnectedHandler):
     For example, in the database the alarm status is on and the system receives a mqtt message that indicates a disconnect
     from the alarm.
     """
-    def __init__(self, client: MQTT, status_model: Model = None):
+    def __init__(self, client: MQTT, status_model: Optional[Model] = None):
         self.status_model = status_model
         super().__init__(client)
 
@@ -89,7 +93,16 @@ class OnStatus:
         device_id = topic['device_id']
         service_name = topic['service']
 
+        if not Device.objects.filter(device_id=device_id).exists():
+            return None
+
         if message.payload is True:
             self._handler.on_connect(service_name, device_id)
         else:
             self._handler.on_disconnect(service_name, device_id)
+
+
+def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:
+    on_status = OnStatus(handler_instance)
+
+    return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)

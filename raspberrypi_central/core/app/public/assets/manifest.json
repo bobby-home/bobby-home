@@ -1,0 +1,16 @@
+{
+  "entrypoints/app.js": {
+    "file": "app.js.c0c26403.js",
+    "src": "entrypoints/app.js",
+    "isEntry": true,
+    "imports": [
+      "_vendor.2c74d099.js"
+    ],
+    "css": [
+      "app.js.3a444974.css"
+    ]
+  },
+  "_vendor.2c74d099.js": {
+    "file": "vendor.2c74d099.js"
+  }
+}

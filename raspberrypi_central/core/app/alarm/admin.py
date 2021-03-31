@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from alarm.business.alarm_status import alarm_status_changed
-from alarm.models import AlarmStatus, AlarmSchedule
+from alarm.models import AlarmStatus, AlarmSchedule, Ping
+
 
 class AlarmStatusAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
@@ -10,3 +11,4 @@ class AlarmStatusAdmin(admin.ModelAdmin):
 
 admin.site.register(AlarmStatus, AlarmStatusAdmin)
 admin.site.register(AlarmSchedule)
+admin.site.register(Ping)

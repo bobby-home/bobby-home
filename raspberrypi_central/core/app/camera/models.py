@@ -48,7 +48,7 @@ class CameraMotionDetected(models.Model):
 
     closed_by_system = models.BooleanField(default=False)
 
-    device = models.ForeignKey(Device, on_delete=models.PROTECT)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT, related_name='camera_motions')
     in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
 
 class CameraMotionDetectedBoundingBox(models.Model):
@@ -73,3 +73,13 @@ class CameraMotionDetectedPicture(models.Model):
     motion_ended_picture = models.ImageField(blank=True, null=True)
 
     device = models.ForeignKey(Device, on_delete=models.PROTECT)
+
+
+class CameraMotionVideo(models.Model):
+    event_ref = models.UUIDField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    number_records = models.PositiveIntegerField(default=0)
+    is_merged = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.event_ref} - {self.created_at}'

@@ -1,0 +1,25 @@
+.badge {
+  display: flex;
+  align-items: center;
+  border-radius: var(--borderRadius);
+  background-color: var(--color-light);
+  padding: space(0.7) space(1.5);
+}
+
+%badge-status {
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  margin-right: space(1);
+  border-radius: 100px;
+}
+
+.badge-active-status {
+  @extend %badge-status;
+  background: var(--green);
+}
+
+.badge-unactive-status {
+  @extend %badge-status;
+  background: var(--red);
+}

@@ -3,14 +3,33 @@ import uuid
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
-from alarm.business.alarm_schedule_change_status import AlarmScheduleChangeStatus
+from alarm.business.alarm_change_status import AlarmScheduleChangeStatus, AlarmChangeStatus
 from alarm.factories import AlarmScheduleFactory, AlarmStatusFactory
-from alarm.models import AlarmSchedule, AlarmStatus
+from alarm.models import AlarmSchedule, AlarmStatus, Ping
 from camera.models import CameraMotionDetected
+from devices.factories import DeviceFactory
 from house.factories import HouseFactory
 
 
-class ChangeAlarmStatusesTestCase(TransactionTestCase):
+class ChangeStatusTestCase(TransactionTestCase):
+    def setUp(self) -> None:
+        self.house = HouseFactory()
+        self.device1 = DeviceFactory()
+        self.device2 = DeviceFactory()
+
+        self.running_alarm_statuses = [
+            AlarmStatusFactory(running=True, device=self.device1),
+            AlarmStatusFactory(running=True, device=self.device2)
+        ]
+
+        Ping.objects.create(device_id=self.device1.device_id, service_name='object_detection', consecutive_failures=2, last_update=timezone.now())
+
+    def test_reset_pings(self):
+        AlarmChangeStatus().all_change_status(False)
+        ping = Ping.objects.get(device_id=self.device1.device_id, service_name='object_detection')
+        self.assertEqual(ping.consecutive_failures, 0)
+
+class AlarmScheduleChangeStatusTestCase(TransactionTestCase):
     def setUp(self) -> None:
         self.house = HouseFactory()
 
@@ -23,7 +42,6 @@ class ChangeAlarmStatusesTestCase(TransactionTestCase):
 
         for status in self.running_alarm_statuses:
             self.schedule.alarm_statuses.add(status)
-
 
     def test_set_alarm_status(self):
         change_status = AlarmScheduleChangeStatus()
@@ -57,3 +75,4 @@ class ChangeAlarmStatusesTestCase(TransactionTestCase):
 
         self.assertFalse(alarm_statuses[0].running)
         self.assertFalse(alarm_statuses[1].running)
+

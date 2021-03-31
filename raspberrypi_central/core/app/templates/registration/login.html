@@ -1,0 +1,28 @@
+{% extends '_layout.html' %}
+
+{% block body %}
+
+<div class="l-mini-container">
+    <div class="l-section">
+        <div class="l-row">
+            <h2 class="text-center">Log In</h2>
+            <div class="copy variant--box">
+                <div class="copy__body">
+                    <form method="post" class="l-stack">
+                        {% include "partials/_form.html" %}
+
+                        {# Used to redirect to "next", which is customizable by sending extra_context: LoginView.as_view(extra_context={'next': 'url or url name'} ) #}
+                        {# see: https://docs.djangoproject.com/en/3.1/topics/auth/default/#django.contrib.auth.views.LoginView #}
+                        {# https://stackoverflow.com/a/51733106 #}
+                        {# Ex of use: in the setup process, it needs to redirect to specific url. #}
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <button type="submit" class="btn-primary">Log In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

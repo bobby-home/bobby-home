@@ -46,6 +46,9 @@ def error_handler(update, context):
 
 def main():
     telegram_bot = TelegramBot.objects.house_token()
+    if not telegram_bot:
+        raise ValueError('TelegramBot database row not found. Please create one with your telegram bot api key.')
+
     updater = Updater(telegram_bot.token, use_context=True)
 
     for bot in BOTS:

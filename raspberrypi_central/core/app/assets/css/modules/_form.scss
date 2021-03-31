@@ -1,0 +1,180 @@
+form.l-stack {
+  --gap: 4;
+}
+
+.theme-dark %input-color {
+  --input-background: var(--background);
+  --input-background-active: var(--background);
+}
+
+%input-color {
+  --input-background: var(--background-light);
+  --input-background-active: var(--background-light);
+}
+
+.form-group input,
+.form-group textarea,
+.choices__inner,
+.form-group select,
+%input {
+  @extend %input-color;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--color);
+  padding: space(1.5) space(1);
+  display: block;
+  width: 100%;
+  outline: none;
+  min-height: 44px;
+  background-color: var(--input-background);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: space(1);
+}
+
+.vertical-form .form-group {
+  display: grid;
+  grid-template-columns: minmax(5rem, 10rem) 1fr;
+  gap: space(1);
+
+  label {
+    margin-bottom: 0;
+  }
+}
+
+@include down($small) {
+  .vertical-form .form-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group .help-text {
+  font-size: .9rem;
+  margin-top: space(1);
+}
+
+/**
+ * Accessibility
+ */
+.form-group input:focus,
+.form-check input:focus + label::before,
+select:focus,
+textarea:focus,
+form button:focus,
+input:focus + .switch,
+%input-active {
+  border-color: var(--contrast);
+  box-shadow: 0 0 0 3px var(--contrast-light);
+  background-color: var(--input-background-active);
+}
+
+.form-errors svg {
+  width: 18px;
+  height: 18px;
+}
+
+.form-errors {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  grid-gap: space(1.5);
+  color: var(--red);
+}
+
+.errors-wrapper {
+  color: var(--red);
+}
+
+.form-group select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right .5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+
+  // Remove arrow given by browser (which is awful)
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+// Switch
+// ==================
+
+.form-switch .field-wrapper {
+  position: relative;
+}
+
+.form-switch input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+  min-height: auto;
+  z-index: 1;
+}
+
+.switch {
+  --color-text-toggle-checked-icon: #fff;
+
+  flex: none;
+  width: 50px;
+  height: 23px;
+  display: inline-block;
+  background: var(--background);
+  border: 1px solid var(--border);
+  position: relative;
+
+  border-radius: 100px;
+  transition: background .2s ease-in;
+
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    display: block;
+    height: 21px;
+    width: 21px;
+    background: var(--background-light);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(213, 222, 233, 0.2);
+    border-radius: 100px;
+    transition: transform .2s ease-in;
+  }
+
+  // Check mark
+  &::after {
+    content: '';
+    display: block;
+
+    position: absolute;
+    top: 0.6rem;
+    left: 1rem;
+    width: .7rem;
+    height: .3rem;
+
+    border-bottom: 2px solid var(--color-text-toggle-checked-icon);
+    border-left: 2px solid var(--color-text-toggle-checked-icon);
+    transform: translate3d(-50%,-50%,0) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+.theme-dark .switch::before {
+  background: var(--color);
+  border-color: var(--color-light);
+}
+
+input:checked + .switch {
+  background-color: var(--contrast);
+}
+
+input:checked + .switch::before {
+  transform: translateX(28px);
+}
+
+input:checked + .switch::after {
+  opacity: 1;
+}

@@ -46,13 +46,13 @@ class MqttTopicSubscription(Subscription):
     qos: int = 1
 
     @staticmethod
-    def _log_error(message: MqttMessage):
+    def _log_error(message: MqttMessage) -> None:
         # TODO: see #102
         LOGGER.critical(
             f"Can't perform payload transform: on {message}"
         )
 
-    def callback(self, message: MqttMessage):
+    def callback(self, message: MqttMessage) -> None:
         self._callback(message)
 
 

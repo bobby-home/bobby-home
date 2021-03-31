@@ -1,0 +1,58 @@
+{# Partials to be included inside a <form> HTMLElement #}
+{# Include logic to render necessary inputs, errors and so on. #}
+
+{% csrf_token %}
+{# Include the hidden fields #}
+{% for hidden in form.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+
+{% if form.non_field_errors %}
+    <div class="form-errors">
+        {% svg_icon 'exclamation' %}
+        <ul>
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{# Include the visible fields #}
+{% for field in form.visible_fields %}
+    {% if field.field.widget.input_type == 'checkbox' %}
+        <div class="form-group form-switch">
+    {% else %}
+        <div class="form-group">
+    {% endif %}
+            <div class="label-wrapper">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+            </div>
+
+            <div class="field-wrapper">
+                {{ field }}
+
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <span class="switch"></span>
+                {% endif %}
+
+                {% if field.help_text %}
+                    <p class="help-text">{{ field.help_text|safe }}</p>
+                {% endif %}
+
+                {% if field.errors %}
+                    <div class="form-errors">
+                        {% svg_icon 'exclamation' %}
+                        <ul>
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+{% endfor %}
+

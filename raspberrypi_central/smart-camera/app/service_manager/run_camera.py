@@ -5,11 +5,11 @@ from typing import Callable
 from camera.camera import Camera
 from camera.camera_config import camera_config
 from camera.camera_producer_consumer import FrameProducer, FrameIAConsumer
-from camera.camera_record import CameraRecord
+from camera.camera_record import MPCameraRecorder, CameraRecorder
 
 from camera.camera_factory import camera_factory
 from camera.videostream import video_stream_factory
-from mqtt.mqtt_client import get_mqtt
+from camera_analyze.camera_analyzer import CameraAnalyzer
 from service_manager.roi_camera_from_args import roi_camera_from_args
 from service_manager.service_manager import RunService
 
@@ -23,7 +23,7 @@ DEVICE_ID = os.environ['DEVICE_ID']
 
 class RunSmartCamera(RunService):
 
-    def __init__(self, camera_factory: Callable[[], Camera], video_stream):
+    def __init__(self, camera_factory: Callable[[str, CameraAnalyzer, CameraRecorder], Camera], video_stream):
         self._stream = None
         self._camera = None
         self._camera_analyze_object = None
@@ -37,10 +37,9 @@ class RunSmartCamera(RunService):
     def prepare_run(self, data = None) -> None:
         self._camera_analyze_object = roi_camera_from_args(data)
 
-        self._camera = self.camera_factory(get_mqtt, self._camera_analyze_object)
 
-    def _exit_gracefully(self, signum, frame):
-        self.camera_record.stop_recording(DEVICE_ID)
+    def _exit_gracefully(self, _signum, _frame):
+        # self.camera_record.stop_recording(DEVICE_ID)
         self.capture_proc.terminate()
         self.consumer_proc.terminate()
 
@@ -59,11 +58,10 @@ class RunSmartCamera(RunService):
         camera_record_queue = mp.Queue(maxsize=1)
 
         frame_producer = FrameProducer([queue, queue_model], camera_record_event, camera_record_queue)
-        camera_consumer = FrameIAConsumer(self._camera)
+        camera_record = MPCameraRecorder(camera_record_event, camera_record_queue)
+        self._camera = self.camera_factory(DEVICE_ID, self._camera_analyze_object, camera_record)
 
-        camera_record = CameraRecord(camera_record_event, camera_record_queue)
-        self.camera_record = camera_record
-        self._camera.camera_recorder = camera_record
+        camera_consumer = FrameIAConsumer(self._camera)
 
         # TODO: see issue #78
         self._stream = self.video_stream(frame_producer.produce, resolution=(

@@ -1,0 +1,37 @@
+{% load i18n %}
+
+<div class="copy variant--content variant--box">
+    <div class="copy__body l-stack">
+
+        {% if box_title %}
+            <div class="l-stack-bottom-separator">
+                <h3 class="h5">{% trans box_title %}</h3>
+            </div>
+        {% endif %}
+
+        <p class="flex items-center">
+            {% svg_icon 'shield' %}
+            <span class="l-ml1">L'alarme s'allume de {{ schedule.start_time }} à {{ schedule.end_time }}</span>
+        </p>
+        <div class="alarm-schedule-days">
+            {% for day in DAYS_OF_WEEK %}
+                <div class="badge">
+                    {% if schedule|get_obj_attr:day %}
+                        <span class="badge-active-status"></span>
+                    {% else %}
+                        <span class="badge-unactive-status"></span>
+                    {% endif %}
+                    <span>{{ day }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="copy__footer">
+        <div class="copy__cta">
+            <a class="btn-secondary" href="{% url 'alarm:schedule-edit' schedule.pk %}">{% trans 'Update' %}</a>
+            {% if see_more %}
+                <a class="btn-primary" href="{% url 'alarm:schedule-detail' schedule.pk %}">{% trans 'See more' %} {% svg_icon 'chevron-right' %}</a>
+            {% endif %}
+        </div>
+    </div>
+</div>

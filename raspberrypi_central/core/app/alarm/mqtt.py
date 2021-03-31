@@ -1,12 +1,16 @@
+from dataclasses import dataclass
+
 from hello_django.loggers import LOGGER
-from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean, MqttTopicFilterSubscription, MqttTopicSubscription, \
+from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
-from alarm.tasks import camera_motion_detected, process_video
+from alarm.tasks import camera_motion_detected
 
-from utils.mqtt.mqtt_status_handler import OnConnectedHandler, OnStatus, OnConnectedHandlerLog
-from .communication.on_connected_services import OnConnectedCameraHandler, OnConnectedSpeakerHandler
+from utils.mqtt.mqtt_status_handler import bind_on_connected
+from .business.alarm import register_ping
+from .communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler, \
+    OnConnectedCamera
 import os
 import hello_django.settings as settings
 
@@ -52,24 +56,20 @@ def on_motion_camera(message: MqttMessage):
         camera_motion_detected.apply_async(kwargs=data)
 
 
-def on_motion_video(message: MqttMessage):
+def on_motion_video(message: MqttMessage) -> None:
     topic = split_camera_topic(message.topic, True)
     LOGGER.info(f'on_motion_video: topic={topic} {message.topic}')
 
     data = {
         'device_id': topic['device_id'],
-        'event_ref': topic['event_ref'],
+        'video_ref': topic['event_ref'],
+        'is_same_device': False
     }
 
-    video_file = f'{data["event_ref"]}.h264'
-
     if data['device_id'] == DEVICE_ID:
-        # The system has some latency to save the video,
-        # so we add a little countdown so the video will more likely be available after x seconds.
-        process_video.apply_async(kwargs={'video_file': video_file}, countdown=3)
-    else:
-        print('on_motion_video retrieve_and_process_video')
-        tasks.retrieve_and_process_video.apply_async(kwargs={'video_file': video_file, 'device_id': data['device_id']}, countdown=3)
+        data['is_same_device'] = True
+
+    tasks.camera_motion_video.apply_async(kwargs=data)
 
 def on_motion_picture(message: MqttMessage):
     topic = split_camera_topic(message.topic, True)
@@ -118,32 +118,50 @@ def on_motion_picture(message: MqttMessage):
 
     tasks.camera_motion_picture.apply_async(kwargs=data)
 
+@dataclass
+class PingData:
+    device_id: str
+    service_name: str
 
-def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -> MqttTopicSubscriptionBoolean:
-    on_status = OnStatus(handler_instance)
+def on_ping_data_from_topic(topic: str) -> PingData:
+    data = topic.split('/')
+    return PingData(data[2], data[1])
 
-    return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
+
+def on_ping(message: MqttMessage) -> None:
+    data = on_ping_data_from_topic(message.topic)
+    register_ping(data.device_id, data.service_name)
 
 
 def register(mqtt: MQTT):
-    speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
-    camera = bind_on_connected('camera', OnConnectedCameraHandler(mqtt))
+    def inner(mqtt: MQTT):
+        object_detection = bind_on_connected('object_detection', OnConnectedObjectDetectionHandler(mqtt))
+        dumb_camera = bind_on_connected('dumb_camera', OnConnectedObjectDetectionHandler(mqtt))
+        speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
+        camera = bind_on_connected('camera', OnConnectedCamera(mqtt))
 
-    object_detection = bind_on_connected('object_detection', OnConnectedHandlerLog(mqtt))
-    dumb_camera = bind_on_connected('dumb-camera', OnConnectedHandlerLog(mqtt))
+        mqtt.add_subscribe([
+            MqttTopicFilterSubscription(
+                topic='motion/#',
+                qos=1,
+                topics=[
+                    MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
+                    MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
+                    MqttTopicSubscription('motion/video/+/+', on_motion_video),
+                ],
+            ),
+            MqttTopicFilterSubscription(
+                # ping/{service_name}/{device_id}
+                topic='ping/+/+',
+                qos=1,
+                topics=[
+                    MqttTopicSubscription('ping/+/+', on_ping)
+                ]
+            ),
+            camera,
+            speaker,
+            object_detection,
+            dumb_camera,
+        ])
 
-    mqtt.add_subscribe([
-        MqttTopicFilterSubscription(
-            topic='motion/#',
-            qos=1,
-            topics=[
-                MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
-                MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
-                MqttTopicSubscription('motion/video/+/+', on_motion_video),
-            ],
-        ),
-        camera,
-        speaker,
-        object_detection,
-        dumb_camera,
-    ])
+    mqtt.on_connected_callbacks.append(inner)

@@ -1,0 +1,18 @@
+{% load i18n %}
+
+<div class="l-row">
+    {% for motion in motions %}
+        <div class="copy variant--box variant--content">
+            <div class="copy__body l-stack">
+                <p>
+                    {{ motion.pk }} {{ motion.motion_started_at }} to {{ motion.motion_ended_at }}
+                </p>
+            </div>
+            <div class="copy__footer flex items-end">
+                <div class="copy__cta">
+                    <a class="btn-primary" href="{% url 'camera:camera_motion_detected-detail' motion.pk %}">{% trans 'See more' %}</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

@@ -4,10 +4,12 @@ import traceback
 import logging_loki
 from multiprocessing import Queue
 
+LOKI_HOSTNAME = os.environ['LOKI_HOSTNAME']
+LOKI_PORT = os.environ['LOKI_PORT']
 
 handler = logging_loki.LokiQueueHandler(
     Queue(-1),
-    url="http://192.168.1.8:3100/loki/api/v1/push",
+    url=f'http://{LOKI_HOSTNAME}:{LOKI_PORT}/loki/api/v1/push',
     # tags={'container_name': 'dumb_camera'},
     # auth=("username", "password"),
     version="1",
@@ -21,7 +23,7 @@ device_id = None
 # sys.excepthook = my_exception_hook does not work for this case (the loki request is not sent).
 try:
     from service_manager.run_dumb_camera import RunDumbCamera
-    from mqtt.mqtt_status_manage_thread import mqtt_status_manage_thread_factory
+    from mqtt.mqtt_manage_runnable import MqttManageRunnable
     from thread.thread_manager import ThreadManager
     from mqtt.mqtt_client import get_mqtt
 
@@ -31,7 +33,7 @@ try:
 
     camera_manager = ThreadManager(RunDumbCamera())
 
-    mqtt_status_manage_thread_factory(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
+    MqttManageRunnable(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
 
     camera_mqtt_client.client.loop_forever()
 except BaseException as e:

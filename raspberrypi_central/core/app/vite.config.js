@@ -1,30 +1,21 @@
-import prefresh from '@prefresh/vite'
-import cors from '@koa/cors'
-import path from 'path'
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import * as path from "path";
 
 const root = './assets'
 
-
-/**
- * @type { import('vite').UserConfig }
- */
-const config = {
-  plugins: [prefresh()],
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [vue()],
   root,
-  configureServer: function ({ root, app, watcher }) {
-    watcher.add(path.resolve(root, '../templates/**/*.html'))
-    watcher.on('change', function (path) {
-      if (path.endsWith('.html')) {
-        watcher.send({
-          type: 'full-reload',
-          path
-        })
+  build: {
+    outDir: '../public/assets',
+    assetsDir: '',
+    manifest: true,
+    rollupOptions: {
+      input: {
+        'app.js': `./assets/entrypoints/app.js`,
       }
-    })
-  
-    app.use(cors({origin: '*'}))
-  
+    }
   }
-}
-
-export default config
+})

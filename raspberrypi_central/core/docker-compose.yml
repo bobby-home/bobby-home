@@ -30,7 +30,7 @@ services:
             - webapp_backend
 
     mqtt_broker:
-        image: eclipse-mosquitto:2.0.6
+        image: eclipse-mosquitto:2.0.7
         volumes:
             - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
             - ./config/mosquitto/passwd:/mosquitto/config/passwd
@@ -40,14 +40,14 @@ services:
         networks:
             webapp_backend:
             backend_mqtt:
-                ipv4_address: 172.19.0.100
+                ipv4_address: 172.80.0.100
 
     rabbit_worker:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
             - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
-            - ~/.ssh:/home/house/.ssh:ro
+            - ~/.ssh:/home/house/.ssh:ro # for rsync to get videos from dumb devices.
         networks:
             - webapp_backend
             - rabbitmq

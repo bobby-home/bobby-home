@@ -1,20 +1,19 @@
 import dataclasses
 import datetime
 import json
-import os
-import struct
 import uuid
 from collections import defaultdict
 from io import BytesIO
-from typing import List, Callable, Optional
+from typing import List, Callable
 
-from camera.camera_record import CameraRecorder
+from camera.camera_recording import CameraRecording
 from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 from loggers import LOGGER
 from mqtt.mqtt_client import MqttClient
 from object_detection.detect_people import DetectPeople
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import People, PeopleAllData
+from utils.time import is_time_lapsed
 
 
 @dataclasses.dataclass
@@ -24,54 +23,49 @@ class ObjectLinkConsiderations:
 
 
 class Camera:
-
     SERVICE_NAME = 'object_detection'
-    DEVICE_ID = os.environ['DEVICE_ID']
 
-    SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 10
-    SECONDS_FIRST_MOTION_VIDEO = 10
+    SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 60
+
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'
     VIDEO = 'motion/video'
+
+    PING = f'ping/object_detection'
+    PING_SECONDS_FREQUENCY = 60
+
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str):
-        self._camera_recorder = None
+    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str, camera_recording: CameraRecording):
+        self.camera_recording = camera_recording
+
         self._analyze_motion = analyze_motion
         self._device_id = device_id
         self.get_mqtt = get_mqtt
-        self._last_time_people_detected = None
 
+        self._last_time_people_detected = None
         self._initialize = True
 
         self.detect_people = detect_people
         self.event_ref = self.EVENT_REF_NO_MOTION
 
-        self.start_recording_time = None
-        self.recording_first_video = False
-        self._record_video_number = 0
         self.mqtt_client = None
+
+        self.last_ping_time = None
 
     def start(self) -> None:
         mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{Camera.SERVICE_NAME}')
-        mqtt_client.connect_keep_status(Camera.SERVICE_NAME, Camera.DEVICE_ID)
+        mqtt_client.connect_keep_status(Camera.SERVICE_NAME, self._device_id)
         self.mqtt_client = mqtt_client.client
 
-    def _need_to_publish_no_motion(self) -> bool:
-        if self._initialize is True:
-            self._initialize = False
-            return True
+        self.mqtt_client.loop_start()
+        self.last_ping_time = datetime.datetime.now()
 
-        time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= Camera.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
-
-        if time_lapsed:
-            self._last_time_people_detected = None
-
-        return time_lapsed
+    def __del__(self):
+        self.mqtt_client.loop_stop()
 
     @staticmethod
-    def _get_motion_payload(event_ref, object_link_considerations: List[ObjectLinkConsiderations]):
+    def _get_motion_payload(event_ref: str, object_link_considerations: List[ObjectLinkConsiderations]):
         payload = {
             'status': True,
             'event_ref': event_ref,
@@ -108,110 +102,109 @@ class Camera:
     def _transform_image_to_publish(image: BytesIO):
         return image.getvalue()
 
-    @staticmethod
-    def _visualize_contours(frame, considered_peoples):
-        import cv2
-
+    def _need_to_publish_no_motion(self) -> bool:
         """
-        This method is here to debug and develop the system.
-        We draw considered_peoples contours thanks to OpenCV to the frame.
-        Why is it useful only for debugging purposes? Because this feature is done on the fly by the main system.
-        We want to send the "raw" picture without any transformation and the bounding boxes data to visualize things if the user wants it.
-        Otherwise we would impact badly the picture with unnecessary fixed drawing.
+
+        Returns
+        -------
+        bool
+            Whether or not it needs to publish "no motion" event.
         """
-        for object_link_consideration in considered_peoples:
-            object_link_consideration: ObjectLinkConsiderations
-            frame = cv2.drawContours(frame, [object_link_consideration.object.bounding_box.contours], 0, (0, 0, 255), 2)
+        if self._initialize is True:
+            self._initialize = False
+            return True
 
-        return frame
+        time_lapsed = (self._last_time_people_detected is not None) and (
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= Camera.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
 
-    def _split_recording(self, device_id: str) -> None:
-        LOGGER.info('split recording')
-        self.recording_first_video = True
-        self._publish_video_event(device_id)
-        self._camera_recorder.split_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
+        if time_lapsed:
+            self._last_time_people_detected = None
 
-    def _publish_motion(self, payload, on_device_id: str) -> None:
+        return time_lapsed
+
+    def _publish_motion(self, payload) -> None:
         mqtt_payload = json.dumps(payload)
         LOGGER.info(f'publish motion {mqtt_payload}')
 
-        self.mqtt_client.publish(f'{self.MOTION}/{on_device_id}', mqtt_payload, retain=True, qos=1)
+        self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
-    def _publish_video_event(self, on_device_id: str) -> None:
-        self.mqtt_client.publish(f'{self.VIDEO}/{on_device_id}/{self.event_ref}-{self._record_video_number}', qos=1)
-        self._record_video_number += 1
+    def _publish_video_event(self, video_ref: str) -> None:
+        LOGGER.info(f'publish video {video_ref}')
+        self.mqtt_client.publish(f'{self.VIDEO}/{self._device_id}/{video_ref}', qos=1)
 
-    def _publish_image(self, frame: BytesIO, is_motion: bool, on_device_id: str) -> None:
+    def _publish_image(self, frame: BytesIO, is_motion: bool) -> None:
         byte_arr = self._transform_image_to_publish(frame)
 
         motion = '0'
         if is_motion is True:
             motion = '1'
 
-        self.mqtt_client.publish(f'{self.PICTURE}/{on_device_id}/{self.event_ref}/{motion}', byte_arr, qos=1)
+        self.mqtt_client.publish(f'{self.PICTURE}/{self._device_id}/{self.event_ref}/{motion}', byte_arr, qos=1)
 
-    def process_frame(self, frame: BytesIO, on_device_id: Optional[str] = None) -> None:
-        device_id = on_device_id or self._device_id
+    def _publish_ping(self) -> None:
+        self.mqtt_client.publish(f'{self.PING}/{self._device_id}', qos=1)
 
+    def _start_detection(self, frame: BytesIO, considerations: List[ObjectLinkConsiderations]) -> None:
+        self._last_time_people_detected = datetime.datetime.now()
+        self._initialize = False
+        self.event_ref = self.generate_event_ref()
+
+        LOGGER.info('start recording')
+        self.camera_recording.start_recording(self.event_ref)
+
+        payload = self._get_motion_payload(self.event_ref, considerations)
+        self._publish_motion(payload)
+        self._publish_image(frame, True)
+
+    def _detection(self) -> None:
+        self._last_time_people_detected = datetime.datetime.now()
+
+        video_ref = self.camera_recording.split_recording(self.event_ref)
+
+        if isinstance(video_ref, str):
+            self._publish_video_event(video_ref)
+
+    def _no_more_detection(self, frame: BytesIO):
+        payload = {
+            'status': False,
+            'event_ref': self.event_ref,
+        }
+
+        LOGGER.info(f'no more motion {payload}')
+
+        LOGGER.info('stop recording')
+        video_ref = self.camera_recording.stop_recording(self.event_ref)
+
+        if isinstance(video_ref, str):
+            self._publish_video_event(video_ref)
+
+        self._publish_motion(payload)
+        self._publish_image(frame, False)
+
+    def process_frame(self, frame: BytesIO) -> None:
         peoples, image = self.detect_people.process_frame(frame)
 
         considered_peoples = self._considered_peoples(peoples)
         is_any_considered_object = len(considered_peoples) > 0
 
-        if is_any_considered_object and self._last_time_people_detected is None:
-            self._initialize = False
-
-            self.event_ref = self.generate_event_ref()
-
-            if self._camera_recorder:
-                LOGGER.info('start recording')
-                self.start_recording_time = datetime.datetime.now()
-                self._camera_recorder.start_recording(f'{self.event_ref}-{self._record_video_number}', device_id)
-
-            # self._visualize_contours(frame, considered_peoples)
-            payload = self._get_motion_payload(self.event_ref, considered_peoples)
-            self._publish_motion(payload, device_id)
-            self._publish_image(frame, True, device_id)
-
+        # first time we detect people
         if is_any_considered_object:
-            self._last_time_people_detected = datetime.datetime.now()
-
-            time_lapsed = (self.start_recording_time is not None) and (
-                datetime.datetime.now() - self.start_recording_time).seconds >= Camera.SECONDS_FIRST_MOTION_VIDEO
-
-            if time_lapsed and self.recording_first_video is False:
-                self._split_recording(device_id)
-
+            if self._last_time_people_detected is None:
+                self._start_detection(frame, considered_peoples)
+            else:
+                # we continue to detect people
+                self._detection()
         elif self._need_to_publish_no_motion():
-            payload = {
-                'status': False,
-                'event_ref': self.event_ref,
-            }
-            LOGGER.info(f'no more motion {payload}')
+            # people left (some time ago), we let the core knows
+            self._no_more_detection(frame)
 
-            if self._camera_recorder:
-                LOGGER.info('stop recording')
-                self._camera_recorder.stop_recording(device_id)
-                self._publish_video_event(device_id)
-
-            self.recording_first_video = False
-            self.start_recording_time = None
-            self._record_video_number = 0
-
-            self._publish_motion(payload, device_id)
-            self._publish_image(frame, False, device_id)
+        if is_time_lapsed(self.last_ping_time, Camera.PING_SECONDS_FREQUENCY, first_true=True):
+            self.last_ping_time = datetime.datetime.now()
+            self._publish_ping()
 
     @staticmethod
     def generate_event_ref():
         return str(uuid.uuid4())
-
-    @property
-    def camera_recorder(self) -> CameraRecorder:
-        return self._camera_recorder
-
-    @camera_recorder.setter
-    def camera_recorder(self, value: CameraRecorder):
-        self._camera_recorder = value
 
     @property
     def analyze_motion(self):

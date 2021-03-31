@@ -12,7 +12,7 @@ from .business import in_motion
 from .business.alarm_change_status import AlarmScheduleChangeStatus
 from alarm.communication.camera_motion import camera_motion_factory
 from alarm.models import AlarmStatus, Ping
-
+import alarm.notifications as notifications
 
 LOGGER = logging.getLogger(__name__)
 
@@ -171,14 +171,11 @@ class CheckPings:
                 ping.consecutive_failures += 1
 
                 if ping.consecutive_failures == 3:
-                    since_msg = f' since {ping.last_update}' if ping.last_update else ''
-                    msg = f'The service object_detection for the device {device} does not send any ping{since_msg}.'
-                    create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
+                    notifications.service_no_ping(status, ping)
 
                 ping.save()
             elif ping.consecutive_failures >= 3:
-                msg = f'The service object_detection for the device {device} was not pinging but it does now. Everything is back to normal.'
-                create_and_send_notification(severity=SeverityChoice.HIGH, device_id=status.device.device_id, message=msg)
+                notifications.service_ping_back(status)
 
                 ping.failures += ping.consecutive_failures
                 ping.consecutive_failures = 0

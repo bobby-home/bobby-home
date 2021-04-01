@@ -41,6 +41,9 @@ class CameraRectangleROI(models.Model):
 
 
 class CameraMotionDetected(models.Model):
+    class Meta:
+        ordering = ('-motion_started_at',)
+
     event_ref = models.UUIDField(unique=True)
 
     motion_started_at = models.DateTimeField()

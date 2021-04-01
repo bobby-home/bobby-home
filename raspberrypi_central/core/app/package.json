@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf public/assets && npx vite build",
-    "dev": "rm -rf public/assets/time && npx vite"
+    "dev": "npx vite"
   },
   "author": "",
   "license": "ISC",

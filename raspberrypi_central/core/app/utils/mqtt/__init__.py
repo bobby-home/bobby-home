@@ -19,7 +19,7 @@ class MQTT:
         self._config = config
         self._mqtt_client_constructor = mqtt_client_constructor
         self.on_connected_callbacks: List[Callable[[MQTT], None]] = []
-        self._client = self._init_mqtt_client()
+        self.client = self._init_mqtt_client()
 
     def _init_mqtt_client(self) -> mqtt.Client:
         config = self._config
@@ -63,7 +63,7 @@ class MQTT:
 
         def _mqtt_add_callback(sub: MqttTopicSubscription):
             subscription_callback = self._wrap_subscription_callback(sub)
-            self._client.message_callback_add(sub.topic, subscription_callback)
+            self.client.message_callback_add(sub.topic, subscription_callback)
 
         for subscription in subscriptions:
             """

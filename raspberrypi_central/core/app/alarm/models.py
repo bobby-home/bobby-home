@@ -9,6 +9,7 @@ from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_sch
 from devices.models import Device
 from house.models import House
 from django.db import transaction
+from django.urls import reverse
 
 
 class Ping(models.Model):
@@ -60,6 +61,10 @@ class AlarmStatus(models.Model):
 
     def get_next_on_schedule(self):
         return get_device_next_on_schedule(timezone.now(), self.device.pk)
+
+    def get_absolute_url(self):
+        return reverse('alarm:status-detail', args=[str(self.id)])
+
 
 class AlarmScheduleManager(models.Manager):
     # @TODO: could be useless to have this method here.
@@ -195,3 +200,6 @@ class AlarmSchedule(models.Model):
             off_crontab.save()
 
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('alarm:schedule-detail', args=[str(self.id)])

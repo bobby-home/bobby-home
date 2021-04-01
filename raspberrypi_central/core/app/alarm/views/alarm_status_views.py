@@ -63,9 +63,9 @@ class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, ChangeForm, U
         return context
 
 
-class AlarmStatusSchedules(LoginRequiredMixin, DetailView):
+class AlarmStatusDetail(LoginRequiredMixin, DetailView):
     model = AlarmStatus
-    template_name = 'alarm/status_schedules.html'
+    template_name = 'alarm/alarm_detail.html'
     context_object_name = 'alarm'
 
     def get_context_data(self, **kwargs):

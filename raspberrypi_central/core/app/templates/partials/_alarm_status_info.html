@@ -28,7 +28,7 @@
             {% endif %}
 
             {% if see_schedules is not False %}
-                <a href="{% url 'alarm:status-schedules' alarm.pk %}">Voir les plannings</a>
+                <a href="{% url 'alarm:status-detail' alarm.pk %}">Voir les plannings</a>
             {% endif %}
         </div>
     </div>

@@ -1,8 +1,6 @@
 #!/bin/zsh
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y git vim libffi-dev libssl-dev python python-pip python3-pip
-
-sudo apt install -y ipcalc nmap git vim libffi-dev libssl-dev python python-pip python3-pip pipenv
+sudo apt install -y git vim libffi-dev libssl-dev python python-pip python3-pip ipcalc nmap
 
 # Docker
 sudo apt-get remove -y python-configparser
@@ -12,7 +10,6 @@ sudo pip3 install docker-compose
 sudo apt autoremove
 
 curl -sSL https://get.docker.com | sh
-sudo usermod -aG docker pi
 
 # enable the pi camera. Warning: need reboot (done at the end).
 sudo raspi-config nonint do_camera 0
@@ -58,4 +55,5 @@ if [ $? -eq 1 ]; then
   sudo sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
 fi
 
+sudo usermod -aG docker pi
 sudo reboot

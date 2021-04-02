@@ -38,6 +38,7 @@ class PiVideoStream:
         raw_capture = io.BytesIO()
         for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
             raw_capture.seek(0)
+            camera.framerate = self.framerate
 
             self.process_frame(raw_capture)
 
@@ -63,3 +64,9 @@ class PiVideoStream:
 
             # Continue the recording in the specified output; close existing output.
             self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
+
+    def high_fps(self):
+        self.framerate = 25
+
+    def low_fps(self):
+        self.framerate = 1

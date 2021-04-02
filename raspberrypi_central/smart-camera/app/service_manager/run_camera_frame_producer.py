@@ -1,14 +1,17 @@
 import os
+from functools import partial
 from io import BytesIO
 from typing import Dict
+from multiprocessing import Process
 
 from mqtt.mqtt_client import get_mqtt
 from camera.camera_config import camera_config
 from camera.camera_frame_producer import CameraFrameProducer
 from camera.pivideostream import PiVideoStream
+from service_manager.runnable import Runnable
 from service_manager.service_manager import RunService
 from utils.rate_limit import rate_limited
-
+import multiprocessing as mp
 CAMERA_WIDTH = camera_config.camera_width
 CAMERA_HEIGHT = camera_config.camera_height
 
@@ -56,37 +59,49 @@ class ManageRecord:
         self._mqtt_client.client.subscribe(f'camera/recording/{DEVICE_ID}/#', qos=2)
         self._mqtt_client.client.message_callback_add(f'camera/recording/{DEVICE_ID}/#', self._on_record)
 
-class RunCameraFrameProducer(RunService):
+class FrameProducer:
+    def __init__(self, high_fps: mp.Event):
+        self._high_fps = high_fps
 
-    def __init__(self):
-        pass
-
-    def is_restart_necessary(self, data = None) -> bool:
-        """
-        Dumb camera is stateless so it does not need to restart to apply configuration changes.
-        """
-        return False
-
-    def prepare_run(self, data = None) -> None:
-        """
-        Dumb camera is stateless so it does not need to prepare any data to run.
-        """
-        pass
-
-    def run(self) -> None:
+    def run(self, device_id: str) -> None:
         print('run camera frame producer!')
-        camera = CameraFrameProducer(os.environ['DEVICE_ID'])
+        camera = CameraFrameProducer(device_id)
 
-        @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
+        stream = PiVideoStream(None, resolution=(
+            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
+
+        # @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
         def process_frame(frame: BytesIO):
+            if self._high_fps.is_set():
+                stream.high_fps()
+            else:
+                stream.low_fps()
+
             camera.process_frame(frame)
 
-        stream = PiVideoStream(process_frame, resolution=(
-            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
+        stream.process_frame = process_frame
 
         ManageRecord(stream)
         stream.run()
-        # unreachable code because .run() contains an endless loop.
+
+class RunCameraFrameProducer(Runnable):
+    def __init__(self):
+        self._high_fps = mp.Event()
+        self._frame_producer = FrameProducer(self._high_fps)
+        self._process = None
+
+    def run(self, device_id: str, status: bool, data=None) -> None:
+        print(f'run camera frame producer status={status} data={data}')
+
+        if status is True and self._process is None:
+            run = partial(self._frame_producer.run, device_id)
+            self._process = Process(target=run)
+            self._process.start()
+            return
+
+        if status is False and self._process:
+            self._process.terminate()
+            self._process = None
 
     def __str__(self):
         return 'run-camera-frame-producer'

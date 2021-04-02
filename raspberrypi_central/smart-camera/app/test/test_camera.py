@@ -4,7 +4,7 @@ from io import BytesIO
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from camera.camera import Camera
+from camera.camera_object_detection import CameraObjectDetection
 from camera_analyze.camera_analyzer import Consideration
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import BoundingBox, People
@@ -27,9 +27,9 @@ class TestCamera(TestCase):
 
     def setUp(self):
         self.device_id = 'some_id'
-        self.motion_topic = f'{Camera.MOTION}/{self.device_id}'
-        self.video_topic = f'{Camera.VIDEO}/{self.device_id}'
-        self.picture_topic = f'{Camera.PICTURE}/{self.device_id}'
+        self.motion_topic = f'{CameraObjectDetection.MOTION}/{self.device_id}'
+        self.video_topic = f'{CameraObjectDetection.VIDEO}/{self.device_id}'
+        self.picture_topic = f'{CameraObjectDetection.PICTURE}/{self.device_id}'
 
         self.bounding_box = BoundingBox(0, 0, 0, 0)
         self.bounding_box_point_and_size = bounding_box_size(self.bounding_box)
@@ -40,9 +40,9 @@ class TestCamera(TestCase):
         self.detect_motion_mock = Mock()
         self.camera_recording_mock = Mock()
 
-        self.no_motion_payload = json.dumps({"status": False, 'event_ref': Camera.EVENT_REF_NO_MOTION})
+        self.no_motion_payload = json.dumps({"status": False, 'event_ref': CameraObjectDetection.EVENT_REF_NO_MOTION})
         self.no_motion_call = call(self.motion_topic, self.no_motion_payload, retain=True, qos=1)
-        self.no_motion_picture_call = call(f'{self.picture_topic}/{Camera.EVENT_REF_NO_MOTION}/0', [], qos=1)
+        self.no_motion_picture_call = call(f'{self.picture_topic}/{CameraObjectDetection.EVENT_REF_NO_MOTION}/0', [], qos=1)
 
         self.no_motion_calls = [self.no_motion_call, self.no_motion_picture_call]
 
@@ -60,7 +60,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [], []
         self.analyze_object_mock.considered_objects.return_value = []
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
         camera.process_frame(BytesIO())
@@ -77,7 +77,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [self.people], []
         self.analyze_object_mock.considered_objects.return_value = []
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
         camera.process_frame(BytesIO())
@@ -93,7 +93,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [self.people], []
         self.analyze_object_mock.considered_objects.return_value = [consideration1, consideration2]
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
 
@@ -127,7 +127,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [self.people], []
         self.analyze_object_mock.considered_objects.return_value = [consideration1]
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
 
@@ -159,7 +159,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [], []
         self.analyze_object_mock.considered_objects.return_value = []
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._initialize = False
 
@@ -167,14 +167,14 @@ class TestCamera(TestCase):
         self.mqtt_mock.client.publish.assert_not_called()
 
         with patch('utils.time.datetime') as mock_datetime:
-            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.PING_SECONDS_FREQUENCY)
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=CameraObjectDetection.PING_SECONDS_FREQUENCY)
             camera.process_frame(BytesIO())
             camera.process_frame(BytesIO())
-            self.mqtt_mock.client.publish.assert_called_once_with(f'{Camera.PING}/{self.device_id}', qos=1)
+            self.mqtt_mock.client.publish.assert_called_once_with(f'{CameraObjectDetection.PING}/{self.device_id}', qos=1)
 
             self.mqtt_mock.reset_mock()
 
-            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.PING_SECONDS_FREQUENCY -1)
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=CameraObjectDetection.PING_SECONDS_FREQUENCY - 1)
             camera.process_frame(BytesIO())
             self.mqtt_mock.client.publish.assert_not_called()
 
@@ -190,7 +190,7 @@ class TestCamera(TestCase):
         consideration2 = Consideration(type='rectangle', id=2)
         self.analyze_object_mock.considered_objects.return_value = [consideration1, consideration2]
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
         event_ref = 'event_ref'
@@ -204,7 +204,7 @@ class TestCamera(TestCase):
         with patch('camera.camera.datetime') as mock_datetime:
             self.analyze_object_mock.considered_objects.return_value = []
 
-            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=Camera.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION)
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=CameraObjectDetection.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION)
             camera.process_frame(BytesIO())
 
             no_motion_payload = json.dumps({"status": False, 'event_ref': event_ref})
@@ -219,7 +219,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [self.people], []
         self.analyze_object_mock.considered_objects.return_value = [consideration1]
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
 
@@ -243,7 +243,7 @@ class TestCamera(TestCase):
         consideration2 = Consideration(type='rectangle', id=2)
         self.analyze_object_mock.considered_objects.return_value = [consideration1, consideration2]
 
-        camera = Camera(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
+        camera = CameraObjectDetection(self.analyze_object_mock, self.detect_motion_mock, self._get_mqtt_client, self.device_id, self.camera_recording_mock)
         camera.start()
         camera._transform_image_to_publish = lambda *a: []
         event_ref = 'event_ref'

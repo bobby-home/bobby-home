@@ -1,22 +1,16 @@
-import logging
 import os
-import traceback
 from io import BytesIO
 from typing import Dict
 
 from mqtt.mqtt_client import get_mqtt
 from camera.camera_config import camera_config
-from camera.dumb_camera import DumbCamera
+from camera.camera_frame_producer import CameraFrameProducer
 from camera.pivideostream import PiVideoStream
 from service_manager.service_manager import RunService
 from utils.rate_limit import rate_limited
 
-
 CAMERA_WIDTH = camera_config.camera_width
 CAMERA_HEIGHT = camera_config.camera_height
-
-logger = logging.getLogger('dumb_camera')
-
 
 DEVICE_ID = os.environ['DEVICE_ID']
 
@@ -62,7 +56,7 @@ class ManageRecord:
         self._mqtt_client.client.subscribe(f'camera/recording/{DEVICE_ID}/#', qos=2)
         self._mqtt_client.client.message_callback_add(f'camera/recording/{DEVICE_ID}/#', self._on_record)
 
-class RunDumbCamera(RunService):
+class RunCameraFrameProducer(RunService):
 
     def __init__(self):
         pass
@@ -80,26 +74,19 @@ class RunDumbCamera(RunService):
         pass
 
     def run(self) -> None:
-        try:
-            print('run dumb camera!')
-            camera = DumbCamera(os.environ['DEVICE_ID'])
+        print('run camera frame producer!')
+        camera = CameraFrameProducer(os.environ['DEVICE_ID'])
 
-            # @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
-            def process_frame(frame: BytesIO):
-                camera.process_frame(frame)
+        @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
+        def process_frame(frame: BytesIO):
+            camera.process_frame(frame)
 
-            stream = PiVideoStream(process_frame, resolution=(
-                CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
+        stream = PiVideoStream(process_frame, resolution=(
+            CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25)
 
-            ManageRecord(stream)
-            stream.run()
-            # unreachable code because .run() contains an endless loop.
-        except BaseException as e:
-            tags = {'device': DEVICE_ID}
-            logger.error(traceback.format_exc(),
-                         extra={'tags': tags})
-
-            raise
+        ManageRecord(stream)
+        stream.run()
+        # unreachable code because .run() contains an endless loop.
 
     def __str__(self):
-        return 'run-dumb-camera'
+        return 'run-camera-frame-producer'

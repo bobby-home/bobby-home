@@ -22,7 +22,7 @@ class ObjectLinkConsiderations:
     considerations: List[Consideration]
 
 
-class Camera:
+class CameraObjectDetection:
     SERVICE_NAME = 'object_detection'
 
     SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 60
@@ -54,8 +54,8 @@ class Camera:
         self.last_ping_time = None
 
     def start(self) -> None:
-        mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{Camera.SERVICE_NAME}')
-        mqtt_client.connect_keep_status(Camera.SERVICE_NAME, self._device_id)
+        mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{CameraObjectDetection.SERVICE_NAME}')
+        mqtt_client.connect_keep_status(CameraObjectDetection.SERVICE_NAME, self._device_id)
         self.mqtt_client = mqtt_client.client
 
         self.mqtt_client.loop_start()
@@ -115,7 +115,7 @@ class Camera:
             return True
 
         time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= Camera.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= CameraObjectDetection.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
 
         if time_lapsed:
             self._last_time_people_detected = None
@@ -198,7 +198,7 @@ class Camera:
             # people left (some time ago), we let the core knows
             self._no_more_detection(frame)
 
-        if is_time_lapsed(self.last_ping_time, Camera.PING_SECONDS_FREQUENCY, first_true=True):
+        if is_time_lapsed(self.last_ping_time, CameraObjectDetection.PING_SECONDS_FREQUENCY, first_true=True):
             self.last_ping_time = datetime.datetime.now()
             self._publish_ping()
 

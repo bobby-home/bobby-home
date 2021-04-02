@@ -3,7 +3,7 @@ from io import BytesIO
 from unittest import TestCase, skip
 from unittest.mock import Mock, patch, call
 
-from camera.camera import Camera
+from camera.camera_object_detection import CameraObjectDetection
 from camera.camera_recording import CameraRecording
 from datetime import datetime, timedelta
 

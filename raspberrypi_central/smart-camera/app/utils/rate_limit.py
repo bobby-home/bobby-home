@@ -3,13 +3,13 @@ import time
 from functools import wraps
 
 
-def rate_limited(max_per_second: int, thread_safe: bool = True, block: bool = True):
+def rate_limited(max_per_second: float, thread_safe: bool = True, block: bool = True):
     """
     Rate-limits the decorated function locally, for one process.
 
     Parameters
     ----------
-    max_per_second : int
+    max_per_second : float
         The maximum number of times that the wrapped function can be called per seconds.
     thread_safe : bool
         If set to True, the function uses a Lock to exclusively use the `perf_counter`,

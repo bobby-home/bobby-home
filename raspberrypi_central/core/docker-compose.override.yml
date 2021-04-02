@@ -14,6 +14,10 @@ x-env: &env
         - ~/.device
 
 services:
+    database:
+        volumes:
+            - dev-psql-data:/var/lib/postgresql/data
+
     rabbit_worker:
         <<: *build
         <<: *env
@@ -43,3 +47,18 @@ services:
         <<: *env
         volumes:
             - ./app/:/usr/src/app/
+
+    node:
+        user: '${USER_ID}:${GROUP_ID}'
+        build:
+            context: ./tools/docker/node
+        command: npm run dev
+        working_dir: /usr/src/app
+        volumes:
+            - ./app:/usr/src/app
+        ports:
+            - 3000:3000
+
+volumes:
+    dev-psql-data:
+        driver: local

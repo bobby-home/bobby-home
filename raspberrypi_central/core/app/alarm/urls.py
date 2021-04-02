@@ -5,7 +5,7 @@ from django.urls import include, path
 
 from utils.mqtt import mqtt_factory, MQTT
 
-from alarm.views.alarm_status_views import AlarmStatusUpdate, AlarmStatusCreate, AlarmStatusSchedules, \
+from alarm.views.alarm_status_views import AlarmStatusUpdate, AlarmStatusCreate, AlarmStatusDetail, \
     AlarmScheduleUpdate, AlarmScheduleCreate, AlarmScheduleDetail
 from camera.views.camera_motion_views import CameraMotionDetectedList, CameraMotionDetectedDetail
 from camera.views.camera_roi_views import CameraROICreate, CameraROIUpdate, CameraROIList, CameraROIDelete
@@ -57,7 +57,7 @@ def get_image(_request):
 status_patterns = [
     path('<int:pk>/edit', AlarmStatusUpdate.as_view(), name='status-edit'),
     path('add', AlarmStatusCreate.as_view(), name='status-add'),
-    path('<int:pk>/schedules', AlarmStatusSchedules.as_view(), name='status-schedules')
+    path('<int:pk>', AlarmStatusDetail.as_view(), name='status-detail')
 ]
 
 

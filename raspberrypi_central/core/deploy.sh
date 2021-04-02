@@ -4,4 +4,4 @@
 
 echo "Deploy to" $@
 
-rsync -avt ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config $@
+rsync --exclude=passwd -avt ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config $@

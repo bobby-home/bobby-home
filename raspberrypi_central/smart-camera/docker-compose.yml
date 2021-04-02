@@ -8,7 +8,7 @@ x-env: &env
 
 services:
     camera:
-        command: python alarm.py
+        command: python camera.py
         <<: *env
         networks:
             - backend_mqtt

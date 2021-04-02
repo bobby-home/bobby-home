@@ -18,8 +18,6 @@ services:
 
     database:
         image: postgres:13.1
-        volumes:
-            - psql-data:/var/lib/postgresql/data
         environment:
           - POSTGRES_DB=hello_django_dev
           - POSTGRES_USER=hello_django
@@ -30,7 +28,7 @@ services:
             - webapp_backend
 
     mqtt_broker:
-        image: eclipse-mosquitto:2.0.7
+        image: eclipse-mosquitto:2.0.8
         volumes:
             - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
             - ./config/mosquitto/passwd:/mosquitto/config/passwd
@@ -38,9 +36,8 @@ services:
         ports:
             - "8883:8883"
         networks:
-            webapp_backend:
-            backend_mqtt:
-                ipv4_address: 172.80.0.100
+            - webapp_backend
+            - backend_mqtt
 
     rabbit_worker:
         command: bash -c "celery -A hello_django worker --loglevel=info"

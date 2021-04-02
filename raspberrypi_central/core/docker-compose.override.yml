@@ -14,6 +14,10 @@ x-env: &env
         - ~/.device
 
 services:
+    database:
+        volumes:
+            - dev-psql-data:/var/lib/postgresql/data
+
     rabbit_worker:
         <<: *build
         <<: *env
@@ -54,3 +58,7 @@ services:
             - ./app:/usr/src/app
         ports:
             - 3000:3000
+
+volumes:
+    dev-psql-data:
+        driver: local

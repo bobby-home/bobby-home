@@ -19,6 +19,8 @@ services:
     database:
         logging: *loki-logging
         restart: unless-stopped
+        volumes:
+            - psql-data:/var/lib/postgresql/data
 
     mqtt_broker:
         logging: *loki-logging
@@ -87,4 +89,6 @@ services:
 
 volumes:
     grafana-data:
+        driver: local
+    psql-data:
         driver: local

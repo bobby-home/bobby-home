@@ -2,8 +2,8 @@ from io import BytesIO
 from mqtt.mqtt_client import get_mqtt
 
 
-class DumbCamera:
-    """Runs on little end device. Take frames from picamera and send it through mqtt.
+class CameraFrameProducer:
+    """Take frames from picamera and send it through mqtt to be processed.
     """
     SERVICE_NAME = 'dumb_camera'
     PICTURE_TOPIC = 'ia/picture'
@@ -14,8 +14,8 @@ class DumbCamera:
         self.start()
 
     def start(self) -> None:
-        mqtt_client = get_mqtt(client_name=f'{self._device_id}-{DumbCamera.SERVICE_NAME}')
-        mqtt_client.connect_keep_status(DumbCamera.SERVICE_NAME, self._device_id)
+        mqtt_client = get_mqtt(client_name=f'{self._device_id}-{CameraFrameProducer.SERVICE_NAME}')
+        mqtt_client.connect_keep_status(CameraFrameProducer.SERVICE_NAME, self._device_id)
         self.mqtt_client = mqtt_client.client
 
         # <!> without this, the process send some pictures (~19) and then nothing... So it is mandatory!

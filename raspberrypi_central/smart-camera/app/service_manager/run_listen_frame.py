@@ -58,11 +58,6 @@ class RunListenFrame(Runnable):
         self._connected_devices = connected_devices
 
     def run(self, device_id: str, status: bool, data=None) -> None:
-        if data is not None:
-            is_dumb = data.get('is_dumb', False)
-            if is_dumb is False:
-                return None
-
         if status is False:
             self._connected_devices.remove(device_id)
             return None

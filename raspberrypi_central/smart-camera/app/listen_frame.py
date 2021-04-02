@@ -1,7 +1,7 @@
 import io
 import os
 
-from camera.dumb_camera import DumbCamera
+from camera.camera_frame_producer import CameraFrameProducer
 from mqtt.mqtt_client import get_mqtt
 from mqtt.mqtt_manage_runnable import MqttManageRunnable
 from service_manager.run_listen_frame import RunListenFrame, ConnectedDevices
@@ -39,8 +39,8 @@ frame_receiver = FrameReceiver(connected_devices)
 
 def subscribe(client) -> None:
     # topics to receive frames to analyze for dumb cameras.
-    client.subscribe(f'{DumbCamera.PICTURE_TOPIC}/+', qos=0)
-    client.message_callback_add(f'{DumbCamera.PICTURE_TOPIC}/+', frame_receiver.on_picture)
+    client.subscribe(f'{CameraFrameProducer.PICTURE_TOPIC}/+', qos=0)
+    client.message_callback_add(f'{CameraFrameProducer.PICTURE_TOPIC}/+', frame_receiver.on_picture)
 
 mqtt_client.on_connected_callbacks.append(subscribe)
 mqtt_client.connect()

@@ -4,6 +4,8 @@ import traceback
 import logging_loki
 from multiprocessing import Queue
 
+from service_manager.run_dumb_camera_frame_producer import RunDumbCameraFrameProducer
+
 LOKI_HOSTNAME = os.environ['LOKI_HOSTNAME']
 LOKI_PORT = os.environ['LOKI_PORT']
 
@@ -22,7 +24,7 @@ device_id = None
 
 # sys.excepthook = my_exception_hook does not work for this case (the loki request is not sent).
 try:
-    from service_manager.run_dumb_camera import RunDumbCamera
+    from service_manager.run_camera_frame_producer import RunCameraFrameProducer
     from mqtt.mqtt_manage_runnable import MqttManageRunnable
     from thread.thread_manager import ThreadManager
     from mqtt.mqtt_client import get_mqtt
@@ -31,7 +33,7 @@ try:
 
     camera_mqtt_client = get_mqtt(f"{device_id}-dumb-camera-manager")
 
-    camera_manager = ThreadManager(RunDumbCamera())
+    camera_manager = ThreadManager(RunDumbCameraFrameProducer())
 
     MqttManageRunnable(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
 

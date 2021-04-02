@@ -1,7 +1,7 @@
 from typing import Dict
 
-from camera.camera import Camera
-from camera.camera_factory import camera_factory
+from camera.camera_object_detection import CameraObjectDetection
+from camera.camera_object_detection_factory import camera_object_detection_factory
 from camera.camera_record import DumbCameraRecorder
 from camera_analyze.camera_analyzer import CameraAnalyzer
 from object_detection.detect_people_factory import detect_people_factory
@@ -10,9 +10,9 @@ from service_manager.runnable import Runnable
 
 DETECT_PEOPLE = detect_people_factory()
 
-def dumb_camera_factory(mqtt, device_id: str, camera_analyzer: CameraAnalyzer) -> Camera:
+def dumb_camera_factory(mqtt, device_id: str, camera_analyzer: CameraAnalyzer) -> CameraObjectDetection:
     camera_record = DumbCameraRecorder(mqtt.client, device_id)
-    camera = camera_factory(device_id, camera_analyzer, camera_record, DETECT_PEOPLE)
+    camera = camera_object_detection_factory(device_id, camera_analyzer, camera_record, DETECT_PEOPLE)
     camera.start()
 
     return camera
@@ -25,7 +25,7 @@ class ConnectedDevices:
 
     def __init__(self, mqtt):
         self._mqtt = mqtt
-        self._connected_devices: Dict[str, Camera] = {}
+        self._connected_devices: Dict[str, CameraObjectDetection] = {}
 
     def remove(self, device_id: str) -> None:
         if device_id in self._connected_devices:
@@ -48,7 +48,7 @@ class ConnectedDevices:
         self._connected_devices[device_id] = camera
 
     @property
-    def connected_devices(self) -> Dict[str, Camera]:
+    def connected_devices(self) -> Dict[str, CameraObjectDetection]:
         return self._connected_devices
 
 
@@ -58,11 +58,6 @@ class RunListenFrame(Runnable):
         self._connected_devices = connected_devices
 
     def run(self, device_id: str, status: bool, data=None) -> None:
-        if data is not None:
-            is_dumb = data.get('is_dumb', False)
-            if is_dumb is False:
-                return None
-
         if status is False:
             self._connected_devices.remove(device_id)
             return None

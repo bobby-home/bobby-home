@@ -7,7 +7,10 @@
                 <a class="copy__body" href="{% url 'home' %}">{% svg_icon 'home' %} {% trans "Home" %}</a>
             </li>
             <li>
-                <a class="copy__body" href="{% url 'alarm:home' %}">{% svg_icon 'shield' %} {% trans "Alarm" %}</a>
+                <a class="copy__body" href="{% url 'alarm:home' %}">{% svg_icon 'shield' %} {% trans "Alarms" %}</a>
+            </li>
+            <li>
+                <a class="copy__body" href="{% url 'camera:home' %}">{% svg_icon 'camera' %}{% trans "Cameras" %}</a>
             </li>
             <li>
                 <a class="copy__body" href="{% url 'configuration' %}">{% svg_icon 'cog' %}{% trans "Configuration" %}</a>

@@ -1,0 +1,27 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block title %}
+    Camera stream
+{% endblock title %}
+
+
+{% block body %}
+    <main class="l-container">
+        <section class="l-section">
+            <div class="l-row">
+                <div class="copy variant--box variant--content">
+                    <div class="copy__body l-stack">
+                        <div class="l-stack-bottom-separator">
+                            <h3 class="h5">{% trans 'Camera stream' %}</h3>
+                        </div>
+                        <p class="flex items-center">
+                            {% svg_icon 'location' %} <span class="l-ml1">{{ camera.device.location }}</span>
+                        </p>
+                        <img decoding="async" loading="lazy" src="{% url 'camera:camera_stream' camera.pk %}" alt="{% trans 'Live stream' %}" />
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

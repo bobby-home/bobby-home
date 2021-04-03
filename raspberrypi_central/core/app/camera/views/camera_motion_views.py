@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
 
 from camera.models import CameraMotionDetected, CameraMotionDetectedPicture
-from utils.json.decimal_encoder import DecimalEncoder
+from utils.json.encoders import DecimalEncoder
 
 
 class CameraMotionDetectedList(LoginRequiredMixin, ListView):

@@ -10,7 +10,7 @@ from django.forms.models import model_to_dict
 from camera.forms import CameraROIForm, CameraROIUpdateForm, CameraRectangleROIFormSet
 from camera.models import CameraROI, CameraRectangleROI, CameraMotionDetectedPicture
 from utils.django.json_view import JsonableResponseMixin
-from utils.json.decimal_encoder import DecimalEncoder
+from utils.json.encoders import DecimalEncoder
 
 
 def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):

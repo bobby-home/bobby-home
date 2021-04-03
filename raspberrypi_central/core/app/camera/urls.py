@@ -1,7 +1,9 @@
 from django.urls import include, path
 
+from camera.views import CameraHome
 from camera.views.camera_motion_views import CameraMotionDetectedList, CameraMotionDetectedDetail
 from camera.views.camera_roi_views import CameraROICreate, CameraROIDelete, CameraROIUpdate, CameraROIList
+from camera.views.stream_views import stream_answer, CameraStreamDetail
 
 app_name = 'camera'
 
@@ -17,7 +19,14 @@ motions_pattern = [
     path('<int:pk>', CameraMotionDetectedDetail.as_view(), name='camera_motion_detected-detail'),
 ]
 
+streaming_pattern = [
+]
+
 urlpatterns = [
+    path('', CameraHome.as_view(), name='home'),
+    path('<int:pk>/stream', CameraStreamDetail.as_view(), name='stream-detail'),
+    path('<int:pk>/stream/flux.jpg', stream_answer, name='camera_stream'),
+
     path('roi/', include(roi_patterns)),
     path('motion/', include(motions_pattern)),
 ]

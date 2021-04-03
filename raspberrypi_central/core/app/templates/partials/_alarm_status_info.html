@@ -14,6 +14,10 @@
     {% svg_icon 'server' %} <span class="l-ml1">{% firstof alarm.device.name alarm.device.device_type.type %}</span>
 </p>
 
+<p class="flex items-center">
+    {% svg_icon 'camera' %}
+    <a class="l-ml1" href="{% url 'camera:stream-detail' alarm.pk %}">{% trans 'Live stream' %}</a>
+</p>
 
 {% if alarm.alarm_schedules.all %}
     <div class="flex items-center">

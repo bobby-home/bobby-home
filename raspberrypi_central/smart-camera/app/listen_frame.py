@@ -39,8 +39,8 @@ frame_receiver = FrameReceiver(connected_devices)
 
 def subscribe(client) -> None:
     # topics to receive frames to analyze for dumb cameras.
-    client.subscribe(f'{CameraFrameProducer.PICTURE_TOPIC}/+', qos=0)
-    client.message_callback_add(f'{CameraFrameProducer.PICTURE_TOPIC}/+', frame_receiver.on_picture)
+    client.subscribe(f'{CameraFrameProducer.TOPIC_PICTURE_TO_ANALYZE}/+', qos=0)
+    client.message_callback_add(f'{CameraFrameProducer.TOPIC_PICTURE_TO_ANALYZE}/+', frame_receiver.on_picture)
 
 mqtt_client.on_connected_callbacks.append(subscribe)
 mqtt_client.connect()

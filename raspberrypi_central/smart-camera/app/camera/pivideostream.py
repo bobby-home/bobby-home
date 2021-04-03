@@ -20,6 +20,7 @@ class PiVideoStream:
 
         self.camera = None
         self._record = False
+        self._framerate_before_record = self.framerate
 
     def run(self):
         self.camera = PiCamera()
@@ -38,7 +39,6 @@ class PiVideoStream:
         raw_capture = io.BytesIO()
         for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
             raw_capture.seek(0)
-            camera.framerate = self.framerate
 
             self.process_frame(raw_capture)
 
@@ -49,7 +49,12 @@ class PiVideoStream:
     def start_recording(self, video_ref: str) -> None:
         if self._record is False:
             LOGGER.info(f'start recording video_ref={video_ref}')
+
+            self._framerate_before_record = self.camera.framerate
+            self.high_fps()
+
             self._record = True
+
             self.camera.start_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
 
     def stop_recording(self) -> None:
@@ -57,6 +62,8 @@ class PiVideoStream:
             LOGGER.info('stop recording')
             self.camera.stop_recording()
             self._record = False
+
+            self.camera.framerate = self._framerate_before_record
 
     def split_recording(self, video_ref: str) -> None:
         if self._record is True:
@@ -66,7 +73,11 @@ class PiVideoStream:
             self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
 
     def high_fps(self):
-        self.framerate = 25
+        if self._record is False:
+            print(f'change camera framerate for 25')
+            self.camera.framerate = 25
 
     def low_fps(self):
-        self.framerate = 1
+        if self._record is False:
+            print(f'change camera framerate for 1')
+            self.camera.framerate = 1

@@ -5,8 +5,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="mx-tech-house",
-    version="0.2.0",
+    name="bobby-home",
+    version="0.4.0",
     author="Maxime Moreau",
     author_email="contact@maxime-moreau.fr",
     description="Home security system with RaspberryPi's.",

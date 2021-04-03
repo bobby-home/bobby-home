@@ -15,16 +15,15 @@ class HttpStreamMQTT:
     BOUNDARY = 'frame'
 
     def __init__(self, alarm: AlarmStatus):
-        print('create HttpStreamMQTT')
         self._picture = None
         self._alarm = alarm
         self._mqtt, self._camera_messaging = self._mqtt_init()
         self._consecutive_failures = 0
 
     def _mqtt_init(self) -> Tuple[MQTT, CameraMessaging]:
-        mqtt = mqtt_factory(client_id='test_streaming')
-        mqtt.client.subscribe(f'camera/stream/+', qos=0)
-        mqtt.client.message_callback_add(f'camera/stream/+', self._frame_receiver)
+        mqtt = mqtt_factory()
+        mqtt.client.subscribe(f'camera/stream/{self._alarm.device.device_id}', qos=0)
+        mqtt.client.message_callback_add(f'camera/stream/{self._alarm.device.device_id}', self._frame_receiver)
 
         camera_messaging = camera_messaging_factory(mqtt)
         camera_messaging.publish_status(self._alarm.device.device_id, True, CameraData(stream=True))
@@ -35,9 +34,10 @@ class HttpStreamMQTT:
         self._picture = io.BytesIO(message.payload).getvalue()
 
     def produce(self):
-        while True and self._consecutive_failures < 25*5:
+        # ~25 frame per seconds, if it does not receive any frame for ~8s it stops the loop
+        # and thus stop the stream.
+        while True and self._consecutive_failures < 25*8:
             self._mqtt.client.loop()
-            print(f'produce stream {self._picture is not None}')
             if self._picture:
                 self._consecutive_failures = 0
                 yield(b'--frame\r\n'
@@ -47,17 +47,13 @@ class HttpStreamMQTT:
                 self._consecutive_failures += 1
 
     def __del__(self):
-        print('delete http stream mqtt')
-
         # query because AlarmStatus could have turned off during the stream.
         alarm = AlarmStatus.objects.get(pk=self._alarm.pk)
 
         if alarm.running is False:
             self._camera_messaging.publish_status(self._alarm.device.device_id, False, CameraData(stream=False))
         else:
-            self._camera_messaging.publish_status(self._alarm.device.device_id, True, CameraData(stream=True))
-
-stream = None
+            self._camera_messaging.publish_status(self._alarm.device.device_id, True, CameraData(stream=False))
 
 class CameraStreamingHttpResponse(StreamingHttpResponse):
     def __init__(self, stream: HttpStreamMQTT, *args, **kwargs):
@@ -66,15 +62,13 @@ class CameraStreamingHttpResponse(StreamingHttpResponse):
 
     def close(self):
         super().close()
-        print('close stream')
+        # we need to manually delete the object to stop the background thread
+        # and close mqtt connections that listen for frames.
         self._stream.__del__()
 
 
 def stream_answer(_request, pk):
-    global stream
-
     alarm = get_object_or_404(AlarmStatus, id=pk)
-
     stream = HttpStreamMQTT(alarm)
 
     return CameraStreamingHttpResponse(stream, stream.produce(), content_type=f"multipart/x-mixed-replace;boundary=frame")

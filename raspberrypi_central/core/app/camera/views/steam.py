@@ -17,6 +17,7 @@ class HttpStreamMQTT:
         self._picture = None
         self._alarm = alarm
         self._mqtt, self._camera_messaging = self._mqtt_init()
+        self._consecutive_failures = 0
 
     def _mqtt_init(self) -> Tuple[MQTT, CameraMessaging]:
         mqtt = mqtt_factory(client_id='test_streaming')
@@ -32,13 +33,16 @@ class HttpStreamMQTT:
         self._picture = io.BytesIO(message.payload).getvalue()
 
     def produce(self):
-        while True:
+        while True and self._consecutive_failures < 25*5:
             self._mqtt.client.loop()
             print(f'produce stream {self._picture is not None}')
             if self._picture:
+                self._consecutive_failures = 0
                 yield(b'--frame\r\n'
         b'Content-Type: image/jpeg\r\n\r\n' + self._picture + b'\r\n\r\n')
                 self._picture = None
+            else:
+                self._consecutive_failures += 1
 
     def __del__(self):
         print('delete http stream mqtt')
@@ -47,7 +51,7 @@ class HttpStreamMQTT:
         alarm = AlarmStatus.objects.get(pk=self._alarm.pk)
 
         if alarm.running is False:
-            self._camera_messaging.publish_status(self._alarm.device.device_id, False)
+            self._camera_messaging.publish_status(self._alarm.device.device_id, False, CameraData(stream=False))
         else:
             self._camera_messaging.publish_status(self._alarm.device.device_id, True, CameraData(stream=True))
 

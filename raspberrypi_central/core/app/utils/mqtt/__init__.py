@@ -120,6 +120,10 @@ class MQTT:
         ))
 
     def publish(self, topic, message, qos=1, retain=False):
+        # otherwise it will raise Exception and crash.
+        if qos is None:
+            qos = 1
+
         self.client.publish(topic, message, qos=qos, retain=retain)
 
 

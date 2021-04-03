@@ -20,7 +20,6 @@ class CameraFrameProducer:
 
     @rate_limited(max_per_second=0.5, block=False)
     def publish_to_analyze(self, picture):
-        print('publish')
         self.mqtt_client.publish(f'{self.TOPIC_PICTURE_TO_ANALYZE}/{self._device_id}', picture, qos=0)
 
     def start(self) -> None:

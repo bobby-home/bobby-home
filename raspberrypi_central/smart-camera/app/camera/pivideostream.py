@@ -59,7 +59,7 @@ class PiVideoStream:
 
     def stop_recording(self) -> None:
         if self._record is True:
-            LOGGER.info('stop recording')
+            LOGGER.info(f'stop recording, change frame rate to {self._framerate_before_record}')
             self.camera.stop_recording()
             self._record = False
 
@@ -74,10 +74,10 @@ class PiVideoStream:
 
     def high_fps(self):
         if self._record is False:
-            print(f'change camera framerate for 25')
+            LOGGER.info('change camera framerate for 25 (high)')
             self.camera.framerate = 25
 
     def low_fps(self):
         if self._record is False:
-            print(f'change camera framerate for 1')
+            LOGGER.info('change camera framerate for 1 (low)')
             self.camera.framerate = 1

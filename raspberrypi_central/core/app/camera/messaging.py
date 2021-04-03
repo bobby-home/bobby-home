@@ -6,7 +6,8 @@ from utils.mqtt.mqtt_status import MqttJsonStatus
 
 @dataclass
 class CameraData:
-    fps: float
+    to_analyze: Optional[bool] = None
+    stream: Optional[bool] = None
 
 
 class CameraMessaging:

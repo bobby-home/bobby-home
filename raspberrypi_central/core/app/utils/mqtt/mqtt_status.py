@@ -1,7 +1,7 @@
 import struct
 import json
 
-from utils.json.decimal_encoder import DecimalEncoder
+from utils.json.encoders import DecimalEncoder, EnhancedJSONEncoder
 from utils.mqtt import MQTT
 
 
@@ -18,12 +18,12 @@ class MqttJsonStatus:
     def __init__(self, mqtt_client: MQTT):
         self._mqtt_client = mqtt_client
 
-    def publish(self, topic: str, msg: bool, data=None) -> None:
+    def publish(self, topic: str, status: bool, data=None) -> None:
         payload = {
-            'status': msg,
+            'status': status,
             'data': data
         }
 
-        encoded_data = json.dumps(payload, cls=DecimalEncoder)
+        encoded_data = json.dumps(payload, cls=EnhancedJSONEncoder)
 
         self._mqtt_client.publish(topic, encoded_data, qos=1, retain=True)

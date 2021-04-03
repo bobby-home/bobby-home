@@ -3,8 +3,9 @@ import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
 
+from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected, CameraMotionDetectedPicture
-from utils.json.decimal_encoder import DecimalEncoder
+from utils.json.encoders import DecimalEncoder
 
 
 class CameraMotionDetectedList(LoginRequiredMixin, ListView):
@@ -34,3 +35,10 @@ class CameraMotionDetectedDetail(LoginRequiredMixin, DetailView):
             context['picture'] = None
 
         return context
+
+
+class CameraStreamDetail(LoginRequiredMixin, DetailView):
+    model = AlarmStatus
+    template_name = 'camera/camera_stream.html'
+
+    context_object_name = 'stream'

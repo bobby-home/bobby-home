@@ -1,8 +1,10 @@
 import io
 from typing import Tuple
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
+from django.views.generic import DetailView
 
 from alarm.models import AlarmStatus
 from camera.messaging import CameraMessaging, camera_messaging_factory, CameraData
@@ -76,3 +78,10 @@ def stream_answer(_request, pk):
     stream = HttpStreamMQTT(alarm)
 
     return CameraStreamingHttpResponse(stream, stream.produce(), content_type=f"multipart/x-mixed-replace;boundary=frame")
+
+
+class CameraStreamDetail(LoginRequiredMixin, DetailView):
+    model = AlarmStatus
+    template_name = 'camera/camera_stream.html'
+
+    context_object_name = 'camera'

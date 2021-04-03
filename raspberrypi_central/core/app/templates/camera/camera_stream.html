@@ -15,7 +15,10 @@
                         <div class="l-stack-bottom-separator">
                             <h3 class="h5">{% trans 'Camera stream' %}</h3>
                         </div>
-                        <img src="{% url 'camera:camera_stream' stream.pk %}" alt="Stream" />
+                        <p class="flex items-center">
+                            {% svg_icon 'location' %} <span class="l-ml1">{{ camera.device.location }}</span>
+                        </p>
+                        <img decoding="async" loading="lazy" src="{% url 'camera:camera_stream' camera.pk %}" alt="{% trans 'Live stream' %}" />
                     </div>
                 </div>
             </div>

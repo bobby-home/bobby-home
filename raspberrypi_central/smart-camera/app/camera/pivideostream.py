@@ -59,7 +59,7 @@ class PiVideoStream:
             # @todo: add self._before_stream to the new recording, at the beginning.
 
             # Write the x seconds "before" motion to disk as well
-            self._ring_buffer.copy_to(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}-before.h264'), seconds=10)
+            self._ring_buffer.copy_to(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}-before.h264'), seconds=PiVideoStream.SECONDS_BUFFER)
             self._ring_buffer.clear()
 
             # split the recording to record frames just after the system detects people.

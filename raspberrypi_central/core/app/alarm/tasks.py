@@ -54,10 +54,6 @@ def h264_to_mp4(input_path: str, output_path: str):
     retry_kwargs={'max_retries': 5},
     default_retry_delay=3)
 def process_video(raw_video_file: str, output_path: str) -> None:
-    # videos = os.environ['VIDEO_FOLDER']
-    #
-    # raw_video_path = os.path.join(videos, raw_video_file)
-
     if not Path(raw_video_file).is_file():
         raise FileNotFoundError(f'{raw_video_file} does not exist.')
 
@@ -66,12 +62,6 @@ def process_video(raw_video_file: str, output_path: str) -> None:
 
     # we don't need raw h264 anymore.
     os.remove(raw_video_file)
-
-    # kwargs = {
-    #     'video_path': output_path
-    # }
-    #
-    # send_video.apply_async(kwargs=kwargs)
 
 
 @shared_task(

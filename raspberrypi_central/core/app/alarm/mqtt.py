@@ -69,7 +69,9 @@ def on_motion_video(message: MqttMessage) -> None:
     if data['device_id'] == DEVICE_ID:
         data['is_same_device'] = True
 
-    tasks.camera_motion_video.apply_async(kwargs=data)
+    # The system has some latency to save the video,
+    # so we add a little countdown so the video will more likely be available after x seconds.
+    tasks.camera_motion_video.apply_async(kwargs=data, countdown=3)
 
 def on_motion_picture(message: MqttMessage):
     topic = split_camera_topic(message.topic, True)

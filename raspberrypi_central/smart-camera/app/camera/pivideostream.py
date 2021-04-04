@@ -1,7 +1,7 @@
 import io
 import time
 
-from picamera import PiCamera
+from picamera import PiCamera, PiCameraCircularIO
 import os
 
 import logging
@@ -11,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 class PiVideoStream:
 
     BASE_VIDEO_PATH = os.environ['MEDIA_FOLDER']
+    SECONDS_BUFFER = 20
 
     def __init__(self, process_frame, resolution, framerate, **kwargs):
         self.process_frame = process_frame
@@ -20,7 +21,8 @@ class PiVideoStream:
 
         self.camera = None
         self._record = False
-        self._framerate_before_record = self.framerate
+
+        self._ring_buffer = None
 
     def run(self):
         self.camera = PiCamera()
@@ -36,6 +38,9 @@ class PiVideoStream:
         for (arg, value) in self.kwargs.items():
             setattr(camera, arg, value)
 
+        self._ring_buffer = PiCameraCircularIO(camera, seconds=PiVideoStream.SECONDS_BUFFER)
+        camera.start_recording(self._ring_buffer, format='h264')
+
         raw_capture = io.BytesIO()
         for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
             raw_capture.seek(0)
@@ -49,21 +54,24 @@ class PiVideoStream:
     def start_recording(self, video_ref: str) -> None:
         if self._record is False:
             LOGGER.info(f'start recording video_ref={video_ref}')
-
-            self._framerate_before_record = self.camera.framerate
-            self.high_fps()
-
             self._record = True
 
-            self.camera.start_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
+            # @todo: add self._before_stream to the new recording, at the beginning.
+
+            # Write the x seconds "before" motion to disk as well
+            self._ring_buffer.copy_to(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}-before.h264'), seconds=10)
+            self._ring_buffer.clear()
+
+            # split the recording to record frames just after the system detects people.
+            self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
 
     def stop_recording(self) -> None:
         if self._record is True:
-            LOGGER.info(f'stop recording, change frame rate to {self._framerate_before_record}')
-            self.camera.stop_recording()
-            self._record = False
+            LOGGER.info(f'stop recording')
 
-            self.camera.framerate = self._framerate_before_record
+            # split recording back to the in-memory circular buffer
+            self.camera.split_recording(self._ring_buffer)
+            self._record = False
 
     def split_recording(self, video_ref: str) -> None:
         if self._record is True:
@@ -71,13 +79,3 @@ class PiVideoStream:
 
             # Continue the recording in the specified output; close existing output.
             self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
-
-    def high_fps(self):
-        if self._record is False:
-            LOGGER.info('change camera framerate for 25 (high)')
-            self.camera.framerate = 25
-
-    def low_fps(self):
-        if self._record is False:
-            LOGGER.info('change camera framerate for 1 (low)')
-            self.camera.framerate = 1

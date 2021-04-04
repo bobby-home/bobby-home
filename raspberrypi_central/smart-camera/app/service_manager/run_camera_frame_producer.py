@@ -62,8 +62,7 @@ class ManageRecord:
 
 
 class FrameProducer:
-    def __init__(self, stream_event: mp.Event, process_event: mp.Event, high_fps_queue: mp.Queue):
-        self._high_fps_queue = high_fps_queue
+    def __init__(self, stream_event: mp.Event, process_event: mp.Event):
         self._stream_event = stream_event
         self._process_event = process_event
 
@@ -82,15 +81,6 @@ class FrameProducer:
 
         # @rate_limited(max_per_second=0.5, thread_safe=False, block=True)
         def process_frame(frame: BytesIO):
-            try:
-                high_fps = self._high_fps_queue.get(block=False)
-            except Empty:
-                # it does not need to change fps
-                high_fps = None
-
-            if high_fps is not None:
-                stream.high_fps() if high_fps is True else stream.low_fps()
-
             camera.process_frame(frame, stream=self._stream_event.is_set(), process=self._process_event.is_set())
 
         stream.process_frame = process_frame
@@ -100,11 +90,10 @@ class FrameProducer:
 
 class RunCameraFrameProducer(Runnable):
     def __init__(self):
-        self._high_fps_queue = mp.Queue()
         self._stream_event = mp.Event()
         self._process_event = mp.Event()
 
-        self._frame_producer = FrameProducer(self._stream_event, self._process_event, self._high_fps_queue)
+        self._frame_producer = FrameProducer(self._stream_event, self._process_event)
         self._process = None
 
     def run(self, device_id: str, status: bool, data=None) -> None:
@@ -117,11 +106,9 @@ class RunCameraFrameProducer(Runnable):
         if data:
             if 'stream' in data:
                 if data['stream'] is True:
-                    self._high_fps_queue.put(True)
                     self._stream_event.set()
                 elif data['stream'] is False:
                     self._stream_event.clear()
-                    self._high_fps_queue.put(False)
 
             if 'to_analyze' in data:
                 if data['to_analyze'] is True:

@@ -1,9 +1,10 @@
 import os
 import logging
+import re
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
-from celery import shared_task
+from celery import shared_task, group, signature
 
 from notification.consts import SeverityChoice
 from notification.tasks import send_video, create_and_send_notification
@@ -16,7 +17,7 @@ import alarm.notifications as notifications
 
 LOGGER = logging.getLogger(__name__)
 
-def h264_to_mp4(input_path: str, output_path: Optional[str] = None) -> str:
+def h264_to_mp4(input_path: str, output_path: str):
     """Convert raw h264 'input_path' to mp4 in 'output_path' or in 'input_path' with .mp4 extension.
 
     Parameters
@@ -35,9 +36,6 @@ def h264_to_mp4(input_path: str, output_path: Optional[str] = None) -> str:
     str
         The path to the newly (converted) video.
     """
-    if output_path is None:
-        path, ext = os.path.splitext(input_path)
-        output_path = path + ".mp4"
 
     # MP4Box redirect everything to stderr (even if no error).
     # so we redirect stderr to stdout to /dev/null
@@ -50,31 +48,30 @@ def h264_to_mp4(input_path: str, output_path: Optional[str] = None) -> str:
     if result != 0:
         raise Exception(f'{command} did not exited successfully.')
 
-    return output_path
 
 @shared_task(
     autoretry_for=(Exception,),
     retry_kwargs={'max_retries': 5},
     default_retry_delay=3)
-def process_video(video_file: str) -> None:
-    videos = os.environ['VIDEO_FOLDER']
+def process_video(raw_video_file: str, output_path: str) -> None:
+    # videos = os.environ['VIDEO_FOLDER']
+    #
+    # raw_video_path = os.path.join(videos, raw_video_file)
 
-    raw_video_path = os.path.join(videos, video_file)
+    if not Path(raw_video_file).is_file():
+        raise FileNotFoundError(f'{raw_video_file} does not exist.')
 
-    if not Path(raw_video_path).is_file():
-        raise FileNotFoundError(f'{raw_video_path} does not exist.')
-
-    output_path = h264_to_mp4(raw_video_path)
+    h264_to_mp4(raw_video_file, output_path)
     LOGGER.info(f'video to mp4 ok - {output_path}')
 
     # we don't need raw h264 anymore.
-    os.remove(raw_video_path)
+    os.remove(raw_video_file)
 
-    kwargs = {
-        'video_path': output_path
-    }
-
-    send_video.apply_async(kwargs=kwargs)
+    # kwargs = {
+    #     'video_path': output_path
+    # }
+    #
+    # send_video.apply_async(kwargs=kwargs)
 
 
 @shared_task(
@@ -92,6 +89,21 @@ def retrieve_and_process_video(device_id: str, video_file: str):
 
     process_video(video_dest_path)
 
+
+@shared_task()
+def merge_videos(videos_path: List[str], output_video_path: str) -> None:
+    if len(videos_path) < 1:
+        return None
+
+    command_file = f'-add {videos_path[0]}'
+    for video_path in videos_path[1:]:
+        command_file += f' -cat {video_path}'
+
+    command = f'MP4Box {command_file} {output_video_path} > /dev/null 2>&1'
+
+    result = os.system(command)
+    if result != 0:
+        raise Exception(f'{command} did not exited successfully.')
 
 @shared_task(name="security.camera_motion_picture")
 def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, status: bool):
@@ -122,15 +134,61 @@ def camera_motion_video(device_id: str, video_ref: str, is_same_device: bool = F
      None
      """
 
-    video_file = f'{video_ref}.h264'
 
-    if is_same_device:
-        # The system has some latency to save the video,
-        # so we add a little countdown so the video will more likely be available after x seconds.
-        process_video.apply_async(kwargs={'video_file': video_file}, countdown=3)
+    """
+    doing:
+    if video ref is ending by "-0" we have to:
+    - process the f'{video_ref}-before.h264' and the "-0", then merge them then send the notification.
+    (process_video() & process_video()).then(merge).then(send)
+    """
+
+    videos_folder = os.environ['VIDEO_FOLDER']
+
+    raw_video_file = os.path.join(videos_folder, f'{video_ref}.h264')
+    video_file = os.path.join(videos_folder, f'{video_ref}.mp4')
+
+    split_number_pattern = r"(?P<split_number>[0-9]+$)"
+    split_number_re = re.search(split_number_pattern, video_ref)
+    if split_number_re is None:
+        raise ValueError(f'Wrong video_ref format: {video_ref}.')
+
+    split_number = split_number_re.group()
+
+    # first split, merge before video and splited video.
+    if split_number == '0':
+        print('first split, will merge before and current split video')
+
+        video_ref_before_motion = f'{video_ref}-before'
+        raw_video_file_before_motion = os.path.join(videos_folder, f'{video_ref_before_motion}.h264')
+        raw_merged_video_file = os.path.join(videos_folder, f'{video_ref}-merged.h264')
+
+        # job = group([
+        #     process_video.s(raw_video_file),
+        #     process_video.s(f'{video_file_before_motion}.h264')
+        # ])
+        # result = job.apply_async()
+        # if not result.successful():
+        #     raise Exception('not all subtasks were successful.')
+
+        # process_video(raw_video_file, video_file)
+        # process_video(f'{video_file_before_motion}.h264', f'{video_file_before_motion}.mp4')
+
+        # output_path = f'{video_ref}.mp4'
+
+        # -before -0 -> merged in raw_merged_video_file
+        merge_videos([raw_video_file_before_motion, raw_video_file], raw_merged_video_file)
+
+        # raw_merged_video_file to video_file mp4
+        process_video(raw_merged_video_file, video_file)
+        send_video(video_path=video_file)
+
     else:
-        retrieve_and_process_video.apply_async(kwargs={'video_file': video_file, 'device_id': device_id},
-                                                           countdown=3)
+        if is_same_device:
+            # The system has some latency to save the video,
+            # so we add a little countdown so the video will more likely be available after x seconds.
+            process_video.apply_async(kwargs={'raw_video_file': raw_video_file})
+        else:
+            retrieve_and_process_video.apply_async(kwargs={'raw_video_file': raw_video_file, 'device_id': device_id})
 
     in_motion.save_camera_video(video_ref)
 

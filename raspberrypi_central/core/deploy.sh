@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# send docker-compose.prod.yml, docker-compose.yml, config folder, .env, Makefile, up.sh
+# bash deploy.sh pi@mx_rpi /home/pi/core
 
-echo "Deploy to" $@
+RSYNC="$1:$2"
 
-rsync --exclude=passwd -avt ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config $@
+echo "Deploy core to $RSYNC"
+
+rsync --exclude=passwd -avt ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config "$RSYNC"

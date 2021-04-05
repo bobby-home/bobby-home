@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script used to setup raspberry pi zero for dumb camera.
-
+sudo apt update && sudo apt upgrade -y
 sudo apt install -y git python3-pip
 
 # enable the pi camera. Warning: need reboot (done at the end).

@@ -33,7 +33,7 @@ class CameraVideo:
 
     @staticmethod
     def _remote_video_path(filename: str) -> str:
-        """Get the remove absolute path of filename.
+        """Get the remote absolute path of filename.
 
         Parameters
         ----------
@@ -60,7 +60,7 @@ class CameraVideo:
         return int(split_number)
 
     def camera_video(self, device_id: str, video_ref: str) -> None:
-        is_same_device = True if self._device_id == device_id else False
+        is_same_device = self._device_id == device_id
 
         raw_video_file = self._local_video_path(self._raw_video_file(video_ref))
         output_video_file = self._local_video_path(f'{video_ref}.mp4')

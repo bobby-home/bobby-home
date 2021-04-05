@@ -1,22 +1,14 @@
 import os
-from os import path
 import logging
-import re
-from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Tuple
 
-from celery import shared_task, group, signature
-
-from notification.consts import SeverityChoice
-from notification.tasks import send_video, create_and_send_notification
+from celery import shared_task
 from utils.date import is_time_newer_than
-from .business import in_motion
 from .business.alarm_change_status import AlarmScheduleChangeStatus
 from alarm.communication.camera_motion import camera_motion_factory
 from alarm.models import AlarmStatus, Ping
 import alarm.notifications as notifications
 from .communication.camera_video import camera_video_factory
-from .utils.video_processing import h264_to_mp4
 
 LOGGER = logging.getLogger(__name__)
 

@@ -63,11 +63,7 @@ def on_motion_video(message: MqttMessage) -> None:
     data = {
         'device_id': topic['device_id'],
         'video_ref': topic['event_ref'],
-        'is_same_device': False
     }
-
-    if data['device_id'] == DEVICE_ID:
-        data['is_same_device'] = True
 
     # The system has some latency to save the video,
     # so we add a little countdown so the video will more likely be available after x seconds.

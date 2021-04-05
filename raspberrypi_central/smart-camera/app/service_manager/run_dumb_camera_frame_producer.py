@@ -9,9 +9,9 @@ DEVICE_ID = os.environ['DEVICE_ID']
 
 class RunDumbCameraFrameProducer(RunCameraFrameProducer):
 
-    def run(self) -> None:
+    def run(self, device_id: str, status: bool, data=None) -> None:
         try:
-            super().run()
+            super().run(device_id, status, data)
         except BaseException as e:
             tags = {'device': DEVICE_ID}
             logger.error(traceback.format_exc(),

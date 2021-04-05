@@ -56,8 +56,6 @@ class PiVideoStream:
             LOGGER.info(f'start recording video_ref={video_ref}')
             self._record = True
 
-            # @todo: add self._before_stream to the new recording, at the beginning.
-
             # Write the x seconds "before" motion to disk as well
             self._ring_buffer.copy_to(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}-before.h264'), seconds=PiVideoStream.SECONDS_BUFFER)
             self._ring_buffer.clear()

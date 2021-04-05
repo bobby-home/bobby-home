@@ -33,7 +33,7 @@ try:
 
     camera_mqtt_client = get_mqtt(f"{device_id}-dumb-camera-manager")
 
-    camera_manager = ThreadManager(RunDumbCameraFrameProducer())
+    camera_manager = RunDumbCameraFrameProducer()
 
     MqttManageRunnable(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
 

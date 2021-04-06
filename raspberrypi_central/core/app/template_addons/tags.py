@@ -48,9 +48,9 @@ def assets(filename: str):
 
 
 @register.simple_tag()
-def svg_icon(name: str):
+def svg_icon(name: str, class_names: str = ''):
     return format_html(f"""
-    <svg class="icon icon-{name}">
+    <svg class="icon icon-{name} {class_names}">
       <use xlink:href="/public/svg/sprite.svg#{name}"></use>
     </svg>
     """)

@@ -11,7 +11,10 @@
             <div class="copy__footer flex items-end">
                 <div class="copy__cta">
                     <a class="btn-secondary" href="{% url 'alarm:status-edit' alarm.pk %}">{% trans 'Update' %}</a>
-                    <a class="btn-primary" href="{% url 'alarm:status-detail' alarm.pk %}">{% trans 'See more' %}</a>
+                    <a class="btn-secondary" href="{% url 'alarm:status-detail' alarm.pk %}">
+                        {% trans 'See more' %}
+                        {% svg_icon 'chevron-right' 'right' %}
+                    </a>
                 </div>
             </div>
         </div>

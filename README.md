@@ -12,6 +12,26 @@ On the market to day, we can find a lot of security cameras supposed to be intel
 
 This project is build from the ground up for simplicity (for developers and users) and also privacy first.
 
+## Features
+### Alarm
+
+| Feature        | Description                                                                                                                                                                                                                                                           | Status |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| Alarm status   | Allows the system to change the status of the alarm. If the status is running, then the system analyzes frames from the camera to detect either or not people(s) are detected. If the status is false, the camera does not send any frames thus does not analyze them. | beta   |
+| Alarm schedule | Allows the system to change the status of the alarm based on schedules. Pick days, the time to start and the time to stop running the alarm.                                                                                                                          | beta   |
+
+### Camera
+| Feature                         | Description                                                                         | Status                      |
+|---------------------------------|-------------------------------------------------------------------------------------|-----------------------------|
+| PiCamera                        | Support for PiCamera. :white_check_mark: video recording                            | beta                        |
+| Video recording                 | Record video from a picamera, able to split the record.                             | beta                        |
+| Camera object detection         | Analyzes frame to warn either or not people are detected. Uses the ROI if defined.  | beta                        |
+| Camera Region Of Interest (ROI) | Allows the system to ignore objects that are not in the ROI defined by the resident | :warning: **experimental**  |
+| Camera live stream              | Allows a resident to stream a camera (only one camera at the time).                 | :warning:  **experimental** |
+
+:warning: Currently, we only support the PiCamera and no other usb camera or something else.
+
+
 ## Status
 This software is currently under development, and we are discovering some bug's day to day.
 

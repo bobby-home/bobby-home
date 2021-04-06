@@ -6,4 +6,4 @@ RSYNC="$1:$2"
 
 echo "Deploy core to $RSYNC"
 
-rsync --exclude=passwd -avt ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config "$RSYNC"
+rsync --exclude=passwd -avt ../setup-ssh-keys.sh ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config "$RSYNC"

@@ -53,7 +53,7 @@ mqtt-services:
 
 .PHONY: build-docker
 build-docker:
-	$(dc) build
+	DOCKER_BUILDKIT=1 $(dc) build $(services)
 
 .PHONY: docker-build-release
 docker-build-release:

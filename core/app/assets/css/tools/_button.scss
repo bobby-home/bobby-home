@@ -41,11 +41,14 @@
     margin-left: var(--space);
   }
 
-  &:hover .icon {
-    //transform: translateX(10px);
+  &:hover .icon-tx.icon.left {
+    transform: translateX(calc(-1 * var(--space)));
+  }
+
+  &:hover .icon-tx.icon.right {
+    transform: translateX(var(--space));
   }
 }
-
 .btn-primary {
   @extend .btn;
   // otherwise it's override by focus form style.

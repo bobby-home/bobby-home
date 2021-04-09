@@ -9,11 +9,11 @@
                 {% endwith %}
             </div>
             <div class="copy__footer flex items-end">
-                <div class="copy__cta">
+                <div class="copy__cta flex flex-1 justify-between">
                     <a class="btn-secondary" href="{% url 'alarm:status-edit' alarm.pk %}">{% trans 'Update' %}</a>
                     <a class="btn-secondary" href="{% url 'alarm:status-detail' alarm.pk %}">
                         {% trans 'See more' %}
-                        {% svg_icon 'chevron-right' 'right' %}
+                        {% svg_icon 'chevron-right' 'right icon-tx' %}
                     </a>
                 </div>
             </div>

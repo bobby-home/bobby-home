@@ -101,6 +101,17 @@ services:
             - webapp_backend
             - backend_mqtt
 
+    # vim:
+    #   build:
+    #     context: ./tools/docker/dev
+    #   volumes:
+    #     - ~/.vimrc/:/root/.vimrc
+    #     - ./app/:/usr/src/app/
+    #   command: vim
+    #   networks:
+    #     - rabbitmq
+    #     - webapp_backend
+    #     - backend_mqtt
 networks:
     rabbitmq:
     webapp_backend:

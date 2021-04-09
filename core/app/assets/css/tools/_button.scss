@@ -28,17 +28,27 @@
   }
 
   .icon {
-    margin-left: 5px;
     height: 1rem;
     width: 1rem;
     transition: .15s transform cubic-bezier(0.215,0.61,0.355,1);
   }
 
-  &:hover .icon {
-    transform: translateX(10px);
+  .icon.left {
+      margin-right: var(--space);
+  }
+
+  .icon.right {
+    margin-left: var(--space);
+  }
+
+  &:hover .icon-tx.icon.left {
+    transform: translateX(calc(-1 * var(--space)));
+  }
+
+  &:hover .icon-tx.icon.right {
+    transform: translateX(var(--space));
   }
 }
-
 .btn-primary {
   @extend .btn;
   // otherwise it's override by focus form style.
@@ -49,11 +59,10 @@
 
 .btn-secondary {
   @extend .btn;
-  background-color: var(--color-light)!important;
+  background-color: var(--background-light)!important;
   color: var(--color);
   border-color: var(--border);
 }
-
 
 .btn--small {
   padding: space(1) space(2);

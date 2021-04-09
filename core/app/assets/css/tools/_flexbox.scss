@@ -3,6 +3,10 @@
   display: flex;
 }
 
+.wrap {
+  flex-wrap: wrap
+}
+
 // Use flex-1 instead of an explicit width on your columns to have them size automatically to fill the row.
 .flex-1 {
   flex: 1;

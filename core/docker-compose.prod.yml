@@ -11,6 +11,9 @@ x-env: &env
         - .env
         - ~/.device
 
+x-coreimage: &coreimage
+    image: bobbyhome/core:0.4.1
+
 services:
     rabbit:
         logging: *loki-logging
@@ -55,25 +58,25 @@ services:
         restart: unless-stopped
 
     rabbit_worker:
-        image: mxmaxime/core:0.3.2
+        <<: *coreimage
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
 
     celery_beat:
-        image: mxmaxime/core:0.3.2
+        <<: *coreimage
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
 
     telegram_bot:
-        image: mxmaxime/core:0.3.2
+        <<: *coreimage
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
 
     web:
-        image: mxmaxime/core:0.3.2
+        <<: *coreimage
         #        command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
         ports:
             - 8000:8000
@@ -82,7 +85,7 @@ services:
         restart: unless-stopped
 
     python_process_mqtt:
-        image: mxmaxime/core:0.3.2
+        <<: *coreimage
         logging: *loki-logging
         restart: unless-stopped
         <<: *env

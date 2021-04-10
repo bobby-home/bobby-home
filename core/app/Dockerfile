@@ -1,18 +1,42 @@
 FROM python:3.9.4-slim-buster as base
 
-FROM base as builder
-# upgrade python with root user
-RUN pip install --upgrade pip
+# do not use slim image to build
+# it misses a lot of necessary packages to build pip dependencies (gcc for example).
+FROM python:3.9.4 as builder
 
-# install dependencies
-COPY requirements.txt /tmp/
+# libpq-dev is used for psycopg2-binary, see: https://stackoverflow.com/a/12037133
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    build-essential libssl-dev libffi-dev \
+    python3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# install Rust to have a Rust compiler needed by the python cryptography package.
+# use the recommanded way to install Rust in order to ensure we have a recent version.
+# more information: https://cryptography.io/en/latest/installation.html
+# for arch amd64 not issue because pip does not build cryptography
+# but for linux/arm/v7 it does.
+RUN curl --proto '=https' --tlsv1.2 -sSf -y https://sh.rustup.rs | sh
+RUN pip install --upgrade pip
 
 # add pip dependencies folder to PATH
 ENV PATH="/root/.local/bin:${PATH}"
+# add rust to PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-# thanks to --user, pip will install everything in user directory ~/.local/bin/
-RUN pip install --user --requirement /tmp/requirements.txt
+# for pip cryptography (3.4.5) package.
+# was suggested in the build failure message.
+# see: https://github.com/docker/compose/issues/8105#issuecomment-775879420
+# sadly even with rust downloaded it does not find the Rust compiler,
+# and I do not get the time to invesgitate any further the issue.
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
 
+COPY requirements.txt /tmp/
+RUN --mount=type=cache,mode=0755,target=/root/.cache \
+  pip install --user --requirement /tmp/requirements.txt
+
+# final image
 FROM base
 ARG USER_ID
 ARG GROUP_ID
@@ -31,7 +55,6 @@ ENV PATH="/home/house/.local/bin:${PATH}"
 # netcat is not required for alpine images, but debian based yes.
 # otherwise "nc" command not found.
 # gettext is used by django to extract texts to translate: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#message-files
-# libpq-dev is used for psycopg2-binary, see: https://stackoverflow.com/a/12037133
 # only worker: gpac is used to convert PiCamera videos h264 to mp4
 # only worker: rsync is used to retrieve videos
 RUN apt-get update \
@@ -42,7 +65,7 @@ RUN apt-get update \
     netcat \
     rsync \
     && rm -rf /var/lib/apt/lists/*
-# set work directory
+
 WORKDIR /usr/src/app
 
 # don't generate *.pyc files
@@ -50,11 +73,6 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 # print to stdout without buffering
 ENV PYTHONUNBUFFERED 1
-
-# for pip cryptography (3.4.5) package.
-# was suggested in the build failure message.
-# see: https://github.com/docker/compose/issues/8105#issuecomment-775879420
-ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
 
 USER house
 

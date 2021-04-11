@@ -12,7 +12,7 @@ x-env: &env
         - ~/.device
 
 x-coreimage: &coreimage
-    image: bobbyhome/core:0.4.3
+    image: bobbyhome/core:0.4.4
 
 services:
     rabbit:

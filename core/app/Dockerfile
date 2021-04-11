@@ -54,6 +54,8 @@ ENV PATH="/home/house/.local/bin:${PATH}"
 
 # netcat is not required for alpine images, but debian based yes.
 # otherwise "nc" command not found.
+# libpq-dev is used by psycopg2
+# otherwise: "Error loading psycopg2 module: libpq.so.5: cannot open shared object file: No such file or directory"
 # gettext is used by django to extract texts to translate: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#message-files
 # only worker: gpac is used to convert PiCamera videos h264 to mp4
 # only worker: rsync is used to retrieve videos

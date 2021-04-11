@@ -2,6 +2,7 @@ import os, sys
 from typing import List
 
 import django
+from telegram.ext.callbackcontext import CallbackContext
 from alarm.business.alarm_status import alarm_statuses_changed
 from utils.telegram.restrict import restricted
 
@@ -14,6 +15,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from alarm.models import AlarmStatus
 from notification.models import UserTelegramBotChatId
+from django.db import transaction
 from django.utils.translation import gettext as _
 from telegram import Update
 
@@ -21,6 +23,8 @@ from telegram import Update
 class BotData(Enum):
     OFF = 'off'
     ON = 'on'
+    CHOOSE = 'choose' # the user choose which alarm to manage.
+
 
 class AlarmStatusRepository:
     def __init__(self):
@@ -71,17 +75,23 @@ class AlarmStatusBot:
 
         keyboard = [
             InlineKeyboardButton(_('Deactivate all'), callback_data=BotData.OFF.value),
-            InlineKeyboardButton(_('Activate all'), callback_data=BotData.ON.value)]
+            InlineKeyboardButton(_('Activate all'), callback_data=BotData.ON.value)
+        ]
+
+        if len(statuses) > 1:
+            keyboard.append(
+                InlineKeyboardButton(_('Choose alarm'), callback_data=BotData.CHOOSE.value)
+            )
 
         if len(texts) > 0:
             update.message.reply_text('\n'.join(texts), reply_markup=InlineKeyboardMarkup([keyboard]))
         else:
             update.message.reply_text('No alarm configured.')
 
-    def _set_alarm_status(self, update: Update, context):
+    def _set_alarm_status(self, update: Update, _c: CallbackContext):
         query = update.callback_query
         status = query.data
-
+        
         if status == BotData.ON.value:
             self.repository.set_status(True)
             text = _('All of your alarms are on.')
@@ -92,6 +102,40 @@ class AlarmStatusBot:
             text = _('All of your alarms are off.')
             return query.edit_message_text(text)
 
+        if status == BotData.CHOOSE.value:
+            statuses = self.repository.statuses
+            
+            keyboard = []
+            for status in statuses:
+                if status.running is True:
+                    data = status.pk
+                    text = _('Desactivate alarm %(device)s.') % {'device': status.device.location}
+                else:
+                    data = status.pk
+                    text = _('Activate alarm %(device)s.') % {'device': status.device.location}
+
+                keyboard.append(InlineKeyboardButton(text, callback_data=data))
+            
+            query.answer()
+
+            # one button per row, only one column.
+            reply_markup = InlineKeyboardMarkup([[button] for button in keyboard])
+            return query.edit_message_text(
+                    'What do you want to do?', reply_markup=reply_markup
+            )
+
+        if status.isdigit():
+            status_pk = int(status)
+            with transaction.atomic():
+                db_status = AlarmStatus.objects.select_for_update().get(pk=status_pk)
+                db_status.running =not db_status.running
+                db_status.save()
+
+                text = _('Alarm %(device)s turned %(status)s ') % {'device': db_status.device.location, 'status': db_status.running}
+                transaction.on_commit(lambda: query.edit_message_text(text))
+            
+            return
+        
         query.edit_message_text(_('Something went wrong.'))
 
 

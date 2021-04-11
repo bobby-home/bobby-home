@@ -101,17 +101,19 @@ services:
             - webapp_backend
             - backend_mqtt
 
-    # vim:
-    #   build:
-    #     context: ./tools/docker/dev
-    #   volumes:
-    #     - ~/.vimrc/:/root/.vimrc
-    #     - ./app/:/usr/src/app/
-    #   command: vim
-    #   networks:
-    #     - rabbitmq
-    #     - webapp_backend
-    #     - backend_mqtt
+    vim:
+      build:
+        context: ./tools/docker/dev
+      volumes:
+        - ~/.vim/:/root/.vim/
+        - ~/.config/coc/:/root/.config/coc
+        - ~/.vimrc/:/root/.vimrc
+        - ./app/:/usr/src/app/
+      command: bash -c "source /root/.nvm/nvm.sh && node -v && vim"
+      networks:
+        - rabbitmq
+        - webapp_backend
+        - backend_mqtt
 networks:
     rabbitmq:
     webapp_backend:
@@ -126,6 +128,8 @@ volumes:
     devices:
         driver: local
     mosquitto-data:
+        driver: local
+    vim-plugins:
         driver: local
     camera_videos:
         external: true

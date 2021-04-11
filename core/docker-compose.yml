@@ -105,11 +105,11 @@ services:
       build:
         context: ./tools/docker/dev
       volumes:
-        - ~/.vim/:/root/.vim/
-        - ~/.config/coc/:/root/.config/coc
-        - ~/.vimrc/:/root/.vimrc
+        - ~/.vim/:/home/house/.vim/
+        - ~/.config/coc/:/home/house/.config/coc
+        - ~/.vimrc/:/home/house/.vimrc
         - ./app/:/usr/src/app/
-      command: bash -c "source /root/.nvm/nvm.sh && node -v && vim"
+      command: bash -c "source /home/house/.nvm/nvm.sh && node -v && vim"
       networks:
         - rabbitmq
         - webapp_backend

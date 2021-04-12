@@ -106,6 +106,14 @@ class AlarmStatusBot:
 
         if status.isdigit():
             status_pk = int(status)
+            
+            """
+            Why not use an update query like "NOT running"?
+            Because I need to get the running information to display it to the user.
+            1) telegram bot sends buttons to deactivate/activate a given alarm.
+            2) the user click. But during the time lapsed the status could have been updated by other process.
+            Thanks to this, the user knows the real updated value, which is important.
+            """
             with transaction.atomic():
                 db_status = AlarmStatus.objects.select_for_update().get(pk=status_pk)
                 db_status.running =not db_status.running

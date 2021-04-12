@@ -18,6 +18,7 @@ from notification.models import UserTelegramBotChatId
 from django.db import transaction
 from django.utils.translation import gettext as _
 from telegram import Update
+from alarm.telegram import textes
 
 
 class BotData(Enum):
@@ -59,34 +60,26 @@ class AlarmStatusBot:
 
     @restricted
     def _alarm_status(self, update: Update, context):
-        # chat_id = update.message.chat.id
         statuses = self.repository.statuses
 
         texts = []
         for status in statuses:
-            running = status.running
-
-            if running is True:
-                text = _('Your alarm %(alarm)s is on.') % {'alarm': status.device.location}
-                texts.append(text)
-            elif running is False:
-                text = _('Your alarm %(alarm)s is off.') % {'alarm': status.device.location}
-                texts.append(text)
+            texts.append(textes.alarm_status(status))
 
         keyboard = [
-            InlineKeyboardButton(_('Deactivate all'), callback_data=BotData.OFF.value),
-            InlineKeyboardButton(_('Activate all'), callback_data=BotData.ON.value)
+            InlineKeyboardButton(textes.OFF_ALL, callback_data=BotData.OFF.value),
+            InlineKeyboardButton(textes.ON_ALL, callback_data=BotData.ON.value)
         ]
-
+        
         if len(statuses) > 1:
             keyboard.append(
-                InlineKeyboardButton(_('Choose alarm'), callback_data=BotData.CHOOSE.value)
+                InlineKeyboardButton(textes.CHOOSE, callback_data=BotData.CHOOSE.value)
             )
 
         if len(texts) > 0:
             update.message.reply_text('\n'.join(texts), reply_markup=InlineKeyboardMarkup([keyboard]))
         else:
-            update.message.reply_text('No alarm configured.')
+            update.message.reply_text(textes.NO_ALARM)
 
     def _set_alarm_status(self, update: Update, _c: CallbackContext):
         query = update.callback_query
@@ -94,12 +87,12 @@ class AlarmStatusBot:
         
         if status == BotData.ON.value:
             self.repository.set_status(True)
-            text = _('All of your alarms are on.')
+            text = textes.ALL_ON 
             return query.edit_message_text(text)
 
         if status == BotData.OFF.value:
             self.repository.set_status(False)
-            text = _('All of your alarms are off.')
+            text = textes.ALL_OFF
             return query.edit_message_text(text)
 
         if status == BotData.CHOOSE.value:
@@ -107,21 +100,14 @@ class AlarmStatusBot:
             
             keyboard = []
             for status in statuses:
-                if status.running is True:
-                    data = status.pk
-                    text = _('Desactivate alarm %(device)s.') % {'device': status.device.location}
-                else:
-                    data = status.pk
-                    text = _('Activate alarm %(device)s.') % {'device': status.device.location}
-
-                keyboard.append(InlineKeyboardButton(text, callback_data=data))
+                keyboard.append(InlineKeyboardButton(textes.change_alarm_status(status), callback_data=status.pk))
             
             query.answer()
 
             # one button per row, only one column.
             reply_markup = InlineKeyboardMarkup([[button] for button in keyboard])
             return query.edit_message_text(
-                    'What do you want to do?', reply_markup=reply_markup
+                    textes.CHOOSE_EXPLAIN, reply_markup=reply_markup
             )
 
         if status.isdigit():
@@ -130,13 +116,13 @@ class AlarmStatusBot:
                 db_status = AlarmStatus.objects.select_for_update().get(pk=status_pk)
                 db_status.running =not db_status.running
                 db_status.save()
-
-                text = _('Alarm %(device)s turned %(status)s ') % {'device': db_status.device.location, 'status': db_status.running}
+                
+                text = textes.alarm_status_changed(db_status)
                 transaction.on_commit(lambda: query.edit_message_text(text))
             
             return
         
-        query.edit_message_text(_('Something went wrong.'))
+        query.edit_message_text(textes.WRONG)
 
 
     def _register_commands(self, update: Updater):

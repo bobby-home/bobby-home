@@ -62,9 +62,7 @@ class AlarmStatusBot:
     def _alarm_status(self, update: Update, context):
         statuses = self.repository.statuses
 
-        texts = []
-        for status in statuses:
-            texts.append(textes.alarm_status(status))
+        texts = [textes.alarm_status(status) for status in statuses]
 
         keyboard = [
             InlineKeyboardButton(textes.OFF_ALL, callback_data=BotData.OFF.value),
@@ -77,7 +75,8 @@ class AlarmStatusBot:
             )
 
         if len(texts) > 0:
-            update.message.reply_text('\n'.join(texts), reply_markup=InlineKeyboardMarkup([keyboard]))
+            markup = InlineKeyboardMarkup.from_column(keyboard)
+            update.message.reply_text('\n'.join(texts), reply_markup=markup)
         else:
             update.message.reply_text(textes.NO_ALARM)
 
@@ -98,17 +97,12 @@ class AlarmStatusBot:
         if status == BotData.CHOOSE.value:
             statuses = self.repository.statuses
             
-            keyboard = []
-            for status in statuses:
-                keyboard.append(InlineKeyboardButton(textes.change_alarm_status(status), callback_data=status.pk))
-            
+            keyboard = [InlineKeyboardButton(textes.change_alarm_status(status), callback_data=status.pk) for status in statuses]
             query.answer()
 
             # one button per row, only one column.
-            reply_markup = InlineKeyboardMarkup([[button] for button in keyboard])
-            return query.edit_message_text(
-                    textes.CHOOSE_EXPLAIN, reply_markup=reply_markup
-            )
+            markup = InlineKeyboardMarkup.from_column(keyboard)
+            return query.edit_message_text(textes.CHOOSE_EXPLAIN, reply_markup=markup)
 
         if status.isdigit():
             status_pk = int(status)

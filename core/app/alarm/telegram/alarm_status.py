@@ -18,7 +18,7 @@ from notification.models import UserTelegramBotChatId
 from django.db import transaction
 from django.utils.translation import gettext as _
 from telegram import Update
-from alarm.telegram import textes
+from alarm.telegram import texts
 
 
 class BotData(Enum):
@@ -59,26 +59,26 @@ class AlarmStatusBot:
         self._register_commands(telegram_updater)
 
     @restricted
-    def _alarm_status(self, update: Update, context):
+    def _alarm_status(self, update: Update, _context: CallbackContext):
         statuses = self.repository.statuses
 
-        texts = [textes.alarm_status(status) for status in statuses]
+        if len(statuses) == 0:
+            return update.message.reply_text(texts.NO_ALARM)
+
+        texts_alarm_status = [texts.alarm_status(status) for status in statuses]
 
         keyboard = [
-            InlineKeyboardButton(textes.OFF_ALL, callback_data=BotData.OFF.value),
-            InlineKeyboardButton(textes.ON_ALL, callback_data=BotData.ON.value)
+            InlineKeyboardButton(texts.OFF_ALL, callback_data=BotData.OFF.value),
+            InlineKeyboardButton(texts.ON_ALL, callback_data=BotData.ON.value)
         ]
         
         if len(statuses) > 1:
             keyboard.append(
-                InlineKeyboardButton(textes.CHOOSE, callback_data=BotData.CHOOSE.value)
+                InlineKeyboardButton(texts.CHOOSE, callback_data=BotData.CHOOSE.value)
             )
 
-        if len(texts) > 0:
-            markup = InlineKeyboardMarkup.from_column(keyboard)
-            update.message.reply_text('\n'.join(texts), reply_markup=markup)
-        else:
-            update.message.reply_text(textes.NO_ALARM)
+        markup = InlineKeyboardMarkup.from_column(keyboard)
+        update.message.reply_text('\n'.join(texts_alarm_status), reply_markup=markup)
 
     def _set_alarm_status(self, update: Update, _c: CallbackContext):
         query = update.callback_query
@@ -86,23 +86,23 @@ class AlarmStatusBot:
         
         if status == BotData.ON.value:
             self.repository.set_status(True)
-            text = textes.ALL_ON 
+            text = texts.ALL_ON 
             return query.edit_message_text(text)
 
         if status == BotData.OFF.value:
             self.repository.set_status(False)
-            text = textes.ALL_OFF
+            text = texts.ALL_OFF
             return query.edit_message_text(text)
 
         if status == BotData.CHOOSE.value:
             statuses = self.repository.statuses
             
-            keyboard = [InlineKeyboardButton(textes.change_alarm_status(status), callback_data=status.pk) for status in statuses]
+            keyboard = [InlineKeyboardButton(texts.change_alarm_status(status), callback_data=status.pk) for status in statuses]
             query.answer()
 
             # one button per row, only one column.
             markup = InlineKeyboardMarkup.from_column(keyboard)
-            return query.edit_message_text(textes.CHOOSE_EXPLAIN, reply_markup=markup)
+            return query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup)
 
         if status.isdigit():
             status_pk = int(status)
@@ -111,15 +111,15 @@ class AlarmStatusBot:
                 db_status.running =not db_status.running
                 db_status.save()
                 
-                text = textes.alarm_status_changed(db_status)
+                text = texts.alarm_status_changed(db_status)
                 transaction.on_commit(lambda: query.edit_message_text(text))
             
             return
         
-        query.edit_message_text(textes.WRONG)
+        query.edit_message_text(texts.WRONG)
 
 
-    def _register_commands(self, update: Updater):
+    def _register_commands(self, update: Updater) -> None:
         update.dispatcher.add_handler(CommandHandler('alarm', self._alarm_status))
         update.dispatcher.add_handler(CallbackQueryHandler(self._set_alarm_status))
 

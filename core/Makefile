@@ -14,6 +14,10 @@ db_image=database
 manage := $(dr) $(web_image) python manage.py
 manage-dev := $(dr-dev) $(web_image) python manage.py
 
+.PHONY: shell
+shell:
+	$(manage-dev) shell_plus --print-sql 
+
 .PHONY: create-folders
 create-folders:
 	mkdir -p mosquitto-data && sudo chown -R 1883:1883 mosquitto-data

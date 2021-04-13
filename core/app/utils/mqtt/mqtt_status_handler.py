@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import List, Optional
 
 from django.db.models import Model
 import alarm.business.alarm as alarm
@@ -8,6 +8,7 @@ from mqtt_services.models import MqttServicesConnectionStatusLogs
 import mqtt_services.tasks as mqtt_tasks
 from utils.mqtt import MQTT, MqttMessage
 from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean
+from utils.mqtt.mqtt_service import ServiceDescriptor
 
 
 def split_camera_topic(topic: str):
@@ -27,6 +28,8 @@ def split_camera_topic(topic: str):
 
 
 class OnConnectedHandler(ABC):
+    """Abstract class to implement and perform actions when mqtt service connect/disconnect.
+    """
     def __init__(self, client: MQTT):
         self._client = client
 
@@ -106,3 +109,9 @@ def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -
     on_status = OnStatus(handler_instance)
 
     return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
+
+
+def on_connected_services(mqtt: MQTT, services: List[ServiceDescriptor]) -> None:
+    subscriptions = [bind_on_connected(service.name, service.on_connect) for service in services if service.on_connect is not None]
+    mqtt.add_subscribe(subscriptions) 
+

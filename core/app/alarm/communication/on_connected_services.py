@@ -1,7 +1,5 @@
 import alarm.communication.out_alarm as out_alarm
 import camera.business.camera_motion as camera_motion
-from alarm.models import AlarmStatus
-from utils.mqtt import MQTT
 from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog
 
 

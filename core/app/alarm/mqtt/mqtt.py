@@ -8,8 +8,8 @@ import alarm.tasks as tasks
 from alarm.tasks import camera_motion_detected
 
 from utils.mqtt.mqtt_status_handler import bind_on_connected
-from .business.alarm import register_ping
-from .communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler, \
+from alarm.business.alarm import register_ping
+from alarm.communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler, \
     OnConnectedCamera
 import os
 import hello_django.settings as settings
@@ -133,11 +133,6 @@ def on_ping(message: MqttMessage) -> None:
 
 def register(mqtt: MQTT):
     def inner(mqtt: MQTT):
-        object_detection = bind_on_connected('object_detection', OnConnectedObjectDetectionHandler(mqtt))
-        dumb_camera = bind_on_connected('dumb_camera', OnConnectedObjectDetectionHandler(mqtt))
-        speaker = bind_on_connected('speaker', OnConnectedSpeakerHandler(mqtt))
-        camera = bind_on_connected('camera', OnConnectedCamera(mqtt))
-
         mqtt.add_subscribe([
             MqttTopicFilterSubscription(
                 topic='motion/#',
@@ -156,10 +151,6 @@ def register(mqtt: MQTT):
                     MqttTopicSubscription('ping/+/+', on_ping)
                 ]
             ),
-            camera,
-            speaker,
-            object_detection,
-            dumb_camera,
         ])
 
     mqtt.on_connected_callbacks.append(inner)

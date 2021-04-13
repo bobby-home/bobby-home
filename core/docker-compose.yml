@@ -96,6 +96,9 @@ services:
 
     telegram_bot:
         command: python standalone/telegram_bot/bot.py
+        depends_on:
+            - database
+            - rabbit_worker
         networks:
             - rabbitmq
             - webapp_backend

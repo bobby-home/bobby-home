@@ -59,7 +59,7 @@ class MQTT:
     def _wrap_subscription_callback(subscription: MqttTopicSubscription):
         return partial(MQTT._mqtt_on_message_wrapper, subscription)
 
-    def add_subscribe(self, subscriptions: List[Subscription]):
+    def add_subscribe(self, subscriptions: List[Subscription]) -> None:
 
         def _mqtt_add_callback(sub: MqttTopicSubscription):
             subscription_callback = self._wrap_subscription_callback(sub)
@@ -119,7 +119,7 @@ class MQTT:
             timestamp,
         ))
 
-    def publish(self, topic, message, qos=1, retain=False):
+    def publish(self, topic, message, qos=1, retain=False) -> None:
         # otherwise it will raise Exception and crash.
         if qos is None:
             qos = 1

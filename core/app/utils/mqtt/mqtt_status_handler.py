@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import re
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from django.db.models import Model
 import alarm.business.alarm as alarm
@@ -98,8 +98,6 @@ class OnStatus:
         service_name = topic.service
         device_id = topic.device_id
 
-        print('dsflmgkj', service_name, self._handler)
-
         if not Device.objects.filter(device_id=device_id).exists():
             return None
 
@@ -115,7 +113,7 @@ def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -
     return MqttTopicSubscriptionBoolean(f'connected/{service_name}/+', on_status.on_connected)
 
 
-def on_connected_services(mqtt: MQTT, services: List[ServiceDescriptor]) -> None:
+def on_connected_services(mqtt: MQTT, services: Sequence[ServiceDescriptor]) -> None:
     subscriptions = [bind_on_connected(service.name, service.on_connect(mqtt)) for service in services if service.on_connect is not None]
     mqtt.add_subscribe(subscriptions) 
 

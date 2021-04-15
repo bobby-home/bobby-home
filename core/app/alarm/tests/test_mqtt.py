@@ -1,13 +1,36 @@
+from typing import Sequence
 import uuid
+import unittest
 from unittest.mock import patch
-
 from django.test import TestCase
 from django.utils import timezone
 
-from alarm.mqtt import on_motion_picture
+from alarm.mqtt.mqtt import CameraMotionPictureTopic, CameraMotionVideoTopic, CameraTopic, on_motion_picture, split_camera_topic, topic_regex
 from devices.factories import DeviceFactory
 from utils.mqtt import MqttMessage
 
+
+class ExtractTopicData(unittest.TestCase):
+    def setUp(self) -> None:
+        return super().setUp()
+
+    def test_motion_camera(self):
+        topic = 'motion/camera/something/ref'
+        print(split_camera_topic(topic))
+        data = topic_regex(topic, CameraMotionVideoTopic)
+        
+        print('data:', data)
+        
+        
+    
+    def test_motion_picture(self):
+        topic = 'motion/picture/1/2/3'
+        print(split_camera_topic(topic, True))
+    
+    def test_motion_video(self):
+        topic = 'motion/video/1/2'
+
+        print(split_camera_topic(topic, True))
 
 class OnMotionPictureTestCase(TestCase):
     def setUp(self, ) -> None:

@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+import re
+import os
+from typing import Callable, List, Optional, Sequence, Type, TypeVar, Generic
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
@@ -6,16 +9,48 @@ from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscript
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.tasks import camera_motion_detected
-
-from utils.mqtt.mqtt_status_handler import bind_on_connected
 from alarm.business.alarm import register_ping
-from alarm.communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler, \
-    OnConnectedCamera
-import os
 import hello_django.settings as settings
 
 
 DEVICE_ID = os.environ['DEVICE_ID']
+
+CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
+
+
+@dataclass
+class CameraTopic:
+    type: str
+    service: str
+    device_id: str
+
+@dataclass
+class CameraMotionPictureTopic(CameraTopic):
+    event_ref: str
+    status: bool
+    _topic_matcher = CAMERA_TOPIC_MATCHER + r"/(?P<event_ref>[\w]+)/(?p<status>[\w]+)" 
+
+@dataclass
+class CameraMotionVideoTopic(CameraTopic):
+    event_ref: str
+    _topic_matcher = CAMERA_TOPIC_MATCHER + r"/(?P<event_ref>[\w]+)"
+
+@dataclass
+class CameraMotionTopic(CameraTopic):
+    _topic_matcher = CAMERA_TOPIC_MATCHER
+
+T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic])
+
+def topic_regex(topic: str, t: T) -> Optional[T]:
+    match = re.match(t._topic_matcher, topic) 
+
+    if match:
+        groups = match.groupdict()
+        return t(**groups) # type: ignore
+    else:
+        print('no match')
+
+#def extract_camera_topic(topic: str)
 
 def split_camera_topic(topic: str, is_event_ref = False):
     data = topic.split('/')

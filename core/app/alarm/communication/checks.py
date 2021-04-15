@@ -13,13 +13,13 @@ def verify_services_status(device_id: str, status: bool, is_dumb: bool) -> None:
         'since_time': timezone.now()
     }
 
-    if is_dumb is True and status is False:
+    #if is_dumb is True and status is False:
         # @todo bugs?
         # weird case, the service object_detection does not publish off
         # for dumb cameras.
-        pass
-    else:
-        tasks.verify_service_status.apply_async(kwargs=kwargs, countdown=15)
+        #pass
+    #else:
+    tasks.verify_service_status.apply_async(kwargs=kwargs, countdown=15)
 
     kwargs_dumb = {
         'device_id': device_id,

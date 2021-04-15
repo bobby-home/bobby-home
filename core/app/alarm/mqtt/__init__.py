@@ -3,7 +3,7 @@ from utils.mqtt.mqtt_service import ServiceDescriptor
 from alarm.mqtt.mqtt import register
 
 
-SERVICES = [
+SERVICES = (
     ServiceDescriptor(
         name='object_detection',
         on_connect=OnConnectedObjectDetectionHandler
@@ -16,5 +16,5 @@ SERVICES = [
         name='speaker',
         on_connect=OnConnectedSpeakerHandler
     ),
-]
+)
 

@@ -35,6 +35,7 @@ class CameraMotionVideoTopic(CameraTopic):
     event_ref: str
     _topic_matcher = CAMERA_TOPIC_MATCHER + r"/(?P<event_ref>[\w]+)"
 
+
 @dataclass
 class CameraMotionTopic(CameraTopic):
     _topic_matcher = CAMERA_TOPIC_MATCHER

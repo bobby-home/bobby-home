@@ -94,10 +94,11 @@ class OnStatus:
         self._handler = handler
 
     def on_connected(self, message: MqttMessage) -> None:
-        print(message.topic)
         topic = service_status_topic(message.topic)
         service_name = topic.service
         device_id = topic.device_id
+
+        print('dsflmgkj', service_name, self._handler)
 
         if not Device.objects.filter(device_id=device_id).exists():
             return None
@@ -115,6 +116,6 @@ def bind_on_connected(service_name: str, handler_instance: OnConnectedHandler) -
 
 
 def on_connected_services(mqtt: MQTT, services: List[ServiceDescriptor]) -> None:
-    subscriptions = [bind_on_connected(service.name, service.on_connect) for service in services if service.on_connect is not None]
+    subscriptions = [bind_on_connected(service.name, service.on_connect(mqtt)) for service in services if service.on_connect is not None]
     mqtt.add_subscribe(subscriptions) 
 

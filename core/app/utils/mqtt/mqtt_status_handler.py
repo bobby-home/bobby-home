@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+import re
 from typing import List, Optional
 
 from django.db.models import Model
@@ -11,20 +13,20 @@ from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean
 from utils.mqtt.mqtt_service import ServiceDescriptor
 
 
-def split_camera_topic(topic: str):
-    """
-    Function to extract data from mqtt topic.
-    """
-    data = topic.split('/')
+SERVICE_STATUS_TOPIC_MATCHER = r"^[\w]+/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
 
-    try:
-        return {
-            'type': data[0],
-            'service': data[1],
-            'device_id': data[2]
-        }
-    except IndexError as err:
-        raise ValueError(f'cannot extract data from {topic}. Should be like `connected/[service]/[device_id]`.') from err
+@dataclass
+class ServiceStatusTopic:
+    service: str
+    device_id: str
+
+
+def service_status_topic(topic: str) -> ServiceStatusTopic:
+   match = re.match(SERVICE_STATUS_TOPIC_MATCHER, topic)
+   if match:
+       return ServiceStatusTopic(**match.groupdict())
+
+   raise ValueError(f'topic {topic} can not be decoded for service status. Wrong format, should be like `connected/[service]/[device_id]`.')
 
 
 class OnConnectedHandler(ABC):
@@ -61,7 +63,7 @@ class OnConnectedHandlerLog(OnConnectedHandler):
         self.status_model = status_model
         super().__init__(client)
 
-    def _is_status_exist(self, service_name: str, device_id: str, status: bool):
+    def _is_status_exist(self, service_name: str, device_id: str, status: bool) -> None:
         if self.status_model:
             if not alarm.is_status_exists(self.status_model, device_id, status):
                 kwargs = {
@@ -92,9 +94,10 @@ class OnStatus:
         self._handler = handler
 
     def on_connected(self, message: MqttMessage) -> None:
-        topic = split_camera_topic(message.topic)
-        device_id = topic['device_id']
-        service_name = topic['service']
+        print(message.topic)
+        topic = service_status_topic(message.topic)
+        service_name = topic.service
+        device_id = topic.device_id
 
         if not Device.objects.filter(device_id=device_id).exists():
             return None

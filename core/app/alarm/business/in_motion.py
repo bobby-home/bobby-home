@@ -1,3 +1,4 @@
+from alarm.mqtt.mqtt_data import InMotionVideoData
 from typing import List, Dict
 
 from django.db import IntegrityError
@@ -46,7 +47,7 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
     return device, motion
 
 
-def save_camera_video(video_ref: str) -> CameraMotionVideo:
+def save_camera_video(data: InMotionVideoData) -> CameraMotionVideo:
     """Save camera video reference to the database. It add/extracts useful information.
 
     Parameters
@@ -59,20 +60,17 @@ def save_camera_video(video_ref: str) -> CameraMotionVideo:
     -------
     CameraMotionVideo
     """
-    split = video_ref.split('-')
-    record_number = int(split[-1])
-    event_ref = '-'.join(split[:-1])
 
-    obj, created = CameraMotionVideo.objects.get_or_create(event_ref=event_ref)
+    obj, created = CameraMotionVideo.objects.get_or_create(event_ref=data.event_ref)
 
-    if record_number <= obj.number_records:
+    if data.video_split_number <= obj.number_records:
         """
         That means that we received a record number that is already taken in account.
         - "Hey, I got the record nb. 3", "Ok, but I already got record nb 4 so it's fine".
         """
         return obj
 
-    obj.number_records = record_number
+    obj.number_records = data.video_split_number 
     obj.save()
 
     return obj

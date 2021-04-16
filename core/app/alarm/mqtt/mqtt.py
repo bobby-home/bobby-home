@@ -1,7 +1,9 @@
-from dataclasses import dataclass
+import dataclasses
+from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
+from dataclasses import dataclass, field
 import re
 import os
-from typing import Callable, List, Optional, Sequence, Type, TypeVar, Generic
+from typing import Optional, Type, TypeVar 
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
@@ -17,6 +19,9 @@ DEVICE_ID = os.environ['DEVICE_ID']
 
 CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
 
+PICTURE_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12})"
+VIDEO_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12})-(?P<video_split_number>[0-9]+)"
+
 
 @dataclass
 class CameraTopic:
@@ -25,16 +30,42 @@ class CameraTopic:
     device_id: str
 
 @dataclass
+class CameraMotionPicturePayload:
+    image: bytearray
+
+@dataclass
 class CameraMotionPictureTopic(CameraTopic):
     event_ref: str
-    status: bool
-    _topic_matcher = CAMERA_TOPIC_MATCHER + r"/(?P<event_ref>[\w]+)/(?p<status>[\w]+)" 
+    status: str
+    bool_status: bool = field(init=False)
+    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[\w]+)" 
+
+    def __post_init__(self):
+        self.bool_status = self.status == '1'
+
+@dataclass
+class CameraMotionVideoPayload:
+    pass
+
 
 @dataclass
 class CameraMotionVideoTopic(CameraTopic):
+    video_ref: str = field(init=False)
     event_ref: str
-    _topic_matcher = CAMERA_TOPIC_MATCHER + r"/(?P<event_ref>[\w]+)"
+    video_split_number: int
+    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{VIDEO_EVENT_REF_GROUP}"
 
+    def __post_init__(self):
+        # data is extracted from regex.groupdict and it does not give int type but str.
+        self.video_split_number = int(self.video_split_number)
+
+        self.video_ref = f'{self.event_ref}-{self.video_split_number}'
+
+@dataclass
+class CameraMotionPayload:
+    event_ref: str
+    status: bool
+    seen_in: dict = field(default_factory=dict)
 
 @dataclass
 class CameraMotionTopic(CameraTopic):
@@ -48,84 +79,59 @@ def topic_regex(topic: str, t: T) -> Optional[T]:
     if match:
         groups = match.groupdict()
         return t(**groups) # type: ignore
-    else:
-        print('no match')
-
-#def extract_camera_topic(topic: str)
-
-def split_camera_topic(topic: str, is_event_ref = False):
-    data = topic.split('/')
-
-    r_data = {
-        'type': data[0],
-        'service': data[1],
-        'device_id': data[2]
-    }
-
-    if is_event_ref:
-        r_data['event_ref'] = data[3]
-
-        if len(data) == 5:
-            r_data['status'] = data[4]
-
-    return r_data
+    
+    raise ValueError(f'topic {topic} wrong format. {t._topic_matcher}')
 
 
 def on_motion_camera(message: MqttMessage):
-    topic = split_camera_topic(message.topic)
+    topic = topic_regex(message.topic, CameraMotionTopic)
     payload = message.payload
 
-    LOGGER.info(f'on_motion_camera payload={payload}')
+    LOGGER.info(f'on_motion_camera payload={payload} topic={topic}')
 
-    data = {
-        'device_id': topic['device_id'],
-        'event_ref': payload['event_ref'],
-        'status': payload['status'],
-        'seen_in': {},
-    }
+    try:
+        data_payload = CameraMotionPayload(**payload)
+    except Exception as e:
+        raise ValueError('zzzzzzzzzzzz')
+        return
+    else:
+        in_data = InMotionCameraData(
+            device_id=topic.device_id,
+            event_ref=data_payload.event_ref,
+            status=data_payload.status,
+            seen_in=data_payload.seen_in,
+        )
 
-    if data['status'] is True:
-        data['seen_in'] = payload['seen_in']
-
-    if data['event_ref'] != '0':
-        # 0 = initialization
-        camera_motion_detected.apply_async(kwargs=data)
+        if in_data.event_ref != '0':
+            # 0 = initialization
+            tasks.camera_motion_detected.apply_async(args=[dataclasses.asdict(in_data)])
 
 
 def on_motion_video(message: MqttMessage) -> None:
-    topic = split_camera_topic(message.topic, True)
+    topic = topic_regex(message.topic, CameraMotionVideoTopic)
     LOGGER.info(f'on_motion_video: topic={topic} {message.topic}')
 
-    data = {
-        'device_id': topic['device_id'],
-        'video_ref': topic['event_ref'],
-    }
+    in_data = InMotionVideoData(
+        device_id=topic.device_id,
+        event_ref=topic.event_ref,
+        video_ref=topic.video_ref,
+        video_split_number=topic.video_split_number
+    )
 
     # The system has some latency to save the video,
     # so we add a little countdown so the video will more likely be available after x seconds.
-    tasks.camera_motion_video.apply_async(kwargs=data, countdown=3)
+    tasks.camera_motion_video.apply_async(args=[dataclasses.asdict(in_data)], countdown=3)
+
 
 def on_motion_picture(message: MqttMessage):
-    topic = split_camera_topic(message.topic, True)
+    topic = topic_regex(message.topic, CameraMotionPictureTopic)
+    LOGGER.info(f'on_motion_picture topic={topic}')
 
-    event_ref = topic['event_ref']
-    status = topic['status']
-
-    bool_status = None
-    if status == '0':
-        bool_status = False
-    elif status == '1':
-        bool_status = True
-    else:
-        raise ValueError(f'Status {status} should be "0" or "1".')
-
-    LOGGER.info(f'on_motion_picture even_ref={event_ref}')
-
-    if event_ref == "0":
+    if topic.event_ref == "0":
         # Initialization: no motion
         return
 
-    file_name = f'{event_ref}.jpg'
+    file_name = f'{topic.event_ref}.jpg'
 
     # Remember: image is bytearray
     image = message.payload
@@ -144,13 +150,16 @@ def on_motion_picture(message: MqttMessage):
         f.write(image)
 
     data = {
-        'device_id': topic['device_id'],
+        'device_id': topic.device_id,
         'picture_path': picture_path,
-        'event_ref': event_ref,
-        'status': bool_status,
+        'event_ref': topic.event_ref,
+        'status': topic.bool_status,
     }
 
-    tasks.camera_motion_picture.apply_async(kwargs=data)
+    in_data = InMotionPictureData(**data)
+
+    tasks.camera_motion_picture.apply_async(args=[dataclasses.asdict(in_data)])
+
 
 @dataclass
 class PingData:

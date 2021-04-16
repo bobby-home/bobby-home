@@ -1,3 +1,4 @@
+from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData
 import logging
 import os
 from django.db import transaction
@@ -24,8 +25,8 @@ class CameraMotion:
         self.play_sound = play_sound
         self.notify_alarm_status_factory = notify_alarm_status_factory
 
-    def camera_motion_picture(self, device_id: str, picture_path: str, event_ref: str, status: bool):
-        device = Device.objects.get(device_id=device_id)
+    def camera_motion_picture(self, in_data: InMotionPictureData) -> None:
+        device = Device.objects.get(device_id=in_data.device_id)
 
         """
         Warning: hacky thing...
@@ -34,24 +35,24 @@ class CameraMotion:
         - But we cannot set picture.path directly, Django blocks this action. We only can change the picture.name which is the filename with extension.
             - To retrieve this, we use the os.path.basename which gives us what django accepts: "1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg".
         """
-        if status is True:
-            picture = CameraMotionDetectedPicture(device=device, event_ref=event_ref)
-            picture.motion_started_picture.name = os.path.basename(picture_path)
+        if in_data.status is True:
+            picture = CameraMotionDetectedPicture(device=device, event_ref=in_data.event_ref)
+            picture.motion_started_picture.name = os.path.basename(in_data.picture_path)
             picture.save()
         else:
             with transaction.atomic():
-                picture = CameraMotionDetectedPicture.objects.select_for_update().get(device=device, event_ref=event_ref)
-                picture.motion_ended_picture.name = os.path.basename(picture_path)
+                picture = CameraMotionDetectedPicture.objects.select_for_update().get(device=device, event_ref=in_data.event_ref)
+                picture.motion_ended_picture.name = os.path.basename(in_data.picture_path)
                 picture.save()
 
         kwargs = {
-            'picture_path': picture_path
+            'picture_path': in_data.picture_path
         }
 
         self.send_picture.apply_async(kwargs=kwargs)
 
-    def camera_motion_detected(self, device_id: str, seen_in: dict, event_ref: str, status: bool):
-        device, motion = self.save_motion(device_id, seen_in, event_ref, status)
+    def camera_motion_detected(self, data: InMotionCameraData) -> None:
+        device, motion = self.save_motion(data.device_id, data.seen_in, data.event_ref, data.status)
 
         if device is None:
             # the motion is already save in db, and so the notification should have been already send.
@@ -59,7 +60,7 @@ class CameraMotion:
 
         location = device.location
 
-        if status is True:
+        if data.status is True:
             alarm_notifications.object_detected(device, location)
         else:
             alarm_notifications.object_no_more_detected(device, location)
@@ -68,7 +69,7 @@ class CameraMotion:
                 # we need to turn off the service
                 self.notify_alarm_status_factory().publish_status_changed(device.pk, False)
 
-        self.play_sound(device_id, status)
+        self.play_sound(data.device_id, data.status)
 
 def camera_motion_factory():
     return CameraMotion(in_motion.save_motion, notification_tasks.create_and_send_notification, notification_tasks.send_picture, play_sound, notify_alarm_status_factory)

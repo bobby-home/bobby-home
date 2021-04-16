@@ -1,3 +1,4 @@
+from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 import os
 import logging
 from typing import Tuple
@@ -13,16 +14,20 @@ from .communication.camera_video import camera_video_factory
 LOGGER = logging.getLogger(__name__)
 
 @shared_task(name="security.camera_motion_picture")
-def camera_motion_picture(device_id: str, picture_path: str, event_ref: str, status: bool):
-    camera_motion_factory().camera_motion_picture(device_id, picture_path, event_ref, status)
+def camera_motion_picture(data: dict) -> None:
+    in_data = InMotionPictureData(**data)
+    camera_motion_factory().camera_motion_picture(in_data)
 
 @shared_task(name="security.camera_motion_detected")
-def camera_motion_detected(device_id: str, seen_in: dict, event_ref: str, status: bool):
-    camera_motion_factory().camera_motion_detected(device_id, seen_in, event_ref, status)
+def camera_motion_detected(data: dict) -> None:
+    in_data = InMotionCameraData(**data)
+    camera_motion_factory().camera_motion_detected(in_data)
 
 @shared_task(name='security.camera_motion_video')
-def camera_motion_video(device_id: str, video_ref: str) -> None:
-    camera_video_factory().camera_video(device_id, video_ref)
+def camera_motion_video(data: dict) -> None:
+    in_data = InMotionVideoData(**data)
+    camera_video_factory().camera_video(in_data)
+
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):

@@ -6,27 +6,29 @@ from typing import Tuple
 from celery import shared_task
 from utils.date import is_time_newer_than
 from .business.alarm_change_status import AlarmScheduleChangeStatus
-from alarm.communication.camera_motion import camera_motion_factory
 from alarm.models import AlarmStatus, Ping
 import alarm.notifications as notifications
-from .communication.camera_video import camera_video_factory
+import alarm.communication.camera_picture as camera_picture
+import alarm.communication.camera_motion as camera_motion
+import alarm.communication.camera_video as camera_video
+
 
 LOGGER = logging.getLogger(__name__)
 
 @shared_task(name="security.camera_motion_picture")
 def camera_motion_picture(data: dict) -> None:
     in_data = InMotionPictureData(**data)
-    camera_motion_factory().camera_motion_picture(in_data)
+    camera_picture.camera_motion_picture(in_data)
 
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(data: dict) -> None:
     in_data = InMotionCameraData(**data)
-    camera_motion_factory().camera_motion_detected(in_data)
+    camera_motion.camera_motion_detected(in_data)
 
 @shared_task(name='security.camera_motion_video')
 def camera_motion_video(data: dict) -> None:
     in_data = InMotionVideoData(**data)
-    camera_video_factory().camera_video(in_data)
+    camera_video.camera_video_factory().camera_video(in_data)
 
 
 @shared_task(name="alarm.set_alarm_off")

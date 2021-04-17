@@ -3,6 +3,8 @@ from typing import List, Dict
 
 from django.db import IntegrityError
 from django.utils import timezone
+from django.db.models import F
+from django.db.models.functions import Greatest
 
 from alarm.communication.alarm_consts import ROITypes
 from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected, CameraMotionVideo
@@ -47,7 +49,7 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
     return device, motion
 
 
-def save_camera_video(data: InMotionVideoData) -> CameraMotionVideo:
+def save_camera_video(data: InMotionVideoData) -> None:
     """Save camera video reference to the database. It add/extracts useful information.
 
     Parameters
@@ -60,17 +62,15 @@ def save_camera_video(data: InMotionVideoData) -> CameraMotionVideo:
     -------
     CameraMotionVideo
     """
-
-    obj, created = CameraMotionVideo.objects.get_or_create(event_ref=data.event_ref)
-
-    if data.video_split_number <= obj.number_records:
+    device = device_models.Device.objects.get(device_id=data.device_id)
+    
+    try:
+        CameraMotionVideo.objects.create(device=device, event_ref=data.event_ref)
+    except IntegrityError:
         """
         That means that we received a record number that is already taken in account.
         - "Hey, I got the record nb. 3", "Ok, but I already got record nb 4 so it's fine".
         """
-        return obj
+        CameraMotionVideo.objects.filter(device=device, event_ref=data.event_ref)\
+            .update(number_records=Greatest('number_records', data.video_split_number))
 
-    obj.number_records = data.video_split_number 
-    obj.save()
-
-    return obj

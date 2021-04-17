@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 from django.test import TestCase
-from alarm.communication.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedCamera
+from alarm.mqtt.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedCamera
 from alarm.factories import AlarmStatusFactory
 from devices.factories import DeviceFactory
 

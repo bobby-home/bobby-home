@@ -3,7 +3,6 @@ from typing import List, Dict
 
 from django.db import IntegrityError
 from django.utils import timezone
-from django.db.models import F
 from django.db.models.functions import Greatest
 
 from alarm.communication.alarm_consts import ROITypes

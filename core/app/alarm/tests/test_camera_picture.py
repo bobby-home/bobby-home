@@ -2,7 +2,7 @@ import uuid
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.test.testcases import TransactionTestCase
-from alarm.mqtt.mqtt_data import InMotionPictureData
+from alarm.use_cases.data import InMotionPictureData
 from unittest.mock import Mock, patch
 from alarm.factories import AlarmStatusFactory
 from camera.models import CameraMotionDetectedPicture

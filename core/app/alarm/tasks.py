@@ -1,4 +1,4 @@
-from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
+from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 import os
 import logging
 from typing import Tuple

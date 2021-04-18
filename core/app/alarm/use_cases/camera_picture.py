@@ -2,7 +2,7 @@ import os
 from django.db import transaction
 from camera.models import CameraMotionDetectedPicture
 from devices.models import Device
-from alarm.mqtt.mqtt_data import InMotionPictureData
+from alarm.use_cases.data import InMotionPictureData
 import notification.tasks as notification_tasks
 
 

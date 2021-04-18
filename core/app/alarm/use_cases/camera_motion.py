@@ -1,5 +1,5 @@
 import logging
-from alarm.mqtt.mqtt_data import InMotionCameraData 
+from alarm.use_cases.data import InMotionCameraData 
 import alarm.business.in_motion as in_motion
 import alarm.use_cases.out_alarm as out_alarm
 from alarm.use_cases.play_sound import play_sound

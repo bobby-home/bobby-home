@@ -1,4 +1,4 @@
-from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
+from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 import dataclasses
 import uuid
 from unittest.mock import patch

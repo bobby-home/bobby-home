@@ -1,4 +1,4 @@
-from alarm.mqtt.mqtt_data import InMotionVideoData
+from alarm.use_cases.data import InMotionVideoData
 from typing import List, Dict
 
 from django.db import IntegrityError

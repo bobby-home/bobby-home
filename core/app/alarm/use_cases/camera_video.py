@@ -1,4 +1,4 @@
-from alarm.mqtt.mqtt_data import InMotionVideoData
+from alarm.use_cases.data import InMotionVideoData
 import re
 import os
 from os import path

@@ -1,6 +1,6 @@
 import uuid
 from devices.factories import DeviceFactory
-from alarm.mqtt.mqtt_data import InMotionVideoData
+from alarm.use_cases.data import InMotionVideoData
 from unittest.mock import patch, MagicMock, call
 
 from django.test import TestCase

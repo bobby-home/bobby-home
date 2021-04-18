@@ -11,7 +11,7 @@ from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.business.alarm import register_ping
 import hello_django.settings as settings
-from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
+from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 
 
 CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"

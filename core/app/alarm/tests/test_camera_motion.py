@@ -1,5 +1,5 @@
 import uuid
-from alarm.mqtt.mqtt_data import InMotionCameraData
+from alarm.use_cases.data import InMotionCameraData
 from unittest.mock import Mock, patch
 from django.test import TestCase
 

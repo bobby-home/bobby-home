@@ -1,6 +1,6 @@
 from alarm.mqtt.on_connected_services import OnConnectedDumbCamera, OnConnectedObjectDetectionHandler, OnConnectedSpeakerHandler
 from utils.mqtt.mqtt_service import ServiceDescriptor
-from alarm.mqtt.mqtt import register
+from alarm.mqtt.mqtt_controller import register
 
 
 SERVICES = (
@@ -17,4 +17,5 @@ SERVICES = (
         on_connect=OnConnectedSpeakerHandler
     ),
 )
+
 

@@ -8,9 +8,9 @@ from utils.date import is_time_newer_than
 from .business.alarm_change_status import AlarmScheduleChangeStatus
 from alarm.models import AlarmStatus, Ping
 import alarm.notifications as notifications
-import alarm.communication.camera_picture as camera_picture
-import alarm.communication.camera_motion as camera_motion
-import alarm.communication.camera_video as camera_video
+import alarm.use_cases.camera_picture as camera_picture
+import alarm.use_cases.camera_motion as camera_motion
+import alarm.use_cases.camera_video as camera_video
 
 
 LOGGER = logging.getLogger(__name__)

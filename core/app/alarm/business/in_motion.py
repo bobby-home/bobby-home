@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 from django.db.models.functions import Greatest
 
-from alarm.communication.alarm_consts import ROITypes
+from alarm.use_cases.alarm_consts import ROITypes
 from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected, CameraMotionVideo
 from devices import models as device_models
 from hello_django.loggers import LOGGER

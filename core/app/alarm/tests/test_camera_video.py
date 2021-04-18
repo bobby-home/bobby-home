@@ -4,7 +4,7 @@ from alarm.mqtt.mqtt_data import InMotionVideoData
 from unittest.mock import patch, MagicMock, call
 
 from django.test import TestCase
-from alarm.communication.camera_video import CameraVideo
+from alarm.use_cases.camera_video import CameraVideo
 
 
 class CameraVideoTestCase(TestCase):

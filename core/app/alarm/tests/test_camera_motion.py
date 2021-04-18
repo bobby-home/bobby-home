@@ -3,7 +3,7 @@ from alarm.mqtt.mqtt_data import InMotionCameraData
 from unittest.mock import Mock, patch
 from django.test import TestCase
 
-from alarm.communication.camera_motion import camera_motion_detected
+from alarm.use_cases.camera_motion import camera_motion_detected
 from alarm.factories import AlarmStatusFactory
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected 
@@ -19,10 +19,10 @@ class CameraMotionTestCase(TestCase):
 
         self.notify_alarm_status_mock = Mock()
 
-    @patch('alarm.communication.camera_motion.play_sound')
+    @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
-    @patch('alarm.communication.out_alarm.notify_alarm_status_factory')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     def test_camera_motion_detected(self, notify_alarm_status_mock, object_no_more_detected_mock, alarm_notifications_mock, play_sound_mock):
         in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
         camera_motion_detected(in_data)
@@ -36,10 +36,10 @@ class CameraMotionTestCase(TestCase):
 
         notify_alarm_status_mock.assert_not_called()
 
-    @patch('alarm.communication.camera_motion.play_sound')
+    @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
-    @patch('alarm.communication.out_alarm.notify_alarm_status_factory')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     def test_camera_motion_no_more_motion(self, _notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
         camera_motion_detected(in_data)
@@ -55,10 +55,10 @@ class CameraMotionTestCase(TestCase):
         motion = CameraMotionDetected.objects.filter(event_ref=str(self.event_ref), device=self.device)
         self.assertTrue(len(motion), 1)
 
-    @patch('alarm.communication.camera_motion.play_sound')
+    @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
-    @patch('alarm.communication.out_alarm.notify_alarm_status_factory')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     def test_camera_motion_no_more_motion_turn_off(self, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         """
         When no more motion is being detected on a camera and its database status is False, it should turn off the camera.
@@ -83,10 +83,10 @@ class CameraMotionTestCase(TestCase):
         mock.publish_status_changed.assert_called_once_with(self.device.pk, self.alarm_status)
 
 
-    @patch('alarm.communication.camera_motion.play_sound')
+    @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
-    @patch('alarm.communication.out_alarm.notify_alarm_status_factory')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     def test_camera_motion_no_more_motion_dont_turn_off(self, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         AlarmStatus.objects.all().delete()
         self.alarm_status = AlarmStatusFactory(device=self.device, running=True)

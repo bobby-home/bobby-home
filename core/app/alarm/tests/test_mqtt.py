@@ -5,7 +5,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils import timezone
 
-from alarm.mqtt.mqtt import CameraMotionPictureTopic, CameraMotionTopic, CameraMotionVideoTopic, on_motion_camera, on_motion_picture, on_motion_video, topic_regex
+from alarm.mqtt.mqtt_controller import CameraMotionPictureTopic, CameraMotionTopic, CameraMotionVideoTopic, on_motion_camera, on_motion_picture, on_motion_video, topic_regex
 from devices.factories import DeviceFactory
 from utils.mqtt import MqttMessage
 

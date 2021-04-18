@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 from alarm.factories import AlarmStatusFactory
 from camera.models import CameraMotionDetectedPicture
 from devices.factories import DeviceFactory
-from alarm.communication.camera_picture import camera_motion_picture
+from alarm.use_cases.camera_picture import camera_motion_picture
 
 
 class CameraMotionPictureTestCase(TransactionTestCase):

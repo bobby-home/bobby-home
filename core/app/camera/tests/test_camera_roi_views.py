@@ -7,7 +7,7 @@ from django.forms import model_to_dict
 from django.test import TransactionTestCase
 from django.urls import reverse_lazy
 
-from alarm.communication.out_alarm import NotifyAlarmStatus
+from alarm.use_cases.out_alarm import NotifyAlarmStatus
 from alarm.factories import AlarmStatusFactory
 from camera.factories import CameraMotionDetectedPictureFactory, CameraROIFactory, CameraRectangleROIFactory
 from alarm.models import AlarmStatus

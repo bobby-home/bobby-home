@@ -60,7 +60,7 @@ class AlarmScheduleChangeStatusTestCase(TransactionTestCase):
     def test_turn_off_motion_being(self):
         """
         Even if a motion is being detected, we change the database status.
-        Its on the communication side that changes: don't tell to the service to actually turn off.
+        Its on the use_cases side that changes: don't tell to the service to actually turn off.
         """
         event_ref = str(uuid.uuid4())
 

@@ -1,4 +1,4 @@
-import alarm.communication.out_alarm as out_alarm
+import alarm.use_cases.out_alarm as out_alarm
 import camera.business.camera_motion as camera_motion
 from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog
 

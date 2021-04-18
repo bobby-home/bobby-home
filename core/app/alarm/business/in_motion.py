@@ -49,18 +49,6 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
 
 
 def save_camera_video(data: InMotionVideoData) -> None:
-    """Save camera video reference to the database. It add/extracts useful information.
-
-    Parameters
-    ----------
-    video_ref : str
-        A string that represents a video_ref, ex: '49efa0b4-2003-44e4-920c-4eb0e6eea358-1'
-            composed by two parts: the first one, the `event_ref` and the `record_number`.
-
-    Returns
-    -------
-    CameraMotionVideo
-    """
     device = device_models.Device.objects.get(device_id=data.device_id)
     
     try:

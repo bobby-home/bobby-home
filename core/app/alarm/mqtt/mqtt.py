@@ -1,5 +1,4 @@
 import dataclasses
-from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 from dataclasses import dataclass, field
 import re
 import os
@@ -10,15 +9,14 @@ from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscript
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
-from alarm.tasks import camera_motion_detected
 from alarm.business.alarm import register_ping
 import hello_django.settings as settings
+from alarm.mqtt.mqtt_data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 
-
-DEVICE_ID = os.environ['DEVICE_ID']
 
 CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
 
+# uuid v4 regex, source: https://stackoverflow.com/a/38191078/6555414
 PICTURE_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12})"
 VIDEO_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12})-(?P<video_split_number>[0-9]+)"
 
@@ -38,7 +36,7 @@ class CameraMotionPictureTopic(CameraTopic):
     event_ref: str
     status: str
     bool_status: bool = field(init=False)
-    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[\w]+)" 
+    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[0-1])$" 
 
     def __post_init__(self):
         self.bool_status = self.status == '1'
@@ -53,7 +51,7 @@ class CameraMotionVideoTopic(CameraTopic):
     video_ref: str = field(init=False)
     event_ref: str
     video_split_number: int
-    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{VIDEO_EVENT_REF_GROUP}"
+    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{VIDEO_EVENT_REF_GROUP}$"
 
     def __post_init__(self):
         # data is extracted from regex.groupdict and it does not give int type but str.
@@ -89,22 +87,17 @@ def on_motion_camera(message: MqttMessage):
 
     LOGGER.info(f'on_motion_camera payload={payload} topic={topic}')
 
-    try:
-        data_payload = CameraMotionPayload(**payload)
-    except Exception as e:
-        raise ValueError('zzzzzzzzzzzz')
-        return
-    else:
-        in_data = InMotionCameraData(
-            device_id=topic.device_id,
-            event_ref=data_payload.event_ref,
-            status=data_payload.status,
-            seen_in=data_payload.seen_in,
-        )
+    data_payload = CameraMotionPayload(**payload)
+    in_data = InMotionCameraData(
+        device_id=topic.device_id,
+        event_ref=data_payload.event_ref,
+        status=data_payload.status,
+        seen_in=data_payload.seen_in,
+    )
 
-        if in_data.event_ref != '0':
-            # 0 = initialization
-            tasks.camera_motion_detected.apply_async(args=[dataclasses.asdict(in_data)])
+    if in_data.event_ref != '0':
+        # 0 = initialization
+        tasks.camera_motion_detected.apply_async(args=[dataclasses.asdict(in_data)])
 
 
 def on_motion_video(message: MqttMessage) -> None:
@@ -133,8 +126,7 @@ def on_motion_picture(message: MqttMessage):
 
     file_name = f'{topic.event_ref}.jpg'
 
-    # Remember: image is bytearray
-    image = message.payload
+    data_payload = CameraMotionPicturePayload(image=message.payload)
 
     """
     Warning: hacky thing.
@@ -146,17 +138,16 @@ def on_motion_picture(message: MqttMessage):
     """
 
     picture_path = os.path.join(settings.MEDIA_ROOT, file_name)
+    
     with open(picture_path, 'wb') as f:
-        f.write(image)
+        f.write(data_payload.image)
 
-    data = {
-        'device_id': topic.device_id,
-        'picture_path': picture_path,
-        'event_ref': topic.event_ref,
-        'status': topic.bool_status,
-    }
-
-    in_data = InMotionPictureData(**data)
+    in_data = InMotionPictureData(
+        device_id=topic.device_id,
+        picture_path=picture_path,
+        event_ref=topic.event_ref,
+        status=topic.bool_status
+    )
 
     tasks.camera_motion_picture.apply_async(args=[dataclasses.asdict(in_data)])
 

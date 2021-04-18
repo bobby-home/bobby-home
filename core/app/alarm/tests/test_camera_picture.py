@@ -1,5 +1,7 @@
 import uuid
+from django.db.utils import IntegrityError
 from django.test import TestCase
+from django.test.testcases import TransactionTestCase
 from alarm.mqtt.mqtt_data import InMotionPictureData
 from unittest.mock import Mock, patch
 from alarm.factories import AlarmStatusFactory
@@ -8,7 +10,7 @@ from devices.factories import DeviceFactory
 from alarm.communication.camera_picture import camera_motion_picture
 
 
-class CameraMotionPictureTestCase(TestCase):
+class CameraMotionPictureTestCase(TransactionTestCase):
     def setUp(self) -> None:
         self.device = DeviceFactory()
         self.device_id = self.device.device_id
@@ -21,61 +23,94 @@ class CameraMotionPictureTestCase(TestCase):
 
         self.notify_alarm_status_mock = Mock()
         self.notify_alarm_status_factory = lambda : self.notify_alarm_status_mock
+        
+        self.motion_picture_path = '/some/path.png'
+        self.in_data_motion =InMotionPictureData(
+            device_id=self.device_id,
+            picture_path=self.motion_picture_path,
+            event_ref=self.event_ref,
+            status=True
+        )
 
+        self.no_motion_picture_path = '/some/path2.png'
+
+        self.in_data_no_motion =InMotionPictureData(
+            device_id=self.device_id,
+            picture_path=self.no_motion_picture_path,
+            event_ref=self.event_ref,
+            status=False
+        )
+
+    def _get_motion(self):
+        return CameraMotionDetectedPicture.objects.filter(event_ref=self.event_ref, device=self.device)
 
     def test_camera_motion_picture(self):
-        fake_picture_path = '/some/path.png'
         
         with patch('notification.tasks.send_picture') as send_picture_mock:
-            in_data1 =InMotionPictureData(
-                device_id=self.device_id,
-                picture_path=fake_picture_path,
-                event_ref=self.event_ref,
-                status=True
-            )
+            camera_motion_picture(self.in_data_motion)
 
-            camera_motion_picture(in_data1)
-
-            motion = CameraMotionDetectedPicture.objects.filter(event_ref=self.event_ref, device=self.device)
+            motion = self._get_motion() 
             self.assertTrue(len(motion), 1)
             motion = motion[0]
 
             self.assertEqual(motion.motion_started_picture.name, 'path.png')
-            self.assertEqual(motion.motion_ended_picture.name, '')
+            self.assertFalse(motion.motion_ended_picture)
 
             kwargs = {
-                'picture_path': fake_picture_path
+                'picture_path': self.motion_picture_path 
             }
 
             send_picture_mock.apply_async.assert_called_once_with(kwargs=kwargs)
 
     def test_camera_motion_picture_no_more_motion(self):
-        fake_picture_path = '/some/path.png'
-        fake_picture_path2 = '/some/path2.png'
+        with patch('notification.tasks.send_picture') as send_picture:
+            camera_motion_picture(self.in_data_motion)
+            send_picture.reset_mock()
+            camera_motion_picture(self.in_data_no_motion)
 
-        in_data1 =InMotionPictureData(
-            device_id=self.device_id,
-            picture_path=fake_picture_path,
-            event_ref=self.event_ref,
-            status=True
-        )
-
-        in_data2 =InMotionPictureData(
-            device_id=self.device_id,
-            picture_path=fake_picture_path2,
-            event_ref=self.event_ref,
-            status=False
-        )
-
-        with patch('notification.tasks.send_picture') as _send_picture:
-            camera_motion_picture(in_data1)
-            camera_motion_picture(in_data2)
-
-            motion = CameraMotionDetectedPicture.objects.filter(event_ref=str(self.event_ref), device=self.device)
+            motion = self._get_motion() 
             self.assertTrue(len(motion), 1)
             motion = motion[0]
 
             self.assertEqual(motion.motion_started_picture.name, 'path.png')
             self.assertEqual(motion.motion_ended_picture.name, 'path2.png')
+            
+            kwargs = {
+                'picture_path': self.no_motion_picture_path
+            }
 
+            send_picture.apply_async.assert_called_once_with(kwargs=kwargs)
+
+    def test_no_motion_without_motion(self):
+        with patch('notification.tasks.send_picture') as send_picture:
+            with self.assertRaises(ValueError) as _context:
+                camera_motion_picture(self.in_data_no_motion)
+
+            motion = self._get_motion() 
+            self.assertEqual(0, len(motion))
+            send_picture.assert_not_called()
+
+
+
+    def test_no_motion_twice(self):
+        with patch('notification.tasks.send_picture') as send_picture:
+            camera_motion_picture(self.in_data_motion)
+            send_picture.reset_mock()
+            camera_motion_picture(self.in_data_no_motion)
+            
+            with self.assertRaises(ValueError) as _context:
+                camera_motion_picture(self.in_data_no_motion)
+
+            send_picture.assert_not_called()
+
+    def test_motion_twice(self):
+        with patch('notification.tasks.send_picture') as send_picture:
+            camera_motion_picture(self.in_data_motion)
+
+            with self.assertRaises(IntegrityError) as _context:
+                camera_motion_picture(self.in_data_motion)
+            
+            motion = self._get_motion() 
+            self.assertEqual(1, len(motion))
+            send_picture.assert_not_called()
 

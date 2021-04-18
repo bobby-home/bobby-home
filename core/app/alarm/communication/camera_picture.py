@@ -22,10 +22,13 @@ def camera_motion_picture(in_data: InMotionPictureData) -> None:
         picture.motion_started_picture.name = os.path.basename(in_data.picture_path)
         picture.save()
     else:
-        with transaction.atomic():
-            picture = CameraMotionDetectedPicture.objects.select_for_update().get(device=device, event_ref=in_data.event_ref)
-            picture.motion_ended_picture.name = os.path.basename(in_data.picture_path)
-            picture.save()
+        updated: int = CameraMotionDetectedPicture.objects.filter(
+            device=device,
+            event_ref=in_data.event_ref,
+            motion_ended_picture__exact='').update(motion_ended_picture = os.path.basename(in_data.picture_path))
+
+        if updated == 0:
+            raise ValueError(f'Motion ended picture for event {in_data.event_ref} on device {device} already registered or motion event does not exist.')
 
     kwargs = {
         'picture_path': in_data.picture_path

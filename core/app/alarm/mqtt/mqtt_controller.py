@@ -17,7 +17,7 @@ from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMoti
 CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
 
 # uuid v4 regex, source: https://stackoverflow.com/a/38191078/6555414
-PICTURE_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12})"
+PICTURE_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}|[0])"
 VIDEO_EVENT_REF_GROUP = r"(?i)(?P<event_ref>[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12})-(?P<video_split_number>[0-9]+)"
 
 

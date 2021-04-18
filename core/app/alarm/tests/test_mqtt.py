@@ -25,7 +25,22 @@ class ExtractTopicData(TestCase):
             device_id=self.device_id,
         )
         self.assertEqual(dataclasses.asdict(data), dataclasses.asdict(expected)) 
-    
+
+    def test_motion_picture_init(self):
+        topic = f'motion/picture/{self.device_id}/0/0'
+        data = topic_regex(topic, CameraMotionPictureTopic)        
+        expected = CameraMotionPictureTopic(
+            type='motion',
+            service='picture',
+            device_id=self.device_id,
+            event_ref='0',
+            status='0',
+        )
+
+        self.assertFalse(expected.bool_status)
+        self.assertEqual(dataclasses.asdict(data), dataclasses.asdict(expected))
+
+
     def test_motion_picture(self):
         topic = f'motion/picture/{self.device_id}/{self.event_ref}/0'
         topic_true_status = f'motion/picture/{self.device_id}/{self.event_ref}/1'

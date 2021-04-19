@@ -3,14 +3,14 @@ version: "3.8"
 
 services:
     redis-broker:
-        image: redis:6.2-alpine
+        image: redis:6.2-buster
         ports:
             - "6379:6379"
         networks:
             - redis-broker
             - backend_mqtt
         volumes:
-            - ./config/redis/redis-broker.conf:/usr/local/etc/redis/redis-broker.conf
+            - ./config/redis/redis-broker.conf:/usr/local/etc/redis/redis.conf
 
     database:
         image: postgres:13.1

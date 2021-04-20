@@ -1,6 +1,6 @@
 from typing import List
 
-from alarm.communication.out_alarm import notify_alarm_status_factory
+from alarm.use_cases.out_alarm import notify_alarm_status_factory
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected
 from devices.models import Device

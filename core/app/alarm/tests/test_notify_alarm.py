@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 
-from alarm.communication.out_alarm import NotifyAlarmStatus
+from alarm.use_cases.out_alarm import NotifyAlarmStatus
 from alarm.factories import AlarmStatusFactory
 from camera.factories import CameraROIFactoryConf, CameraROIFactory, CameraRectangleROIFactory
 from alarm.models import AlarmStatus

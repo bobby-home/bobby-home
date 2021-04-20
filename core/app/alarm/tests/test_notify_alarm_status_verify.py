@@ -4,8 +4,8 @@ from unittest.mock import call, patch
 from django.utils import timezone
 from freezegun import freeze_time
 
-from devices.factories import DeviceFactory, DeviceTypeFactory
-from alarm.communication.checks import verify_services_status
+from devices.factories import DeviceFactory
+from alarm.use_cases.checks import verify_services_status
 
 
 class NotifyAlarmStatusVerify(TestCase):

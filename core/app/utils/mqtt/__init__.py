@@ -1,13 +1,16 @@
 import os
 from functools import partial
-from typing import List, Callable
+from typing import List, Sequence, Union
 import logging
 import utils.date as dt_utils
 from paho.mqtt.reasoncodes import ReasonCodes
-from utils.mqtt.mqtt_data import MqttConfig, Subscription, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
+from utils.mqtt.mqtt_data import MqttConfig, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
 import paho.mqtt.client as mqtt
 
 _LOGGER = logging.getLogger(__name__)
+
+
+MqttSubscriptionType = Union[Sequence[MqttTopicSubscription], Sequence[MqttTopicFilterSubscription]]
 
 
 class MQTT:
@@ -18,7 +21,8 @@ class MQTT:
     def __init__(self, config: MqttConfig, mqtt_client_constructor):
         self._config = config
         self._mqtt_client_constructor = mqtt_client_constructor
-        self.on_connected_callbacks: List[Callable[[MQTT], None]] = []
+        self._add_subscribe_subscriptions: List[MqttSubscriptionType] = []
+
         self.client = self._init_mqtt_client()
 
     def _init_mqtt_client(self) -> mqtt.Client:
@@ -41,7 +45,7 @@ class MQTT:
     def _mqtt_on_disconnect(_client, _userdata, rc):
         print(f'_mqtt_on_disconnect reason code: {mqtt.connack_string(rc)}')
 
-    def _mqtt_on_connect(self, _client, _userdata, _flags, rc: ReasonCodes, _properties):
+    def _mqtt_on_connect(self, _client, _userdata, _flags, rc: ReasonCodes, _properties) -> None:
         # print(_client._protocol)
         print(f'_mqtt_on_connect rc: {rc}')
 
@@ -52,14 +56,17 @@ class MQTT:
             )
             return
 
-        for callback in self.on_connected_callbacks:
-            callback(self)
+        # on connect we subscribe, so if client reconnects it resubscribes
+        for to_add in self._add_subscribe_subscriptions:
+            self.add_subscribe(to_add, False)
 
     @staticmethod
     def _wrap_subscription_callback(subscription: MqttTopicSubscription):
         return partial(MQTT._mqtt_on_message_wrapper, subscription)
 
-    def add_subscribe(self, subscriptions: List[Subscription]) -> None:
+    def add_subscribe(self, subscriptions: MqttSubscriptionType, sub_on_connect = True) -> None:
+        if sub_on_connect:
+            self._add_subscribe_subscriptions.append(subscriptions)
 
         def _mqtt_add_callback(sub: MqttTopicSubscription):
             subscription_callback = self._wrap_subscription_callback(sub)

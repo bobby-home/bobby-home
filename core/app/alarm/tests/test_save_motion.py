@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 
-from alarm.communication.alarm_consts import ROITypes
+from alarm.use_cases.alarm_consts import ROITypes
 from alarm.business.in_motion import save_motion
 from alarm.factories import AlarmStatusFactory
 from camera.factories import CameraROIFactory, CameraRectangleROIFactory

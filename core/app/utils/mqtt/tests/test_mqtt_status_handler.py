@@ -1,30 +1,30 @@
+import dataclasses
+from dataclasses import dataclass
+import unittest
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
-
 from alarm.models import AlarmStatus
 from devices.factories import DeviceFactory
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 from utils.mqtt import MqttMessage
-from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnStatus, split_camera_topic
+from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnStatus, service_status_topic 
 import utils.date as dt_utils
 
 
-class SplitCameraTopicTestCase(TestCase):
+class ServiceStatusTopicTestCase(unittest.TestCase):
     def test_split_camera_topic(self):
-        type = 'connected'
         service = 'object_detection'
-        device_id = 'some device id'
+        device_id = 'deviceid'
 
-        response = split_camera_topic(f'{type}/{service}/{device_id}')
-        self.assertEqual(response, {
-            'type': type,
+        response = service_status_topic(f'connected/{service}/{device_id}')
+        self.assertEqual(dataclasses.asdict(response), {
             'service': service,
             'device_id': device_id,
         })
 
         with self.assertRaises(ValueError) as err:
-            split_camera_topic(f'{type}-{service}')
+            service_status_topic(f'{type}-{service}')
 
 
 class OnStatusTestCase(TestCase):

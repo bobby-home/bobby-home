@@ -7,7 +7,8 @@ import notification.tasks as notification_tasks
 from django.utils.translation import gettext as _
 
 
-def object_detected(device: Device, location: Location) -> None:
+def object_detected(device: Device) -> None:
+    location = device.location
     message = _('People has been detected in %(structure)s %(sub_structure)s') % {
         'structure': location.structure,
         'sub_structure': location.sub_structure,
@@ -22,7 +23,8 @@ def object_detected(device: Device, location: Location) -> None:
     notification_tasks.create_and_send_notification.apply_async(kwargs=kwargs)
 
 
-def object_no_more_detected(device: Device, location: Location) -> None:
+def object_no_more_detected(device: Device) -> None:
+    location = device.location
     message = _("People detected in %(structure)s %(sub_structure)s is no longer detected.") % {
         'structure': location.structure,
         'sub_structure': location.sub_structure,

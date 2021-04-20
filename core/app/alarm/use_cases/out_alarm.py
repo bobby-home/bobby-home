@@ -3,8 +3,8 @@ import logging
 from django.forms import model_to_dict
 
 import alarm.business.alarm_status as alarm_status
-from alarm.communication import checks
-from alarm.communication.alarm_consts import ROITypes
+from alarm.use_cases import checks
+from alarm.use_cases.alarm_consts import ROITypes
 from alarm.messaging import alarm_messaging_factory, AlarmMessaging
 from camera.models import CameraROI, CameraRectangleROI
 from devices.models import Device

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from alarm.business.alarm_status import alarm_status_changed
+from alarm.use_cases.alarm_status import alarm_status_changed
 from alarm.models import AlarmStatus, AlarmSchedule, Ping
 
 

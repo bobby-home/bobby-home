@@ -1,3 +1,4 @@
+from alarm.mqtt import MqttServices, CameraMqttServices
 from django.test import TestCase
 from unittest.mock import call, patch
 
@@ -18,17 +19,17 @@ class NotifyAlarmStatusVerify(TestCase):
     def test_verify_service_status(self, verify_service_status):
         def _test(status: bool):
             verify_services_status(self.device_id, status, False)
-
+            
             kwargs = {
                 'device_id': self.device_id,
-                'service_name': 'object_detection',
+                'service_name': MqttServices.OBJECT_DETECTION.value,
                 'status': status,
                 'since_time': timezone.now()
             }
 
             kwargs2 = {
                 'device_id': self.device_id,
-                'service_name': 'dumb_camera',
+                'service_name': CameraMqttServices.CAMERA.value,
                 'status': status,
                 'since_time': timezone.now()
             }

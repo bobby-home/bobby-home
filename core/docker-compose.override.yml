@@ -14,11 +14,14 @@ x-env: &env
         - ~/.device
 
 services:
+    redis-broker:
+        volumes:
+            - dev-redis-broker-data:/data
     database:
         volumes:
             - dev-psql-data:/var/lib/postgresql/data
 
-    rabbit_worker:
+    celery_worker:
         <<: *build
         <<: *env
         volumes:
@@ -60,5 +63,7 @@ services:
             - 3000:3000
 
 volumes:
+    dev-redis-broker-data:
+        driver: local
     dev-psql-data:
         driver: local

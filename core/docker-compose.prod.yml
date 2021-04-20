@@ -15,10 +15,11 @@ x-coreimage: &coreimage
     image: bobbyhome/core:0.4.4
 
 services:
-    rabbit:
+    redis-broker:
         logging: *loki-logging
         restart: unless-stopped
-
+        volumes:
+            - redis-data:/data
     database:
         logging: *loki-logging
         restart: unless-stopped
@@ -57,7 +58,7 @@ services:
             - grafana-data:/var/lib/grafana
         restart: unless-stopped
 
-    rabbit_worker:
+    celery_worker:
         <<: *coreimage
         logging: *loki-logging
         restart: unless-stopped
@@ -92,6 +93,8 @@ services:
 
 volumes:
     grafana-data:
+        driver: local
+    redis-data:
         driver: local
     psql-data:
         driver: local

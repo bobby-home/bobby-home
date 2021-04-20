@@ -17,6 +17,10 @@ celery = Celery('hello_django')
 #   should have a `CELERY_` prefix.
 celery.config_from_object('django.conf:settings', namespace='CELERY')
 
+# https://docs.celeryproject.org/en/stable/getting-started/brokers/redis.html#id1
+# The value must be an int describing the number of seconds.
+celery.conf.broker_transport_options = {'visibility_timeout': 600}
+
 # setup Periodic Tasks. @see https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
 @celery.on_after_finalize.connect
 def setup_periodic_tasks(**_kwargs):

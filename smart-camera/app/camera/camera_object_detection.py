@@ -49,19 +49,23 @@ class CameraObjectDetection:
         self.detect_people = detect_people
         self.event_ref = self.EVENT_REF_NO_MOTION
 
+        self.mqtt = None
         self.mqtt_client = None
 
         self.last_ping_time = None
 
     def start(self) -> None:
-        mqtt_client = self.get_mqtt(client_name=f'{self._device_id}-{CameraObjectDetection.SERVICE_NAME}')
-        mqtt_client.connect_keep_status(CameraObjectDetection.SERVICE_NAME, self._device_id)
-        self.mqtt_client = mqtt_client.client
+        mqtt = self.get_mqtt(client_name=f'{self._device_id}-{CameraObjectDetection.SERVICE_NAME}')
+        mqtt.connect_keep_status(CameraObjectDetection.SERVICE_NAME, self._device_id)
+        
+        self.mqtt_client = mqtt.client
+        self.mqtt = mqtt
 
         self.mqtt_client.loop_start()
         self.last_ping_time = datetime.datetime.now()
 
-    def __del__(self):
+    def stop(self):
+        self.mqtt.disconnect()
         self.mqtt_client.loop_stop()
 
     @staticmethod

@@ -29,7 +29,9 @@ class ConnectedDevices:
 
     def remove(self, device_id: str) -> None:
         if device_id in self._connected_devices:
-            self._connected_devices.pop(device_id, None)
+            object_detection = self._connected_devices.pop(device_id, None)
+            if object_detection:
+                object_detection.stop()
 
     def has(self, device_id: str) -> bool:
         return device_id in self._connected_devices

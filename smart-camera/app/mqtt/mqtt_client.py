@@ -49,7 +49,7 @@ class MqttClient:
 
     def disconnect(self):
         if self._service_name and self._device_id:
-            self.client.publish(f'connected/{self._service_name}/{self._device_id}', payload=struct.pack('?', True), qos=1, retain=True)
+            self.client.publish(f'connected/{self._service_name}/{self._device_id}', payload=struct.pack('?', False), qos=1, retain=True)
         self.client.disconnect()
 
     @staticmethod

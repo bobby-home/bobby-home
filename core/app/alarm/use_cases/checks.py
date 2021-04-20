@@ -1,5 +1,6 @@
 from django.utils import timezone
 import mqtt_services.tasks as tasks
+from alarm.mqtt import MqttServices, CameraMqttServices
 
 
 def verify_services_status(device_id: str, status: bool, is_dumb: bool) -> None:
@@ -8,7 +9,7 @@ def verify_services_status(device_id: str, status: bool, is_dumb: bool) -> None:
 
     kwargs = {
         'device_id': device_id,
-        'service_name': 'object_detection',
+        'service_name': MqttServices.OBJECT_DETECTION.value,
         'status': status,
         'since_time': timezone.now()
     }
@@ -23,7 +24,7 @@ def verify_services_status(device_id: str, status: bool, is_dumb: bool) -> None:
 
     kwargs_dumb = {
         'device_id': device_id,
-        'service_name': 'dumb_camera',
+        'service_name': CameraMqttServices.CAMERA.value,
         'status': status,
         'since_time': timezone.now()
     }

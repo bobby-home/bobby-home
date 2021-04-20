@@ -6,7 +6,7 @@ from django.views.generic import ListView, UpdateView, DetailView, TemplateView
 from django.views.generic.edit import CreateView
 
 from alarm.business.alarm_schedule import DAYS_OF_WEEK
-from alarm.business.alarm_status import alarm_status_changed
+from alarm.use_cases.alarm_status import alarm_status_changed
 from alarm.models import AlarmStatus, AlarmSchedule
 from devices.models import Device
 from utils.django.forms import ChangeForm

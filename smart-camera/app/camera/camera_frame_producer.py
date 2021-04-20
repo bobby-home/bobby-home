@@ -3,12 +3,10 @@ from mqtt.mqtt_client import get_mqtt
 from utils.rate_limit import rate_limited
 
 
-
-
 class CameraFrameProducer:
     """Take frames from picamera and send it through mqtt to be processed.
     """
-    SERVICE_NAME = 'dumb_camera'
+    SERVICE_NAME = 'camera' 
     TOPIC_PICTURE_TO_ANALYZE = 'ia/picture'
 
     TOPIC_PICTURE_STREAM = 'camera/stream'

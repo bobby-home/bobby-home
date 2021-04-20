@@ -1,3 +1,4 @@
+from alarm.mqtt import MqttServices
 from camera.messaging import CameraMessaging, camera_messaging_factory
 from utils.mqtt.mqtt_status import MqttBooleanStatus, MqttJsonStatus
 
@@ -9,7 +10,7 @@ class SpeakerMessaging:
         self._mqtt_status = mqtt_status
 
     def publish_speaker_status(self, device_id: str, status: bool):
-        self._mqtt_status.publish(f'status/speaker/{device_id}', status)
+        self._mqtt_status.publish(f'status/{MqttServices.SPEAKER.value}/{device_id}', status)
 
 
 class AlarmMessaging:
@@ -22,7 +23,7 @@ class AlarmMessaging:
         self._camera_messaging = camera_messaging
 
     def publish_alarm_status(self, device_id: str, status: bool, is_dumb: bool, data=None) -> None:
-        self._mqtt_status.publish(f'status/camera_object_detection/{device_id}', status, data)
+        self._mqtt_status.publish(f'status/{MqttServices.OBJECT_DETECTION_MANAGER.value}/{device_id}', status, data)
 
         camera_cara = CameraData(to_analyze=True) if status else CameraData(to_analyze=False)
         self._camera_messaging.publish_status(device_id, status, camera_cara)

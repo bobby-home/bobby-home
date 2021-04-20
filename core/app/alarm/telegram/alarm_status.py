@@ -3,7 +3,7 @@ from typing import List
 
 import django
 from telegram.ext.callbackcontext import CallbackContext
-from alarm.business.alarm_status import alarm_statuses_changed
+from alarm.use_cases.alarm_status import alarm_statuses_changed
 from utils.telegram.restrict import restricted
 
 sys.path.append('/usr/src/app')
@@ -13,6 +13,7 @@ django.setup()
 from enum import Enum
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+import telegram.constants as telegram_constants
 from alarm.models import AlarmStatus
 from notification.models import UserTelegramBotChatId
 from django.db import transaction
@@ -78,7 +79,7 @@ class AlarmStatusBot:
             )
 
         markup = InlineKeyboardMarkup.from_column(keyboard)
-        update.message.reply_text('\n'.join(texts_alarm_status), reply_markup=markup)
+        update.message.reply_text('\n'.join(texts_alarm_status), reply_markup=markup, parse_mode=telegram_constants.PARSEMODE_HTML)
 
     def _set_alarm_status(self, update: Update, _c: CallbackContext):
         query = update.callback_query
@@ -102,7 +103,7 @@ class AlarmStatusBot:
 
             # one button per row, only one column.
             markup = InlineKeyboardMarkup.from_column(keyboard)
-            return query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup)
+            return query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup) 
 
         if status.isdigit():
             status_pk = int(status)
@@ -116,7 +117,7 @@ class AlarmStatusBot:
             """
             with transaction.atomic():
                 db_status = AlarmStatus.objects.select_for_update().get(pk=status_pk)
-                db_status.running =not db_status.running
+                db_status.running = not db_status.running
                 db_status.save()
                 
                 text = texts.alarm_status_changed(db_status)

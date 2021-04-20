@@ -6,8 +6,8 @@ init()
 
 from utils.mqtt.mqtt_status_handler import on_connected_services
 from utils.mqtt import mqtt_factory  # noqa: E402
-from alarm.mqtt import register, SERVICES  # noqa: E402
-
+from alarm.mqtt import SERVICES  # noqa: E402
+from alarm.mqtt.mqtt_controller import register
 
 mqtt = mqtt_factory(client_id='python_process_mqtt')
 

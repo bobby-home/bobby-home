@@ -14,7 +14,7 @@ from utils.json.encoders import DecimalEncoder
 
 
 def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
-    from alarm.communication.out_alarm import notify_alarm_status_factory
+    from alarm.use_cases.out_alarm import notify_alarm_status_factory
     notify_alarm_status_factory().publish_roi_changed(device_id, camera_roi, rectangle_rois)
 
 
@@ -31,7 +31,7 @@ class CameraROIDelete(LoginRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         camera_roi = self.get_object()
-        from alarm.communication.out_alarm import notify_alarm_status_factory
+        from alarm.use_cases.out_alarm import notify_alarm_status_factory
         notify_alarm_status_factory().publish_roi_changed(camera_roi.device_id, camera_roi=None)
 
         return super().delete(request, *args, **kwargs)

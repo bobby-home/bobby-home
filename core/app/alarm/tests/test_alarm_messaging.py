@@ -10,9 +10,10 @@ class AlarmMessagingTestCase(TestCase):
         self.device_id = '123456'
         self.mqtt_mock = Mock()
         self.speaker_messaging = Mock()
+        self.camera_messaging = Mock()
         self.json_status = MqttJsonStatus(self.mqtt_mock)
 
-        self.alarm = AlarmMessaging(self.json_status, self.speaker_messaging)
+        self.alarm = AlarmMessaging(self.json_status, self.speaker_messaging, self.camera_messaging)
 
     def test_synchronize_sound(self):
         self.alarm.publish_alarm_status(self.device_id, False, False)

@@ -5,7 +5,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from devices.factories import DeviceFactory
-from alarm.communication.checks import verify_services_status
+from alarm.use_cases.checks import verify_services_status
 
 
 class NotifyAlarmStatusVerify(TestCase):

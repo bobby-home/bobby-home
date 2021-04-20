@@ -1,9 +1,11 @@
+from alarm.use_cases.data import InMotionVideoData
 from typing import List, Dict
 
 from django.db import IntegrityError
 from django.utils import timezone
+from django.db.models.functions import Greatest
 
-from alarm.communication.alarm_consts import ROITypes
+from alarm.use_cases.alarm_consts import ROITypes
 from camera.models import CameraMotionDetectedBoundingBox, CameraMotionDetected, CameraMotionVideo
 from devices import models as device_models
 from hello_django.loggers import LOGGER
@@ -46,33 +48,16 @@ def save_motion(device_id: str, seen_in: Dict[str, Dict[str, any]], event_ref: s
     return device, motion
 
 
-def save_camera_video(video_ref: str) -> CameraMotionVideo:
-    """Save camera video reference to the database. It add/extracts useful information.
-
-    Parameters
-    ----------
-    video_ref : str
-        A string that represents a video_ref, ex: '49efa0b4-2003-44e4-920c-4eb0e6eea358-1'
-            composed by two parts: the first one, the `event_ref` and the `record_number`.
-
-    Returns
-    -------
-    CameraMotionVideo
-    """
-    split = video_ref.split('-')
-    record_number = int(split[-1])
-    event_ref = '-'.join(split[:-1])
-
-    obj, created = CameraMotionVideo.objects.get_or_create(event_ref=event_ref)
-
-    if record_number <= obj.number_records:
+def save_camera_video(data: InMotionVideoData) -> None:
+    device = device_models.Device.objects.get(device_id=data.device_id)
+    
+    try:
+        CameraMotionVideo.objects.create(device=device, event_ref=data.event_ref)
+    except IntegrityError:
         """
         That means that we received a record number that is already taken in account.
         - "Hey, I got the record nb. 3", "Ok, but I already got record nb 4 so it's fine".
         """
-        return obj
+        CameraMotionVideo.objects.filter(device=device, event_ref=data.event_ref)\
+            .update(number_records=Greatest('number_records', data.video_split_number))
 
-    obj.number_records = record_number
-    obj.save()
-
-    return obj

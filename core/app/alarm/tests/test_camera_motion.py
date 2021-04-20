@@ -1,103 +1,100 @@
 import uuid
-from unittest.mock import Mock
-
+from alarm.use_cases.data import InMotionCameraData
+from unittest.mock import Mock, patch
 from django.test import TestCase
 
-from alarm.communication.camera_motion import CameraMotion
-from alarm.business.in_motion import save_motion
+from alarm.use_cases.camera_motion import camera_motion_detected
 from alarm.factories import AlarmStatusFactory
 from alarm.models import AlarmStatus
-from camera.models import CameraMotionDetected, CameraMotionDetectedPicture
+from camera.models import CameraMotionDetected 
 from devices.factories import DeviceFactory
 
 
 class CameraMotionTestCase(TestCase):
     def setUp(self) -> None:
         self.device = DeviceFactory()
+        self.device_id = self.device.device_id
         self.alarm_status = AlarmStatusFactory(device=self.device, running=False)
-        self.event_ref = uuid.uuid4()
-
-        self.create_and_send_notification = Mock()
-        self.play_sound = Mock()
-        self.send_picture = Mock()
+        self.event_ref = str(uuid.uuid4())
 
         self.notify_alarm_status_mock = Mock()
-        self.notify_alarm_status_factory = lambda : self.notify_alarm_status_mock
 
-    def test_camera_motion_detected(self):
-        camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
+    @patch('alarm.use_cases.camera_motion.play_sound')
+    @patch('alarm.notifications.object_detected')
+    @patch('alarm.notifications.object_no_more_detected')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
+    def test_camera_motion_detected(self, notify_alarm_status_mock, object_no_more_detected_mock, alarm_notifications_mock, play_sound_mock):
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+        camera_motion_detected(in_data)
+        
+        play_sound_mock.assert_called_once_with(self.device.device_id, True)
+        alarm_notifications_mock.assert_called_once_with(self.device)
+        object_no_more_detected_mock.assert_not_called()
 
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), True)
-        self.play_sound.assert_called_once_with(self.device.device_id, True)
-        self.create_and_send_notification.apply_async.assert_called_once()
+        motion = CameraMotionDetected.objects.filter(event_ref=self.event_ref, device=self.device)
+        self.assertTrue(len(motion), 1)
+
+        notify_alarm_status_mock.assert_not_called()
+
+    @patch('alarm.use_cases.camera_motion.play_sound')
+    @patch('alarm.notifications.object_detected')
+    @patch('alarm.notifications.object_no_more_detected')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
+    def test_camera_motion_no_more_motion(self, _notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+        camera_motion_detected(in_data)
+        object_detected_mock.reset_mock()
+        play_sound_mock.reset_mock()
+
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=False, seen_in={})
+        camera_motion_detected(in_data)
+        
+        play_sound_mock.assert_called_once_with(self.device.device_id, False)
+        object_no_more_detected_mock.assert_called_once_with(self.device)
 
         motion = CameraMotionDetected.objects.filter(event_ref=str(self.event_ref), device=self.device)
         self.assertTrue(len(motion), 1)
 
-    def test_camera_motion_no_more_motion(self):
-        camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
-
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), True)
-        self.create_and_send_notification.reset_mock()
-        self.play_sound.reset_mock()
-
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), False)
-        self.play_sound.assert_called_once_with(self.device.device_id, False)
-        self.create_and_send_notification.apply_async.assert_called_once()
-
-        motion = CameraMotionDetected.objects.filter(event_ref=str(self.event_ref), device=self.device)
-        self.assertTrue(len(motion), 1)
-
-    def test_camera_motion_picture(self):
-        fake_picture_path = '/some/path.png'
-
-        camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
-        camera_motion.camera_motion_picture(self.device.device_id, fake_picture_path, str(self.event_ref), True)
-
-        motion = CameraMotionDetectedPicture.objects.filter(event_ref=str(self.event_ref), device=self.device)
-        self.assertTrue(len(motion), 1)
-        motion = motion[0]
-
-        self.assertEqual(motion.motion_started_picture.name, 'path.png')
-        self.assertEqual(motion.motion_ended_picture.name, '')
-
-        kwargs = {
-            'picture_path': fake_picture_path
-        }
-
-        self.send_picture.apply_async.assert_called_once_with(kwargs=kwargs)
-
-    def test_camera_motion_picture_no_more_motion(self):
-        fake_picture_path = '/some/path.png'
-        fake_picture_path2 = '/some/path2.png'
-
-        camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
-        camera_motion.camera_motion_picture(self.device.device_id, fake_picture_path, str(self.event_ref), True)
-        camera_motion.camera_motion_picture(self.device.device_id, fake_picture_path2, str(self.event_ref), False)
-
-        motion = CameraMotionDetectedPicture.objects.filter(event_ref=str(self.event_ref), device=self.device)
-        self.assertTrue(len(motion), 1)
-        motion = motion[0]
-
-        self.assertEqual(motion.motion_started_picture.name, 'path.png')
-        self.assertEqual(motion.motion_ended_picture.name, 'path2.png')
-
-    def test_camera_motion_no_more_motion_turn_off(self):
+    @patch('alarm.use_cases.camera_motion.play_sound')
+    @patch('alarm.notifications.object_detected')
+    @patch('alarm.notifications.object_no_more_detected')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
+    def test_camera_motion_no_more_motion_turn_off(self, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         """
         When no more motion is being detected on a camera and its database status is False, it should turn off the camera.
         """
-        camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), True)
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), False)
+        AlarmStatus.objects.all().delete()
+        self.alarm_status = AlarmStatusFactory(device=self.device, running=False)
 
-        self.notify_alarm_status_mock.publish_status_changed.assert_called_once_with(self.device.pk, False)
+        mock = Mock()
+        notify_alarm_status_mock.return_value = mock
 
-    def test_camera_motion_no_more_motion_dont_turn_off(self):
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+        camera_motion_detected(in_data)
+        object_detected_mock.reset_mock()
+
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=False, seen_in={})
+        camera_motion_detected(in_data)
+
+        object_no_more_detected_mock.assert_called_once_with(self.device)
+        object_detected_mock.assert_not_called()
+
+        notify_alarm_status_mock.assert_called_once_with()
+        mock.publish_status_changed.assert_called_once_with(self.device.pk, self.alarm_status)
+
+
+    @patch('alarm.use_cases.camera_motion.play_sound')
+    @patch('alarm.notifications.object_detected')
+    @patch('alarm.notifications.object_no_more_detected')
+    @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
+    def test_camera_motion_no_more_motion_dont_turn_off(self, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         AlarmStatus.objects.all().delete()
         self.alarm_status = AlarmStatusFactory(device=self.device, running=True)
 
-        camera_motion = CameraMotion(save_motion, self.create_and_send_notification, self.send_picture, self.play_sound, self.notify_alarm_status_factory)
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), True)
-        camera_motion.camera_motion_detected(self.device.device_id, {}, str(self.event_ref), False)
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+        camera_motion_detected(in_data)
+        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=False, seen_in={})
+        camera_motion_detected(in_data)
 
-        self.notify_alarm_status_mock.publish_status_changed.assert_not_called()
+
+        notify_alarm_status_mock.publish_status_changed.assert_not_called()

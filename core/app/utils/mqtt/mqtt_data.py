@@ -71,7 +71,7 @@ class MqttTopicFilterSubscription(Subscription):
 
 @dataclass
 class MqttTopicSubscriptionJson(MqttTopicSubscription):
-    def callback(self, message: MqttMessage):
+    def callback(self, message: MqttMessage) -> None:
         try:
             payload = json.loads(message.payload)
         except json.JSONDecodeError:

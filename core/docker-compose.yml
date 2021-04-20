@@ -2,19 +2,15 @@ version: "3.8"
 
 
 services:
-    rabbit:
-        # hostname is mandatory to keep track of our data.
-        hostname: rabbit
-        image: rabbitmq:3.8-management
-        environment:
-            - RABBITMQ_DEFAULT_USER=admin
-            - RABBITMQ_DEFAULT_PASS=mypass
+    redis-broker:
+        image: redis:6.2-buster
         ports:
-            - "5672:5672"
-            - "15672:15672"
+            - "6379:6379"
         networks:
-            - rabbitmq
+            - redis-broker
             - backend_mqtt
+        volumes:
+            - ./config/redis/redis-broker.conf:/usr/local/etc/redis/redis.conf
 
     database:
         image: postgres:13.1
@@ -39,7 +35,7 @@ services:
             - webapp_backend
             - backend_mqtt
 
-    rabbit_worker:
+    celery_worker:
         command: bash -c "celery -A hello_django worker --loglevel=info"
         volumes:
             - camera_videos:/var/lib/house/video
@@ -47,21 +43,21 @@ services:
             - ~/.ssh:/home/house/.ssh:ro # for rsync to get videos from dumb devices.
         networks:
             - webapp_backend
-            - rabbitmq
+            - redis-broker
             - backend_mqtt
         depends_on:
-            - rabbit
+            - redis-broker
             - database
             - mqtt_broker
 
     celery_beat:
         command: bash -c "rm -f celerybeat.pid && celery -A hello_django beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info --pidfile="
         networks:
-            - rabbitmq
+            - redis-broker
             - backend_mqtt
             - webapp_backend
         depends_on:
-            - rabbit
+            - redis-broker
             - database
             - mqtt_broker
 
@@ -75,10 +71,10 @@ services:
         depends_on:
             - database
             - mqtt_broker
-            - rabbit_worker
+            - celery_worker
             - celery_beat
         networks:
-            rabbitmq:
+            redis-broker:
             webapp_backend:
             backend_mqtt:
 
@@ -87,10 +83,10 @@ services:
         volumes:
             - medias:/var/lib/house/media
         depends_on:
-            - rabbit_worker
+            - celery_worker
             - database
         networks:
-            rabbitmq:
+            redis-broker:
             webapp_backend:
             backend_mqtt:
 
@@ -98,9 +94,9 @@ services:
         command: python standalone/telegram_bot/bot.py
         depends_on:
             - database
-            - rabbit_worker
+            - celery_worker
         networks:
-            - rabbitmq
+            - redis-broker
             - webapp_backend
             - backend_mqtt
 
@@ -114,18 +110,16 @@ services:
         - ./app/:/usr/src/app/
       command: bash -c "source /home/house/.nvm/nvm.sh && node -v && vim"
       networks:
-        - rabbitmq
+        - redis-broker
         - webapp_backend
         - backend_mqtt
 networks:
-    rabbitmq:
+    redis-broker:
     webapp_backend:
     backend_mqtt:
         external: true
 
 volumes:
-    psql-data:
-        driver: local
     medias:
         driver: local
     devices:

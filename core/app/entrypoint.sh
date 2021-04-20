@@ -10,12 +10,12 @@ then
   echo "PostgreSQL started"
 fi
 
-echo "Waiting for RabbitMQ $RABBIT_HOSTNAME:$RABBIT_PORT"
-ping -c 1 "$RABBIT_HOSTNAME"
-while ! nc -z "$RABBIT_HOSTNAME" "$RABBIT_PORT"; do
+echo "Waiting for Redis Broker $REDIS_HOSTNAME:$REDIS_PORT"
+ping -c 1 "$REDIS_HOSTNAME"
+while ! nc -z "$REDIS_HOSTNAME" "$REDIS_PORT"; do
   sleep 0.1
 done
-echo "RabbitMQ started"
+echo "Redis broker started"
 
 ping -c 1 "$MQTT_HOSTNAME"
 echo "Waiting for mqtt $MQTT_HOSTNAME:$MQTT_PORT"

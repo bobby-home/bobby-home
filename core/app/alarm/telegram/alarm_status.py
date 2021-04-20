@@ -3,7 +3,7 @@ from typing import List
 
 import django
 from telegram.ext.callbackcontext import CallbackContext
-from alarm.use_cases.alarm_status import alarm_statuses_changed
+from alarm.use_cases.alarm_status import alarm_statuses_changed, change_status
 from utils.telegram.restrict import restricted
 
 sys.path.append('/usr/src/app')
@@ -117,12 +117,15 @@ class AlarmStatusBot:
             """
             with transaction.atomic():
                 db_status = AlarmStatus.objects.select_for_update().get(pk=status_pk)
-                db_status.running = not db_status.running
+                status = not db_status.running
+
+                db_status.running = status
                 db_status.save()
-                
+
                 text = texts.alarm_status_changed(db_status)
                 transaction.on_commit(lambda: query.edit_message_text(text))
-            
+                change_status([db_status], status, force=True)
+
             return
         
         query.edit_message_text(texts.WRONG)

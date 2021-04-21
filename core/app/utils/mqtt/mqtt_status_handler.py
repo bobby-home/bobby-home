@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import re
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Type
 
 from django.db.models import Model
 import alarm.business.alarm as alarm
@@ -59,7 +59,7 @@ class OnConnectedHandlerLog(OnConnectedHandler):
     For example, in the database the alarm status is on and the system receives a mqtt message that indicates a disconnect
     from the alarm.
     """
-    def __init__(self, client: MQTT, status_model: Optional[Model] = None):
+    def __init__(self, client: MQTT, status_model: Optional[Type[Model]] = None):
         self.status_model = status_model
         super().__init__(client)
 

@@ -1,38 +1,5 @@
-from typing import List
-
-from alarm.use_cases.out_alarm import notify_alarm_status_factory
-from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected
 from devices.models import Device
-
-def alarm_status_changed(alarm_status: AlarmStatus, force=False):
-    """
-    Call this method when you changed an instance of alarm status.
-    Used to communicate with services, to sync status.
-
-    Parameters
-    ----------
-    alarm_status : AlarmStatus
-        The instance that has been modified.
-    force : bool
-        If it's true, it forces the synchronization.
-    """
-    notify_alarm_status_factory().publish_status_changed(alarm_status.device_id, alarm_status, force)
-
-
-def alarm_statuses_changed(alarm_statuses: List[AlarmStatus], force=False):
-    """
-    Call this method when you changed a list of alarm status.
-    Used to communicate with services, to sync status.
-
-    Parameters
-    ----------
-    alarm_statuses : List[AlarmStatus]
-    force : bool
-        If it's true, it forces the synchronization.
-    """
-    for alarm_status in alarm_statuses:
-        alarm_status_changed(alarm_status, force)
 
 
 def can_turn_off(device: Device) -> bool:

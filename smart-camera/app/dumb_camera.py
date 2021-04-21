@@ -31,11 +31,11 @@ try:
 
     device_id = os.environ['DEVICE_ID']
 
-    camera_mqtt_client = get_mqtt(f"{device_id}-dumb-camera-manager")
+    camera_mqtt_client = get_mqtt(f"{device_id}-dumb_camera_manager")
 
     camera_manager = RunDumbCameraFrameProducer()
 
-    MqttManageRunnable(device_id, 'camera', camera_mqtt_client, camera_manager, status_json=True)
+    MqttManageRunnable(device_id, 'camera_manager', camera_mqtt_client, camera_manager, status_json=True)
 
     camera_mqtt_client.client.loop_forever()
 except BaseException as e:

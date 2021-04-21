@@ -1,12 +1,14 @@
+from alarm.forms import AlarmStatusForm
 from typing import List
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, UpdateView, DetailView, TemplateView
 from django.views.generic.edit import CreateView
+from django.forms import ModelForm
 
 from alarm.business.alarm_schedule import DAYS_OF_WEEK
-from alarm.business.alarm_status import alarm_status_changed
+from alarm.use_cases.alarm_status import AlarmChangeStatus, alarm_status_changed
 from alarm.models import AlarmStatus, AlarmSchedule
 from devices.models import Device
 from utils.django.forms import ChangeForm
@@ -43,12 +45,12 @@ class AlarmStatusCreate(LoginRequiredMixin, ChangeForm, CreateView):
         alarm_status_changed(self.object)
         return res
 
+
 class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, ChangeForm, UpdateView):
+    form_class = AlarmStatusForm
     model = AlarmStatus
-    fields = ['running']
     template_name = 'alarm/status_form.html'
     success_url = reverse_lazy('alarm:home')
-
     context_object_name = 'alarm'
     queryset = AlarmStatus.objects.with_device_and_location()
 
@@ -65,11 +67,6 @@ class AlarmStatusUpdate(LoginRequiredMixin, JsonableResponseMixin, ChangeForm, U
         context['formOptions'] = formOptions
 
         return context
-
-    def form_valid(self, form):
-        res = super().form_valid(form)
-        alarm_status_changed(self.object)
-        return res
 
 
 class AlarmStatusDetail(LoginRequiredMixin, DetailView):

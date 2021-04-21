@@ -1,3 +1,4 @@
+from camera.mqtt import MqttServices
 from dataclasses import dataclass
 from typing import Optional
 
@@ -17,7 +18,7 @@ class CameraMessaging:
         self._mqtt_status = mqtt_status
 
     def publish_status(self, device_id: str, status: bool, data: Optional[CameraData] = None) -> None:
-        self._mqtt_status.publish(f'status/camera/{device_id}', status, data)
+        self._mqtt_status.publish(f'status/{MqttServices.CAMERA_MANAGER.value}/{device_id}', status, data)
 
 
 def camera_messaging_factory(mqtt_client):

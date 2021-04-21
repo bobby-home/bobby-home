@@ -9,7 +9,7 @@ from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscript
     MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
-from alarm.business.alarm import register_ping
+from alarm.business.alarm_ping import register_ping
 import hello_django.settings as settings
 from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMotionVideoData
 

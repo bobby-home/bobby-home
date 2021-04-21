@@ -126,7 +126,7 @@ class MQTT:
             timestamp,
         ))
 
-    def publish(self, topic, message, qos=1, retain=False):
+    def publish(self, topic, message, qos=1, retain=False) -> None:
         # otherwise it will raise Exception and crash.
         if qos is None:
             qos = 1

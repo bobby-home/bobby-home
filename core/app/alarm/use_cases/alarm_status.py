@@ -64,7 +64,6 @@ class AlarmChangeStatus:
     @staticmethod
     def save_status(alarm_status: AlarmStatus) -> AlarmStatus:
         with transaction.atomic():
-            # save + ping + change_update
             alarm_status.save()
             change_status([alarm_status], alarm_status.running, force=False)
 

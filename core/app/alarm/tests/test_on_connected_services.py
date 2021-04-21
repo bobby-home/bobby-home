@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 from django.test import TestCase
-from alarm.mqtt.on_connected_services import OnConnectedObjectDetectionHandler, OnConnectedCamera
+from alarm.mqtt.on_connected_services import OnConnectedObjectDetection, OnConnectedCamera
 from alarm.factories import AlarmStatusFactory
 from devices.factories import DeviceFactory
 
@@ -22,7 +22,7 @@ class OnConnectedServices(TestCase):
             notify.publish_device_connected.assert_called_once_with(self.device.device_id)
 
     def test_on_connect_close_motions(self):
-        handler = OnConnectedObjectDetectionHandler(self.mqtt)
+        handler = OnConnectedObjectDetection(self.mqtt)
 
         with patch('camera.business.camera_motion.close_unclosed_camera_motions') as camera_motion:
             handler.on_connect('serivce_name', self.device.device_id)
@@ -30,7 +30,7 @@ class OnConnectedServices(TestCase):
             camera_motion.assert_called_once_with(self.device.device_id)
 
     def test_on_disconnect_close_motion(self):
-        handler = OnConnectedObjectDetectionHandler(self.mqtt)
+        handler = OnConnectedObjectDetection(self.mqtt)
 
         with patch('camera.business.camera_motion.close_unclosed_camera_motions') as camera_motion:
             handler.on_disconnect('serivce_name', self.device.device_id)

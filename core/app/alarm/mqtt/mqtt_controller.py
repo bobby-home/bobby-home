@@ -36,10 +36,14 @@ class CameraMotionPictureTopic(CameraTopic):
     event_ref: str
     status: str
     bool_status: bool = field(init=False)
+    filename: str = field(init=False)
+
     _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[0-1])$" 
 
     def __post_init__(self):
         self.bool_status = self.status == '1'
+        self.filename = f'{self.event_ref}-{self.status}.jpg'
+
 
 @dataclass
 class CameraMotionVideoPayload:
@@ -124,8 +128,6 @@ def on_motion_picture(message: MqttMessage):
         # Initialization: no motion
         return
 
-    file_name = f'{topic.event_ref}.jpg'
-
     data_payload = CameraMotionPicturePayload(image=message.payload)
 
     """
@@ -137,8 +139,17 @@ def on_motion_picture(message: MqttMessage):
     - at the end, picture_path is an absolute path e.g: "/usr/src/app/media/1be409e1-7625-490a-9a8a-428ba4b8e88c.jpg"
     """
 
-    picture_path = os.path.join(settings.MEDIA_ROOT, file_name)
-    
+    picture_path = os.path.join(settings.MEDIA_ROOT, topic.filename)
+
+
+    """
+    edge case: I should not explicitly raise this error because
+    open() should do, but it was not in production.
+    See issue #186 for further information.
+    """
+    if os.path.isfile(picture_path):
+        raise FileExistsError()
+
     with open(picture_path, 'wb') as f:
         f.write(data_payload.image)
 

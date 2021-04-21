@@ -38,6 +38,7 @@ class NotifyAlarmStatusVerify(TestCase):
                 call(kwargs=kwargs, countdown=15),
                 call(kwargs=kwargs2, countdown=15),
             ]
+
             verify_service_status.apply_async.assert_has_calls(calls)
 
         _test(False)

@@ -1,3 +1,4 @@
+from alarm.business.alarm_ping import reset_pings
 from typing import List
 
 from django.db import transaction
@@ -35,18 +36,8 @@ def alarm_statuses_changed(alarm_statuses: List[AlarmStatus], force=False):
         alarm_status_changed(alarm_status, force)
 
 def _reset_ping(alarm_statuses: List[AlarmStatus]):
-    for alarm_status in alarm_statuses:
-        try:
-            # @TODO: perform these N requests with only one UPDATE.
-            ping = Ping.objects.get(
-                device_id=alarm_status.device.device_id,
-                service_name='object_detection')
-
-            ping.failures += ping.consecutive_failures
-            ping.consecutive_failures = 0
-            ping.save()
-        except Ping.DoesNotExist:
-            pass
+    device_ids = [alarm_status.device.device_id for alarm_status in alarm_statuses]
+    reset_pings(device_ids, 'object_detection')
 
 def change_status(alarm_statuses: List[AlarmStatus], status: bool, force: bool = False) -> None:
     _reset_ping(alarm_statuses)
@@ -70,6 +61,26 @@ class AlarmChangeStatus:
             AlarmStatus.objects.bulk_update(alarm_statuses, ['running'])
             change_status(alarm_statuses, status, force)
 
+    @staticmethod
+    def save_status(alarm_status: AlarmStatus) -> AlarmStatus:
+        with transaction.atomic():
+            # save + ping + change_update
+            alarm_status.save()
+            change_status([alarm_status], alarm_status.running, force=False)
+
+            return alarm_status
+
+    @staticmethod
+    def reverse_status(alarm_status_pk: int, force: bool = False) -> AlarmStatus:
+        with transaction.atomic():
+            db_status = AlarmStatus.objects.select_for_update().get(pk=alarm_status_pk)
+            status = not db_status.running
+
+            db_status.running = status 
+            db_status.save()
+			
+            change_status([db_status], status, force)
+            return db_status
 
 class AlarmScheduleChangeStatus:
     """

@@ -1,5 +1,5 @@
 from alarm.models import Ping
-from alarm.business.alarm import register_ping
+from alarm.business.alarm_ping import register_ping
 from django.test import TestCase
 
 

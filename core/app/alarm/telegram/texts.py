@@ -1,9 +1,9 @@
 from alarm.models import AlarmStatus
 from django.utils.translation import gettext as _
 
-OFF_ALL = _('Deactivate all')
-ON_ALL = _('Activate all')
-CHOOSE = _('Choose alarm')
+OFF_ALL = _('Turn off all')
+ON_ALL = _('Turn on all')
+CHOOSE = _('Manage alarm')
 NO_ALARM = _('No alarm configured.')
 ALL_ON = _('All of your alarms are on.')
 ALL_OFF = _('All of your alarms are off.')
@@ -12,22 +12,37 @@ WRONG = _('Something went wrong.')
 
 
 def alarm_status(status: AlarmStatus) -> str:
+    data = {
+        'location': status.device.location,
+        'device': status.device.name
+    }
+
     if status.running:
-        return _('Your alarm %(alarm)s is on.') % {'alarm': status.device.location}
+        return _('Your alarm at %(location)s on device %(device)s is on.') % data
     
-    return _('Your alarm %(alarm)s is off.') % {'alarm': status.device.location}
+    return _('Your alarm at %(location)s on device %(device)s is off.') % data
 
 
 def change_alarm_status(status: AlarmStatus) -> str:
+    data = {
+        'location': status.device.location,
+        'device': status.device.name,
+    }
+
     if status.running:
-        return _('Desactivate alarm %(device)s.') % {'device': status.device.location}
+        return _('Turn off %(location)s / %(device)s.') % data 
     
-    return _('Activate alarm %(device)s.') % {'device': status.device.location}
+    return _('Turn on %(location)s / %(device)s.') % data
 
 
 def alarm_status_changed(status: AlarmStatus) -> str:
-    if status.running:
-        return _('Alarm %(device)s turned on.') % {'device': status.device.location}
+    data = {
+        'location': status.device.location,
+        'device': status.device.name,
+    }
 
-    return _('Alarm %(device)s turned off.') % {'device': status.device.location}
+    if status.running:
+        return _('Your alarm at %(location)s on device %(device)s turned on.') % data 
+
+    return _('Your alarm at %(location)s on device %(device)s turned off.') % data 
 

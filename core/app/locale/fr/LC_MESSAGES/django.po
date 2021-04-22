@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-31 13:06+0000\n"
+"POT-Creation-Date: 2021-04-22 12:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,14 +18,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: alarm/notifications.py:11
+#: alarm/notifications.py:12
 #, python-format
 msgid "People has been detected in %(structure)s %(sub_structure)s"
 msgstr ""
 "Une présence étrangère a été détectée chez vous depuis %(structure)s "
 "%(sub_structure)s"
 
-#: alarm/notifications.py:27
+#: alarm/notifications.py:28
 #, python-format
 msgid ""
 "People detected in %(structure)s %(sub_structure)s is no longer detected."
@@ -33,54 +33,90 @@ msgstr ""
 "La présence étrangère précédemment détectée chez vous depuis %(structure)s "
 "%(sub_structure)s ne l'est plus."
 
-#: alarm/notifications.py:42
+#: alarm/notifications.py:43
 #, python-format
 msgid "since %(since)s"
-msgstr ""
+msgstr "depuis %(since)s"
 
-#: alarm/notifications.py:45
+#: alarm/notifications.py:44
 #, python-format
 msgid ""
-"The service object_detection for the device %(device) does not send any ping"
+"The service object_detection for the device %(device)s does not send any ping"
 "%(since)s."
 msgstr ""
+"Le service object_detection sur l'appareil %(device)s n'a pas envoyé de ping "
+"%(since)s"
 
-#: alarm/notifications.py:54
+#: alarm/notifications.py:53
 #, python-format
 msgid ""
 "The service object_detection for the device %(device_name)s was not pinging "
 "but it does now. Everything is back to normal."
 msgstr ""
+"Le service object_detection de l’appareil %(device_name)s répond de nouveau. "
+"Tout est revenu à la normale."
 
-#: alarm/telegram/alarm_status.py:66
-#, python-format
-msgid "Your alarm %(alarm)s is on."
-msgstr "Votre alarme %(alarm)s est allumée."
-
-#: alarm/telegram/alarm_status.py:69
-#, python-format
-msgid "Your alarm %(alarm)s is off."
-msgstr "Votre alarme %(alarm)s est éteinte."
-
-#: alarm/telegram/alarm_status.py:73
-msgid "Deactivate all"
+#: alarm/telegram/texts.py:4
+msgid "Turn off all"
 msgstr "Tout désactiver"
 
-#: alarm/telegram/alarm_status.py:74
-msgid "Activate all"
+#: alarm/telegram/texts.py:5
+msgid "Turn on all"
 msgstr "Tout activer"
 
-#: alarm/telegram/alarm_status.py:87
+#: alarm/telegram/texts.py:6
+msgid "Manage alarm"
+msgstr "Gérer une alarme"
+
+#: alarm/telegram/texts.py:7
+msgid "No alarm configured."
+msgstr "Vous n'avez pas d'alarme configurée."
+
+#: alarm/telegram/texts.py:8
 msgid "All of your alarms are on."
-msgstr "Toutes vos alarmes sont allumées."
+msgstr "Toutes vos alarmes sont activées."
 
-#: alarm/telegram/alarm_status.py:92
+#: alarm/telegram/texts.py:9
 msgid "All of your alarms are off."
-msgstr "Toutes vos alarmes sont éteintes."
+msgstr "Toutes vos alarmes sont désactivées."
 
-#: alarm/telegram/alarm_status.py:95
+#: alarm/telegram/texts.py:10
+msgid "What do you want to do?"
+msgstr "Que voulez-vous faire ?"
+
+#: alarm/telegram/texts.py:11
 msgid "Something went wrong."
 msgstr "Nous avons rencontré un problème technique."
+
+#: alarm/telegram/texts.py:21
+#, python-format
+msgid "Your alarm at %(location)s on device %(device)s is on."
+msgstr "Votre alarme %(location)s sur l'appareil %(device)s est activée."
+
+#: alarm/telegram/texts.py:23
+#, python-format
+msgid "Your alarm at %(location)s on device %(device)s is off."
+msgstr "Votre alarme %(location)s sur l'appareil %(device)s est désactivée."
+
+#: alarm/telegram/texts.py:33
+#, python-format
+msgid "Turn off %(location)s / %(device)s."
+msgstr "Désactiver %(location)s / %(device)s."
+
+#: alarm/telegram/texts.py:35
+#, python-format
+msgid "Turn on %(location)s / %(device)s."
+msgstr "Activer %(location)s / %(device)s."
+
+#: alarm/telegram/texts.py:45
+#, python-format
+msgid "Your alarm at %(location)s on device %(device)s turned on."
+msgstr "Votre alarme %(location)s sur l'appareil %(device)s s'active."
+
+#: alarm/telegram/texts.py:47
+#, python-format
+msgid "Your alarm at %(location)s on device %(device)s turned off."
+msgstr "Votre alarme %(location)s sur l'appareil %(device)s se désactive."
 
 #: mqtt_services/notifications.py:7
 msgid "turn on"
@@ -130,24 +166,46 @@ msgstr ""
 msgid "Mx tech house"
 msgstr ""
 
+#: templates/alarm/alarm_detail.html:10
+msgid "Alarm information"
+msgstr ""
+
+#: templates/alarm/alarm_detail.html:22
+msgid "Schedules"
+msgstr ""
+
 #: templates/alarm/alarmschedule_detail.html:11
 msgid "List of linked alarms"
 msgstr ""
 
 #: templates/alarm/home.html:9
-msgid "Create alarm"
+msgid "Your alarms"
 msgstr ""
 
-#: templates/alarm/status_schedules.html:10
-msgid "Alarm information"
+#: templates/alarm/home.html:13
+msgid "New alarm"
 msgstr ""
 
-#: templates/alarm/status_schedules.html:21
-msgid "Schedules"
+#: templates/camera/camera_motion_detected_detail.html:16
+msgid "Device information"
 msgstr ""
 
-#: templates/camera/camera_motion_detected_list.html:13
-msgid "List of camera motions"
+#: templates/camera/camera_motion_detected_detail.html:29
+msgid "Motion information"
+msgstr ""
+
+#: templates/camera/camera_motion_detected_list.html:12
+msgid "List of camera motion detected"
+msgstr ""
+
+#: templates/camera/camera_stream.html:16
+msgid "Camera stream"
+msgstr ""
+
+#: templates/camera/camera_stream.html:21
+#: templates/partials/_alarm_status_info.html:19
+#: templates/partials/_camera_list.html:13
+msgid "Live stream"
 msgstr ""
 
 #: templates/configuration.html:13
@@ -182,12 +240,13 @@ msgstr ""
 msgid "Hello"
 msgstr ""
 
+#: templates/partials/_alarm_list.html:15
 #: templates/partials/_alarm_schedule_info.html:33
-#: templates/partials/_camera_motion_list.html:13
+#: templates/partials/_camera_motion_list.html:16
 msgid "See more"
 msgstr ""
 
-#: templates/partials/_alarm_status_info.html:39
+#: templates/partials/_alarm_status_info.html:43
 msgid "Create schedule"
 msgstr ""
 
@@ -200,11 +259,19 @@ msgid "Home"
 msgstr ""
 
 #: templates/partials/_topbar.html:10
-msgid "Alarm"
+msgid "Alarms"
 msgstr ""
 
 #: templates/partials/_topbar.html:13
+msgid "Cameras"
+msgstr ""
+
+#: templates/partials/_topbar.html:16
 msgid "Configuration"
+msgstr ""
+
+#: templates/partials/_topbar.html:30 templates/registration/login.html:22
+msgid "Login"
 msgstr ""
 
 #: templates/registration/signup.html:9 templates/registration/signup.html:14
@@ -275,6 +342,15 @@ msgstr ""
 #, python-format
 msgid "Change %s"
 msgstr ""
+
+#~ msgid "Your alarm %(alarm)s is on."
+#~ msgstr "Votre alarme %(alarm)s est allumée."
+
+#~ msgid "Deactivate all"
+#~ msgstr "Tout désactiver"
+
+#~ msgid "Activate all"
+#~ msgstr "Tout activer"
 
 #~ msgid "This is the title."
 #~ msgstr "C'est un titre"

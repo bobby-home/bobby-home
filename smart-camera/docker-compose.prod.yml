@@ -7,18 +7,22 @@ x-logging: &loki-logging
         loki-url: "http://localhost:3100/api/prom/push"
 
 
+x-cameraimage: &cameraimage
+    image: bobbyhome/camera:0.4.0
+
+
 services:
     camera:
-        image: mxmaxime/camera:0.3.0
+        <<: *cameraimage
         logging: *loki-logging
         restart: unless-stopped
 
     sound:
-        image: mxmaxime/camera:0.3.0
+        <<: *cameraimage
         logging: *loki-logging
         restart: unless-stopped
 
     listen_frame:
-        image: mxmaxime/camera:0.3.0
+        <<: *cameraimage
         logging: *loki-logging
         restart: unless-stopped

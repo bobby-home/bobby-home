@@ -36,7 +36,7 @@ services:
             - backend_mqtt
 
     celery_worker:
-        command: bash -c "celery -A hello_django worker --loglevel=info"
+        command: bash -c "celery -A hello_django worker --autoscale=2,1 --loglevel=INFO"
         volumes:
             - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
@@ -100,19 +100,6 @@ services:
             - webapp_backend
             - backend_mqtt
 
-    vim:
-      build:
-        context: ./tools/docker/dev
-      volumes:
-        - ~/.vim/:/home/house/.vim/
-        - ~/.config/coc/:/home/house/.config/coc
-        - ~/.vimrc/:/home/house/.vimrc
-        - ./app/:/usr/src/app/
-      command: bash -c "source /home/house/.nvm/nvm.sh && node -v && vim"
-      networks:
-        - redis-broker
-        - webapp_backend
-        - backend_mqtt
 networks:
     redis-broker:
     webapp_backend:

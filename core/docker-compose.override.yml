@@ -61,6 +61,19 @@ services:
             - ./app:/usr/src/app
         ports:
             - 3000:3000
+    vim:
+      build:
+        context: ./tools/docker/dev
+      volumes:
+        - ~/.vim/:/home/house/.vim/
+        - ~/.config/coc/:/home/house/.config/coc
+        - ~/.vimrc/:/home/house/.vimrc
+        - ./app/:/usr/src/app/
+      command: bash -c "source /home/house/.nvm/nvm.sh && node -v && vim"
+      networks:
+        - redis-broker
+        - webapp_backend
+        - backend_mqtt
 
 volumes:
     dev-redis-broker-data:

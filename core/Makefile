@@ -16,7 +16,7 @@ manage-dev := $(dr-dev) $(web_image) python manage.py
 
 .PHONY: shell
 shell:
-	$(manage-dev) shell_plus --print-sql 
+	$(manage-dev) shell_plus --print-sql
 
 .PHONY: create-folders
 create-folders:
@@ -29,7 +29,7 @@ stop-all:
 
 .PHONY: prod-up
 prod-up:
-	$(dc) -f ../docker-compose.yml -f ../docker-compose.prod.yml -d up
+	$(dc) -f ./docker-compose.yml -f ./docker-compose.prod.yml up -d
 
 .PHONY: dev-up
 dev-up:

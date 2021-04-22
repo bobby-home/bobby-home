@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block title %}
-    Camera motion detail
+    {% trans 'Camera motion detail' %}
 {% endblock title %}
 
 
@@ -30,16 +30,22 @@
                         </div>
                         <ul>
                             <p>{{ motion.motion_started_at }} to {{ motion.motion_ended_at }}</p>
-                            {% if not picture %}
-                                We do not have any picture for this motion.
-                            {% endif %}
                         </ul>
                         {% if picture %}
-                            <motion-picture
-                                    data-picture="{{ picture.motion_started_picture.url }}"
-                                    data-bounding-boxes="{{ bounding_boxes }}"
-                                    data-camera-boxes="{{ camera_roi }}"
-                            ></motion-picture>
+                        <p>{% trans 'Picture taken when people was detected.' %}</p>
+                           <motion-picture
+                                   data-picture="{{ picture.motion_started_picture.url }}"
+                                   data-bounding-boxes="{{ bounding_boxes }}"
+                                   data-camera-boxes="{{ camera_roi }}"
+                           ></motion-picture>
+                         {% if picture.motion_ended_picture %}
+                            <p>{% trans 'Picture taken when people left.' %}</p>
+                            <img src="{{picture.motion_ended_picture.url}}" alt="{% trans 'Motion ended picture.' %}"/>
+                          {% else %}
+                            <p>{% trans 'No picture was taken when people left. Could happens when the device linked to the camera turn off before people left.' %}</p>
+                          {% endif %}
+                        {% else %}
+                            <p>{% trans 'The system does not have any picture for this event.' %}</p>
                         {% endif %}
                     </div>
                 </div>

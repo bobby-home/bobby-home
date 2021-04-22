@@ -1,9 +1,16 @@
 #!/bin/bash
 
-# bash deploy.sh pi@mx_rpi /home/pi/core
+# bash deploy.sh pi@mx_rpi /home/pi/core <env?>
 
 RSYNC="$1:$2"
 
-echo "Deploy core to $RSYNC"
+FILES="../setup-ssh-keys.sh ./docker-compose.yml ./docker-compose.prod.yml ./Makefile config"
 
-rsync --exclude=passwd -avt ../setup-ssh-keys.sh ./docker-compose.yml ./docker-compose.prod.yml ./Makefile ./.env up.sh config "$RSYNC"
+if [ -n "$3" ]; then
+    FILES="$FILES ./.env"
+fi
+
+echo "Deploy core $FILES to $RSYNC"
+
+rsync --exclude=passwd -avt $FILES "$RSYNC"
+

@@ -78,6 +78,7 @@ services:
 
     web:
         <<: *coreimage
+        command: bash -c "python manage.py migrate --no-input && python register_device.py && python manage.py runserver --noreload 0.0.0.0:8000"
         #        command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
         ports:
             - 8000:8000

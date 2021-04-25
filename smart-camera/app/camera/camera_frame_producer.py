@@ -20,6 +20,12 @@ class CameraFrameProducer:
     def publish_to_analyze(self, picture):
         self.mqtt_client.publish(f'{self.TOPIC_PICTURE_TO_ANALYZE}/{self._device_id}', picture, qos=0)
 
+
+    @rate_limited(max_per_second=15, block=False)
+    def publish_stream(self, picture):
+        self.mqtt_client.publish(f'{self.TOPIC_PICTURE_STREAM}/{self._device_id}', picture, qos=0)
+
+
     def start(self) -> None:
         mqtt_client = get_mqtt(client_name=f'{self._device_id}-{CameraFrameProducer.SERVICE_NAME}')
         mqtt_client.connect_keep_status(CameraFrameProducer.SERVICE_NAME, self._device_id)
@@ -35,4 +41,4 @@ class CameraFrameProducer:
             self.publish_to_analyze(picture)
 
         if stream is True:
-            self.mqtt_client.publish(f'{self.TOPIC_PICTURE_STREAM}/{self._device_id}', picture, qos=0)
+            self.publish_stream(picture)

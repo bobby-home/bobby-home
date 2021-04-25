@@ -8,7 +8,7 @@ x-logging: &loki-logging
 
 
 x-cameraimage: &cameraimage
-    image: bobbyhome/camera:0.4.0
+    image: bobbyhome/camera:0.4.1
 
 
 services:

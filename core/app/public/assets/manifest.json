@@ -1,14 +1,19 @@
 {
   "entrypoints/app.js": {
-    "file": "app.js.c0c26403.js",
+    "file": "app.js.77ce71e1.js",
     "src": "entrypoints/app.js",
     "isEntry": true,
     "imports": [
       "_vendor.2c74d099.js"
     ],
     "css": [
-      "app.js.3a444974.css"
+      "app.js.84ae57d8.css"
     ]
+  },
+  "entrypoints/motion-detected.js": {
+    "file": "motion-detected.js.cca68a64.js",
+    "src": "entrypoints/motion-detected.js",
+    "isEntry": true
   },
   "_vendor.2c74d099.js": {
     "file": "vendor.2c74d099.js"

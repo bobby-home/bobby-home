@@ -1,16 +1,18 @@
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 import json
 import pathlib
 
 class AssetsHelper:
-    def __init__(self, env: str, public_asset: str, asset_url: str, manifest_filename: str):
+    def __init__(self, env: str, manifest_filename: str, public_asset: Optional[str], asset_url: Optional[str]):
         self._public_asset = public_asset
         self._asset_url = asset_url
         self._env = env
         self._manifest_filename = manifest_filename
-        self._manifest = self._load_manifest()
+        
+        if env == 'prod':
+            self._manifest = self._load_manifest()
 
     def _load_manifest(self):
         manifest_data = pathlib.Path(f'{self._public_asset}/{self._manifest_filename}')
@@ -23,8 +25,10 @@ class AssetsHelper:
             url = self._asset_url + '/' + file
             return [url]
 
+        file_data = self._manifest.get(file, None)
 
-        file_data = self._manifest.get(file, '')
+        if file_data is None:
+            raise FileNotFoundError(f'{file} not found in manifest.')
 
         file_path = f'{self._public_asset}/{file_data["file"]}'
         urls = [file_path]

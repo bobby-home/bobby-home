@@ -18,15 +18,6 @@ manage-dev := $(dr-dev) $(web_image) python manage.py
 shell:
 	$(manage-dev) shell_plus --print-sql
 
-.PHONY: create-folders
-create-folders:
-	mkdir -p mosquitto-data && sudo chown -R 1883:1883 mosquitto-data
-	mkdir -p psql-data
-
-.PHONY: stop-all
-stop-all:
-	docker stop $(docker ps -aq)
-
 .PHONY: prod-up
 prod-up:
 	$(dc) -f ./docker-compose.yml -f ./docker-compose.prod.yml up -d
@@ -61,7 +52,7 @@ build-docker:
 
 .PHONY: docker-build-release
 docker-build-release:
-	docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag bobbyhome/core:$(version) ./app
+	cd app && npm run build && cd - && docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag bobbyhome/core:$(version) ./app
 
 .PHONY: test
 test:

@@ -9,11 +9,17 @@ from template_addons.assets_helper import AssetsHelper
 register = template.Library()
 
 
-assets_uri = os.environ['ASSETS_DEV_SERVER']
-public_asset = os.environ['PUBLIC_ASSET']
+assets_uri = os.getenv('ASSETS_DEV_SERVER', None)
+public_asset = os.getenv('PUBLIC_ASSET', None)
 env = os.getenv('ENV', 'prod')
 
-assets_helper = AssetsHelper(env, public_asset, assets_uri, 'manifest.json')
+if env == 'prod' and public_asset is None:
+    raise ValueError('For production environment the env variable PUBLIC_ASSET have to be defined')
+
+if env == 'dev' and assets_uri is None:
+    raise ValueError('For dev environment the env variable ASSETS_DEV_SERVER have to be defined')
+
+assets_helper = AssetsHelper(env, 'manifest.json', public_asset, assets_uri)
 
 def _inject_vite_dev():
     return f'<script type="module" src="{assets_uri}/@vite/client"></script>'

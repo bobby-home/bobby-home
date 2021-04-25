@@ -15,6 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         'app.js': `./assets/entrypoints/app.js`,
+        'motion-detected.js': `./assets/entrypoints/motion-detected.js`,
       }
     }
   }

@@ -18,7 +18,7 @@
                         <p class="flex items-center">
                             {% svg_icon 'location' %} <span class="l-ml1">{{ camera.device.location }}</span>
                         </p>
-                        <img decoding="async" loading="lazy" src="{% url 'camera:camera_stream' camera.pk %}" alt="{% trans 'Live stream' %}" />
+                        <img src="{% url 'camera:camera_stream' camera.pk %}" alt="{% trans 'Live stream' %}" />
                     </div>
                 </div>
             </div>

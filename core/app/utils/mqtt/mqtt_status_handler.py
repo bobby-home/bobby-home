@@ -32,6 +32,9 @@ def service_status_topic(topic: str) -> ServiceStatusTopic:
 class OnConnectedHandler(ABC):
     """Abstract class to implement and perform actions when mqtt service connect/disconnect.
     """
+    def __init__(self, *_args, **_kwargs) -> None:
+        pass
+
     @abstractmethod
     def on_connect(self, service_name: str, device_id: str) -> None:
         pass
@@ -79,6 +82,7 @@ class OnConnectedVerifyStatusHandler:
 class OnConnectedHandlerLog(OnConnectedHandler):
     """Handler that logs events to the database.
     """
+
     def on_connect(self, service_name: str, device_id: str) -> None:
         MqttServicesConnectionStatusLogs.objects.create(device_id=device_id, status=True, service_name=service_name)
 

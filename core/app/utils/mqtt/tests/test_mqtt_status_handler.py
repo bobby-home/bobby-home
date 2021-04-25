@@ -1,15 +1,18 @@
+from utils.mqtt.mqtt_data import MqttTopicSubscriptionBoolean
+from unittest.mock import ANY
+from alarm.mqtt import MqttServices
+from camera.mqtt import MqttServices as CameraMqttServices
 import dataclasses
 from dataclasses import dataclass
 import unittest
-from unittest.case import skip
 from unittest.mock import Mock, patch
-
+from utils.mqtt.mqtt_service import ServiceDescriptor
 from django.test import TestCase
 from alarm.models import AlarmStatus
 from devices.factories import DeviceFactory
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 from utils.mqtt import MqttMessage
-from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnConnectedVerifyStatusHandler, OnStatus, service_status_topic 
+from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnConnectedVerifyStatusHandler, OnStatus, on_connected_services, service_status_topic 
 import utils.date as dt_utils
 
 
@@ -145,4 +148,32 @@ class OnConnectedHandlerLogTestCase(TestCase):
 
         logs = MqttServicesConnectionStatusLogs.objects.filter(device_id=self.device_id, service_name=self.service_name, status=False)
         self.assertTrue(logs.exists())
+
+class OnConnectedServicesTestCase(TestCase):
+    def setUp(self) -> None:
+        self.mqtt = Mock()
+        
+        self.services = (
+            ServiceDescriptor(
+                name=MqttServices.OBJECT_DETECTION.value,
+                on_connect=OnConnectedHandlerLog
+            ),
+            ServiceDescriptor(
+                name=CameraMqttServices.CAMERA_MANAGER.value,
+                on_connect=OnConnectedHandlerLog
+            ),
+        ) 
+
+    def test_mqtt_subscribe(self):
+        call_param = []
+        for service in self.services:
+            p = MqttTopicSubscriptionBoolean(
+                topic=f'connected/{service.name}/+',
+                _callback=ANY,
+                qos=1
+            )
+            call_param.append(p)
+
+        on_connected_services(self.mqtt, self.services)
+        self.mqtt.add_subscribe.assert_called_once_with(call_param)
 

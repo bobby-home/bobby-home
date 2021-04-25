@@ -7,8 +7,5 @@ def is_status_exists(model_ref: Type[Model], device_id: str, running: bool) -> b
     device = Device.objects.get(device_id=device_id)
 
     status = model_ref.objects.filter(running=running, device=device)
-    if status.exists():
-        return True
-
-    return False
+    return status.exists()
 

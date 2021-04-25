@@ -1,6 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 import unittest
+from unittest.case import skip
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
@@ -8,7 +9,7 @@ from alarm.models import AlarmStatus
 from devices.factories import DeviceFactory
 from mqtt_services.models import MqttServicesConnectionStatusLogs
 from utils.mqtt import MqttMessage
-from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnStatus, service_status_topic 
+from utils.mqtt.mqtt_status_handler import OnConnectedHandlerLog, OnConnectedVerifyStatusHandler, OnStatus, service_status_topic 
 import utils.date as dt_utils
 
 
@@ -74,13 +75,64 @@ class OnStatusTestCase(TestCase):
         handler_mock.on_connect.assert_not_called()
 
 
+class OnConnectedVerifyTestCase(TestCase):
+    def setUp(self) -> None:
+        self.device = DeviceFactory()
+        self.device_id: str = self.device.device_id
+        self.service_name = 'test_service'
+
+        self.alarm_status = AlarmStatus(device=self.device)
+        self.handler = OnConnectedVerifyStatusHandler(AlarmStatus)
+
+    @patch('mqtt_services.tasks.mqtt_status_does_not_match_database')
+    def test_disconnect_running_false(self, mock_task):
+        AlarmStatus.objects.create(device=self.device, running=False)
+
+        self.handler.on_disconnect(self.service_name, self.device_id)
+        mock_task.apply_async.assert_not_called()
+
+    @patch('mqtt_services.tasks.mqtt_status_does_not_match_database')
+    def test_disconnect_running_true(self, mock_task):
+        AlarmStatus.objects.create(device=self.device, running=False)
+
+        self.handler.on_connect(self.service_name, self.device_id)
+
+        kwargs = {
+            'device_id': self.device.device_id,
+            'received_status': True,
+            'service_name': self.service_name,
+        }
+
+        mock_task.apply_async.assert_called_once_with(kwargs=kwargs)
+
+    @patch('mqtt_services.tasks.mqtt_status_does_not_match_database')
+    def test_connect_running_true(self, mock_task):
+        AlarmStatus.objects.create(running=True, device=self.device)
+
+        self.handler.on_connect(self.service_name, self.device_id)
+        mock_task.apply_async.assert_not_called()
+
+    @patch('mqtt_services.tasks.mqtt_status_does_not_match_database')
+    def test_connect_running_false(self, mock_task):
+        AlarmStatus.objects.create(running=False, device=self.device)
+
+        self.handler.on_connect(self.service_name, self.device_id)
+        kwargs = {
+            'device_id': self.device.device_id,
+            'received_status': True,
+            'service_name': self.service_name,
+        }
+
+        mock_task.apply_async.assert_called_once_with(kwargs=kwargs)
+
+
 class OnConnectedHandlerLogTestCase(TestCase):
     def setUp(self) -> None:
         self.device = DeviceFactory()
         self.service_name = 'test_service'
-        self.device_id = self.device.device_id
+        self.device_id: str = self.device.device_id
         self.mqtt = Mock()
-        self.handler = OnConnectedHandlerLog(self.mqtt)
+        self.handler = OnConnectedHandlerLog()
 
     def test_on_connect_database_record(self):
         self.handler.on_connect(self.service_name, self.device_id)
@@ -94,50 +146,3 @@ class OnConnectedHandlerLogTestCase(TestCase):
         logs = MqttServicesConnectionStatusLogs.objects.filter(device_id=self.device_id, service_name=self.service_name, status=False)
         self.assertTrue(logs.exists())
 
-    def test_call_is_status_exists_and_task_call(self):
-        model_mock = Mock()
-
-        with patch('alarm.business.alarm.is_status_exists', autospec=True) as is_status_exists, patch('mqtt_services.tasks.mqtt_status_does_not_match_database') as mock_task:
-            is_status_exists.return_value = False
-            handler = OnConnectedHandlerLog(self.mqtt, model_mock)
-
-            handler.on_connect(self.service_name, self.device.device_id)
-            is_status_exists.assert_called_once_with(model_mock, self.device.device_id, True)
-
-            kwargs = {
-                'device_id': self.device.device_id,
-                'received_status': True,
-                'service_name': self.service_name,
-            }
-
-            mock_task.apply_async.assert_called_once_with(kwargs=kwargs)
-
-        with patch('alarm.business.alarm.is_status_exists') as is_status_exists, patch('mqtt_services.tasks.mqtt_status_does_not_match_database') as mock_task:
-            is_status_exists.return_value = True
-            handler = OnConnectedHandlerLog(self.mqtt, model_mock)
-
-            handler.on_disconnect(self.service_name, self.device.device_id)
-            is_status_exists.assert_called_once_with(model_mock, self.device.device_id, False)
-            mock_task.apply_async.assert_not_called()
-
-    def test_mqtt_status_does_not_match_database_not_called(self):
-        AlarmStatus.objects.create(running=True, device=self.device)
-
-        handler = OnConnectedHandlerLog(self.mqtt, AlarmStatus)
-        with patch('mqtt_services.tasks.mqtt_status_does_not_match_database') as mock_task:
-            handler.on_connect(self.service_name, self.device.device_id)
-            mock_task.apply_async.assert_not_called()
-
-    def test_mqtt_status_does_not_match_database_called(self):
-        AlarmStatus.objects.create(running=False, device=self.device)
-
-        handler = OnConnectedHandlerLog(self.mqtt, AlarmStatus)
-        with patch('mqtt_services.tasks.mqtt_status_does_not_match_database') as mock_task:
-            handler.on_connect(self.service_name, self.device.device_id)
-            kwargs = {
-                'device_id': self.device.device_id,
-                'received_status': True,
-                'service_name': self.service_name,
-            }
-
-            mock_task.apply_async.assert_called_once_with(kwargs=kwargs)

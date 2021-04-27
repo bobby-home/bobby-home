@@ -13,3 +13,4 @@ requests==2.25.*
 django_extensions==3.0.9
 Pillow==8.1.*
 freezegun==1.0.0
+coverage==5.5

@@ -2,3 +2,8 @@
 .env
 .idea
 .vscode
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover

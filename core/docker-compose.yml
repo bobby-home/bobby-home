@@ -26,9 +26,7 @@ services:
     mqtt_broker:
         image: eclipse-mosquitto:2.0.10
         volumes:
-            - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
-            - ./config/mosquitto/passwd:/mosquitto/config/passwd
-            - mosquitto-data:/mosquitto/data
+           - mosquitto-data:/mosquitto/data
         ports:
             - "8883:8883"
         networks:
@@ -104,7 +102,6 @@ networks:
     redis-broker:
     webapp_backend:
     backend_mqtt:
-        external: true
 
 volumes:
     medias:
@@ -116,4 +113,4 @@ volumes:
     vim-plugins:
         driver: local
     camera_videos:
-        external: true
+        driver: local

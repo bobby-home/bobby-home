@@ -33,8 +33,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST 1
 
 COPY requirements.txt /tmp/
-RUN --mount=type=cache,mode=0755,target=/root/.cache \
-  pip install --user --requirement /tmp/requirements.txt
+RUN pip install --user --requirement /tmp/requirements.txt
 
 # final image
 FROM base

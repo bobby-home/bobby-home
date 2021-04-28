@@ -1,3 +1,4 @@
+![tests](https://github.com/mxmaxime/bobby-home/actions/workflows/tests.yml/badge.svg)
 [![codecov](https://codecov.io/gh/mxmaxime/bobby-home/branch/master/graph/badge.svg?token=8VBGT298HB)](https://codecov.io/gh/mxmaxime/bobby-home)
 
 Documentation [![Netlify Status](https://api.netlify.com/api/v1/badges/23f1a86a-e928-4c19-8139-959c1d307199/deploy-status)](https://app.netlify.com/sites/peaceful-leakey-b90c22/deploys)

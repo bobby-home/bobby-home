@@ -21,6 +21,11 @@ services:
         volumes:
             - dev-psql-data:/var/lib/postgresql/data
 
+    mqtt_broker:
+        volumes:
+            - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/passwd:/mosquitto/config/passwd
+
     celery_worker:
         <<: *build
         <<: *env
@@ -75,7 +80,13 @@ services:
         - webapp_backend
         - backend_mqtt
 
+networks:
+    backend_mqtt:
+        external: true
+
 volumes:
+    camera_videos:
+        external: true
     dev-redis-broker-data:
         driver: local
     dev-psql-data:

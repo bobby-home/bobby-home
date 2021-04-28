@@ -29,6 +29,9 @@ services:
     mqtt_broker:
         logging: *loki-logging
         restart: unless-stopped
+        volumes:
+            - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/passwd:/mosquitto/config/passwd
 
     loki:
         image: grafana/loki:2.1.0
@@ -92,7 +95,13 @@ services:
         restart: unless-stopped
         <<: *env
 
+networks:
+    backend_mqtt:
+        external: true
+
 volumes:
+    camera_videos:
+        external: true
     grafana-data:
         driver: local
     redis-data:

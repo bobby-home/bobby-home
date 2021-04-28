@@ -54,9 +54,13 @@ build-docker:
 docker-build-release:
 	cd app && npm run build && cd - && docker buildx build --build-arg USER_ID=$(user) --build-arg GROUP_ID=$(group) --push --platform linux/arm/v7,linux/amd64 --tag bobbyhome/core:$(version) ./app
 
+.PHONY: coverage
+coverage:
+	$(drtest) web /bin/bash -c 'coverage run manage.py test && coverage xml'
+
 .PHONY: test
 test:
-	$(drtest) web python -Wa manage.py test
+	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 $(drtest) web python -Wa manage.py test
 
 .PHONY: migrations
 migrations:
@@ -65,11 +69,6 @@ migrations:
 .PHONY: migrate
 migrate:
 	$(manage-dev) migrate
-
-.PHONY: tests
-tests:
-	$(manage) test
-
 
 .PHONY: manage
 manage:

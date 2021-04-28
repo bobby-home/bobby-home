@@ -56,7 +56,7 @@ docker-build-release:
 
 .PHONY: coverage
 coverage:
-	$(drtest) web /bin/bash -c 'coverage run manage.py test && coverage xml'
+	$(drtest) web /bin/bash -c 'coverage run manage.py test && coverage xml && coverage report'
 
 .PHONY: test
 test:

@@ -6,7 +6,6 @@ from unittest.mock import Mock, call, patch
 import uuid
 
 from camera.camera_object_detection import CameraObjectDetection, MotionPayload
-from camera_analyze.camera_analyzer import Consideration
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import BoundingBox, People, People
 from datetime import datetime, timedelta

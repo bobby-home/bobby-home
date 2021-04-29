@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -49,22 +50,13 @@ class BoundingBoxPointAndSize:
 
 
 @dataclass
-class BoundingBoxWithContours(BoundingBox):
-    contours: np.ndarray
-
-
-@dataclass
 class People:
     # These are absolute coordinates not relatives one processed by Tensorflow.
     # it has been rescaled for the image.
     bounding_box: BoundingBox
-    class_id: any
+
+    bounding_box_point_and_size: BoundingBoxPointAndSize
+
+    class_id: Any
     score: float
 
-
-@dataclass
-class PeopleAllData(People):
-    """
-    This object is what we send to the main system.
-    """
-    bounding_box_point_and_size: BoundingBoxPointAndSize

@@ -1,25 +1,24 @@
 import dataclasses
 import datetime
 import json
+from utils.dict import remove_null_keys
 import uuid
-from collections import defaultdict
 from io import BytesIO
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 from camera.camera_recording import CameraRecording
-from camera_analyze.camera_analyzer import CameraAnalyzer, Consideration
 from loggers import LOGGER
 from mqtt.mqtt_client import MqttClient
 from object_detection.detect_people import DetectPeople
-from object_detection.detect_people_utils import bounding_box_size
-from object_detection.model import People, PeopleAllData
+from object_detection.model import People
 from utils.time import is_time_lapsed
 
 
 @dataclasses.dataclass
-class ObjectLinkConsiderations:
-    object: PeopleAllData
-    considerations: List[Consideration]
+class MotionPayload:
+    status: bool
+    event_ref: str
+    detections: Optional[List[People]] = None
 
 
 class CameraObjectDetection:
@@ -36,10 +35,9 @@ class CameraObjectDetection:
 
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, analyze_motion: CameraAnalyzer, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str, camera_recording: CameraRecording):
+    def __init__(self, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str, camera_recording: CameraRecording):
         self.camera_recording = camera_recording
 
-        self._analyze_motion = analyze_motion
         self._device_id = device_id
         self.get_mqtt = get_mqtt
 
@@ -69,40 +67,6 @@ class CameraObjectDetection:
         self.mqtt_client.loop_stop()
 
     @staticmethod
-    def _get_motion_payload(event_ref: str, object_link_considerations: List[ObjectLinkConsiderations]):
-        payload = {
-            'status': True,
-            'event_ref': event_ref,
-            'seen_in': defaultdict(dict)
-        }
-
-        for object_link_consideration in object_link_considerations:
-            object_link_consideration: ObjectLinkConsiderations
-
-            for consideration in object_link_consideration.considerations:
-                if len(payload['seen_in'][consideration.type]) == 0:
-                    payload['seen_in'][consideration.type] = {'ids': []}
-
-                payload['seen_in'][consideration.type]['ids'].append(consideration.id)
-                payload['seen_in'][consideration.type]['bounding_box'] = dataclasses.asdict(
-                    object_link_consideration.object.bounding_box_point_and_size)
-
-        return payload
-
-    def _considered_peoples(self, peoples: List[People]) -> List[ObjectLinkConsiderations]:
-        object_considerations: List[ObjectLinkConsiderations] = []
-
-        for people in peoples:
-            considerations = self._analyze_motion.considered_objects(people.bounding_box)
-
-            if len(considerations) > 0:
-                people = PeopleAllData(**dataclasses.asdict(people), bounding_box_point_and_size=bounding_box_size(people.bounding_box))
-                obj = ObjectLinkConsiderations(people, considerations)
-                object_considerations.append(obj)
-
-        return object_considerations
-
-    @staticmethod
     def _transform_image_to_publish(image: BytesIO):
         return image.getvalue()
 
@@ -126,8 +90,11 @@ class CameraObjectDetection:
 
         return time_lapsed
 
-    def _publish_motion(self, payload) -> None:
-        mqtt_payload = json.dumps(payload)
+    def _publish_motion(self, payload: MotionPayload) -> None:
+        dict_payload = dataclasses.asdict(payload)
+        dict_payload = remove_null_keys(dict_payload)
+
+        mqtt_payload = json.dumps(dict_payload)
         LOGGER.info(f'publish motion {mqtt_payload}')
 
         self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
@@ -148,7 +115,7 @@ class CameraObjectDetection:
     def _publish_ping(self) -> None:
         self.mqtt_client.publish(f'{self.PING}/{self._device_id}', qos=1)
 
-    def _start_detection(self, frame: BytesIO, considerations: List[ObjectLinkConsiderations]) -> None:
+    def _start_detection(self, frame: BytesIO, considerations: List[People]) -> None:
         self._last_time_people_detected = datetime.datetime.now()
         self._initialize = False
         self.event_ref = self.generate_event_ref()
@@ -156,7 +123,12 @@ class CameraObjectDetection:
         LOGGER.info('start recording')
         self.camera_recording.start_recording(self.event_ref)
 
-        payload = self._get_motion_payload(self.event_ref, considerations)
+        payload = MotionPayload(
+            status=True,
+            event_ref=self.event_ref,
+            detections=considerations
+        )
+
         self._publish_motion(payload)
         self._publish_image(frame, True)
 
@@ -169,13 +141,12 @@ class CameraObjectDetection:
             self._publish_video_event(video_ref)
 
     def _no_more_detection(self, frame: BytesIO):
-        payload = {
-            'status': False,
-            'event_ref': self.event_ref,
-        }
+        payload = MotionPayload(
+            status=False,
+            event_ref=self.event_ref,
+        )
 
         LOGGER.info(f'no more motion {payload}')
-
         LOGGER.info('stop recording')
         video_ref = self.camera_recording.stop_recording(self.event_ref)
 
@@ -186,15 +157,14 @@ class CameraObjectDetection:
         self._publish_image(frame, False)
 
     def process_frame(self, frame: BytesIO) -> None:
-        peoples, image = self.detect_people.process_frame(frame)
+        peoples = self.detect_people.process_frame(frame)
 
-        considered_peoples = self._considered_peoples(peoples)
-        is_any_considered_object = len(considered_peoples) > 0
+        is_any_considered_object = len(peoples) > 0
 
         # first time we detect people
         if is_any_considered_object:
             if self._last_time_people_detected is None:
-                self._start_detection(frame, considered_peoples)
+                self._start_detection(frame, peoples)
             else:
                 # we continue to detect people
                 self._detection()
@@ -207,13 +177,6 @@ class CameraObjectDetection:
             self._publish_ping()
 
     @staticmethod
-    def generate_event_ref():
+    def generate_event_ref() -> str:
         return str(uuid.uuid4())
 
-    @property
-    def analyze_motion(self):
-        return self._analyze_motion
-
-    @analyze_motion.setter
-    def analyze_motion(self, analyzer: CameraAnalyzer):
-        self._analyze_motion = analyzer

@@ -1,0 +1,55 @@
+esphome:
+  name: livingroom
+  platform: ESP8266
+  board: nodemcuv2
+
+wifi:
+  ssid: "Livebox-FFD0"
+  password: "wKzooRJtrJiE3X9kVP"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Livingroom Fallback Hotspot"
+    password: "QfKSUS0sZQVI"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+#api:
+#  password: "coucou"
+
+ota:
+  password: "coucou"
+
+spi:
+  clk_pin: D0
+  miso_pin: D1
+  mosi_pin: D2
+
+rc522_spi: # or rc522_i2c
+  cs_pin: D3
+  update_interval: 1s
+  reset_pin: D5 # white
+
+# https://esphome.io/components/spi.html#spi
+#spi:
+#  clk_pin: D5 # red SCK
+#  miso_pin: D6 # gray
+#  mosi_pin: D7 # brown
+#
+#rc522_spi: # or rc522_i2c
+#  cs_pin: D8 # SS, yellow
+#  update_interval: 1s
+#  reset_pin: D3 # white
+#sensor:
+#  - platform: dht
+#    pin: D5
+#    temperature:
+#      name: "Living Room Temperature"
+#    humidity:
+#      name: "Living Room Humidity"
+#    model: DHT22_TYPE2
+#    update_interval: 10s

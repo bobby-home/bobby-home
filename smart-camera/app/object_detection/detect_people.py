@@ -1,3 +1,4 @@
+from object_detection.detect_people_utils import bounding_box_size
 import re
 from io import BytesIO
 from typing import List, Tuple
@@ -90,12 +91,12 @@ class DetectPeople:
                 relative_bounding_box = BoundingBox(ymin=ymin, xmin=xmin, ymax=ymax, xmax=xmax)
                 bounding_box = self._relative_to_absolute_bounding_box(relative_bounding_box, WIDTH, HEIGHT)
 
-                result = People(bounding_box=bounding_box, class_id=classes[i], score=scores[i])
+                result = People(bounding_box=bounding_box, bounding_box_point_and_size=bounding_box_size(bounding_box), class_id=classes[i], score=scores[i])
                 results.append(result)
 
         return results
 
-    def process_frame(self, stream: BytesIO) -> Tuple[List[People], Image.Image]:
+    def process_frame(self, stream: BytesIO) -> List[People]:
         image = Image.open(stream).convert('RGB').resize(
             (self.input_width, self.input_height), Image.ANTIALIAS)
 
@@ -110,4 +111,4 @@ class DetectPeople:
             if label == 'person':
                 peoples.append(result)
 
-        return peoples, image
+        return peoples

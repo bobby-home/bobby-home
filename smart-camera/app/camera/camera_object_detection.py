@@ -1,3 +1,4 @@
+import numpy
 import dataclasses
 import datetime
 import json
@@ -19,6 +20,21 @@ class MotionPayload:
     status: bool
     event_ref: str
     detections: Optional[List[People]] = None
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """ Special json encoder for numpy types """
+    def default(self, obj):
+        if isinstance(obj, (numpy.int_, numpy.intc, numpy.intp, numpy.int8,
+            numpy.int16, numpy.int32, numpy.int64, numpy.uint8,
+            numpy.uint16,numpy.uint32, numpy.uint64)):
+            return int(obj)
+        elif isinstance(obj, (numpy.float_, numpy.float16, numpy.float32, 
+            numpy.float64)):
+            return float(obj)
+        elif isinstance(obj,(numpy.ndarray,)):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 
 class CameraObjectDetection:
@@ -94,7 +110,7 @@ class CameraObjectDetection:
         dict_payload = dataclasses.asdict(payload)
         dict_payload = remove_null_keys(dict_payload)
 
-        mqtt_payload = json.dumps(dict_payload)
+        mqtt_payload = json.dumps(dict_payload, cls=NumpyEncoder)
         LOGGER.info(f'publish motion {mqtt_payload}')
 
         self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)

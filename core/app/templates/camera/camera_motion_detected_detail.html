@@ -30,13 +30,16 @@
                         </div>
                         <ul>
                             <p>{{ motion.motion_started_at }} to {{ motion.motion_ended_at }}</p>
+                            {% for bounding_box in bounding_boxes %}
+                                <p>Score: {{bounding_box.score}}</p>
+                            {% endfor %}
                         </ul>
                         {% if picture %}
                         <p>{% trans 'Picture taken when people was detected.' %}</p>
                            <motion-picture
                                    data-picture="{{ picture.motion_started_picture.url }}"
-                                   data-bounding-boxes="{{ bounding_boxes }}"
-                                   data-camera-boxes="{{ camera_roi }}"
+                                   data-bounding-boxes="{{ json_bounding_boxes }}"
+                                   data-camera-boxes="{{ json_camera_roi }}"
                            ></motion-picture>
                          {% if picture.motion_ended_picture %}
                             <p>{% trans 'Picture taken when people left.' %}</p>

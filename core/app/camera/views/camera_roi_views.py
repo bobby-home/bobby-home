@@ -13,11 +13,6 @@ from utils.django.json_view import JsonableResponseMixin
 from utils.json.encoders import DecimalEncoder
 
 
-def notify_mqtt(device_id, camera_roi: CameraROI, rectangle_rois):
-    from alarm.use_cases.out_alarm import notify_alarm_status_factory
-    notify_alarm_status_factory().publish_roi_changed(device_id, camera_roi, rectangle_rois)
-
-
 class CameraROIList(LoginRequiredMixin, ListView):
     queryset = CameraROI.objects.all()
     template_name = 'camera/camera_roi_list.html'
@@ -27,14 +22,6 @@ class CameraROIList(LoginRequiredMixin, ListView):
 class CameraROIDelete(LoginRequiredMixin, DeleteView):
     model = CameraROI
     success_url = reverse_lazy('camera:camera_roi-list')
-
-
-    def delete(self, request, *args, **kwargs):
-        camera_roi = self.get_object()
-        from alarm.use_cases.out_alarm import notify_alarm_status_factory
-        notify_alarm_status_factory().publish_roi_changed(camera_roi.device_id, camera_roi=None)
-
-        return super().delete(request, *args, **kwargs)
 
 
 class CameraROIUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
@@ -79,14 +66,10 @@ class CameraROIUpdate(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
                 formset.save()
                 form.save()
 
-            rectangles = [model_to_dict(instance) for instance in instances]
-            transaction.on_commit(lambda: notify_mqtt(form.instance.device_id, camera_roi, rectangles))
-
             return super().form_valid(form)
 
         # @TODO: form no valid, what do we do?
         return super().form_invalid(formset.errors)
-
 
 
 class CameraROICreate(LoginRequiredMixin, JsonableResponseMixin, FormView):
@@ -131,9 +114,6 @@ class CameraROICreate(LoginRequiredMixin, JsonableResponseMixin, FormView):
                     instance.camera_roi_id = camera_roi_pk
 
                 formset.save()
-
-            rectangles = [model_to_dict(instance) for instance in instances]
-            transaction.on_commit(lambda: notify_mqtt(form.instance.device_id, camera_roi, rectangles))
 
             return super().form_valid(form)
 

@@ -19,20 +19,25 @@ class CameraMotionTestCase(TestCase):
 
         self.notify_alarm_status_mock = Mock()
 
+    def _get_in_motion_camera_data(self, status: bool) -> InMotionCameraData:
+        return InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=status, detections=[])
+    
+    def _assert_save_motion(self, save_motion_mock, status: bool) -> None:
+        save_motion_mock.assert_called_once_with(self.device, [], self.event_ref, status)
+
     @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
     @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
-    def test_camera_motion_detected(self, notify_alarm_status_mock, object_no_more_detected_mock, alarm_notifications_mock, play_sound_mock):
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+    @patch('alarm.business.in_motion.save_motion')
+    def test_camera_motion_detected(self, save_motion_mock, notify_alarm_status_mock, object_no_more_detected_mock, alarm_notifications_mock, play_sound_mock):
+        in_data = self._get_in_motion_camera_data(status=True) 
         camera_motion_detected(in_data)
+        self._assert_save_motion(save_motion_mock, status=True)
         
         play_sound_mock.assert_called_once_with(self.device.device_id, True)
         alarm_notifications_mock.assert_called_once_with(self.device)
         object_no_more_detected_mock.assert_not_called()
-
-        motion = CameraMotionDetected.objects.filter(event_ref=self.event_ref, device=self.device)
-        self.assertTrue(len(motion), 1)
 
         notify_alarm_status_mock.assert_not_called()
 
@@ -40,20 +45,21 @@ class CameraMotionTestCase(TestCase):
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
     @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
-    def test_camera_motion_no_more_motion(self, _notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+    @patch('alarm.business.in_motion.save_motion')
+    def test_camera_motion_no_more_motion(self, save_motion_mock, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
+        in_data = self._get_in_motion_camera_data(status=True) 
         camera_motion_detected(in_data)
+        self._assert_save_motion(save_motion_mock, status=True)
         object_detected_mock.reset_mock()
         play_sound_mock.reset_mock()
+        save_motion_mock.reset_mock()
 
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=False, seen_in={})
+        in_data = self._get_in_motion_camera_data(status=False) 
         camera_motion_detected(in_data)
         
+        self._assert_save_motion(save_motion_mock, status=False)
         play_sound_mock.assert_called_once_with(self.device.device_id, False)
         object_no_more_detected_mock.assert_called_once_with(self.device)
-
-        motion = CameraMotionDetected.objects.filter(event_ref=str(self.event_ref), device=self.device)
-        self.assertTrue(len(motion), 1)
 
     @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
@@ -69,11 +75,11 @@ class CameraMotionTestCase(TestCase):
         mock = Mock()
         notify_alarm_status_mock.return_value = mock
 
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
+        in_data = self._get_in_motion_camera_data(status=True)
         camera_motion_detected(in_data)
         object_detected_mock.reset_mock()
 
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=False, seen_in={})
+        in_data = self._get_in_motion_camera_data(status=False)
         camera_motion_detected(in_data)
 
         object_no_more_detected_mock.assert_called_once_with(self.device)
@@ -82,19 +88,19 @@ class CameraMotionTestCase(TestCase):
         notify_alarm_status_mock.assert_called_once_with()
         mock.publish_status_changed.assert_called_once_with(self.device.pk, self.alarm_status)
 
-
     @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')
     @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     def test_camera_motion_no_more_motion_dont_turn_off(self, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         AlarmStatus.objects.all().delete()
+        
         self.alarm_status = AlarmStatusFactory(device=self.device, running=True)
 
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=True, seen_in={})
-        camera_motion_detected(in_data)
-        in_data = InMotionCameraData(device_id=self.device_id, event_ref=self.event_ref, status=False, seen_in={})
+        in_data = self._get_in_motion_camera_data(status=True)
         camera_motion_detected(in_data)
 
+        in_data = self._get_in_motion_camera_data(status=False)
+        camera_motion_detected(in_data)
 
         notify_alarm_status_mock.publish_status_changed.assert_not_called()

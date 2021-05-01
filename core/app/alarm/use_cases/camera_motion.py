@@ -1,3 +1,4 @@
+from devices.models import Device
 import logging
 from alarm.use_cases.data import InMotionCameraData 
 import alarm.business.in_motion as in_motion
@@ -14,9 +15,10 @@ Each method is executed in a corresponding Celery Task even if it's totally tran
 """
 
 def camera_motion_detected(data: InMotionCameraData) -> None:
-    device, motion = in_motion.save_motion(data.device_id, data.seen_in, data.event_ref, data.status)
+    device = Device.objects.get(device_id=data.device_id)
+    saved = in_motion.save_motion(device, data.detections, data.event_ref, data.status)
 
-    if device is None:
+    if saved is None:
         # the motion is already save in db, and so the notification should have been already send.
         return None
 

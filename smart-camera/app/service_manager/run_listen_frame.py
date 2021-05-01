@@ -3,16 +3,14 @@ from typing import Dict
 from camera.camera_object_detection import CameraObjectDetection
 from camera.camera_object_detection_factory import camera_object_detection_factory
 from camera.camera_record import DumbCameraRecorder
-from camera_analyze.camera_analyzer import CameraAnalyzer
 from object_detection.detect_people_factory import detect_people_factory
-from service_manager.roi_camera_from_args import roi_camera_from_args
 from service_manager.runnable import Runnable
 
 DETECT_PEOPLE = detect_people_factory()
 
-def dumb_camera_factory(mqtt, device_id: str, camera_analyzer: CameraAnalyzer) -> CameraObjectDetection:
+def dumb_camera_factory(mqtt, device_id: str) -> CameraObjectDetection:
     camera_record = DumbCameraRecorder(mqtt.client, device_id)
-    camera = camera_object_detection_factory(device_id, camera_analyzer, camera_record, DETECT_PEOPLE)
+    camera = camera_object_detection_factory(device_id, camera_record, DETECT_PEOPLE)
     camera.start()
 
     return camera
@@ -36,17 +34,8 @@ class ConnectedDevices:
     def has(self, device_id: str) -> bool:
         return device_id in self._connected_devices
 
-    def update(self, device_id: str, camera_analyzer: CameraAnalyzer) -> None:
-        if not self.has(device_id):
-            return None
-
-        camera = self._connected_devices[device_id]
-
-        if camera.analyze_motion != camera_analyzer:
-            self._connected_devices[device_id].analyze_motion = camera_analyzer
-
-    def add(self, device_id: str, camera_analyzer: CameraAnalyzer) -> None:
-        camera = dumb_camera_factory(self._mqtt, device_id, camera_analyzer)
+    def add(self, device_id: str) -> None:
+        camera = dumb_camera_factory(self._mqtt, device_id)
         self._connected_devices[device_id] = camera
 
     @property
@@ -64,7 +53,6 @@ class RunListenFrame(Runnable):
             self._connected_devices.remove(device_id)
             return None
 
-        camera_analyze_object = roi_camera_from_args(data)
 
         if self._connected_devices.has(device_id):
             pass
@@ -72,4 +60,4 @@ class RunListenFrame(Runnable):
             # try to keep the same Camera object to avoid mqtt disconnect/reconnect.
             # could be able to do it because its a composition
         else:
-            self._connected_devices.add(device_id, camera_analyze_object)
+            self._connected_devices.add(device_id)

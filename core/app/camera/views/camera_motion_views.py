@@ -23,10 +23,12 @@ class CameraMotionDetectedDetail(LoginRequiredMixin, DetailView):
         camera_motion_detected: CameraMotionDetected = context[self.context_object_name]
 
         camera_roi = list(camera_motion_detected.in_rectangle_roi.all().values())
+        context['json_camera_roi'] = json.dumps(camera_roi, cls=DecimalEncoder)
 
-        bounding_boxes = list(camera_motion_detected.cameramotiondetectedboundingbox_set.all().values())
-        context['bounding_boxes'] = json.dumps(bounding_boxes, cls=DecimalEncoder)
-        context['camera_roi'] = json.dumps(camera_roi, cls=DecimalEncoder)
+        bounding_boxes = camera_motion_detected.cameramotiondetectedboundingbox_set.all()
+        bounding_boxes_plain = list(bounding_boxes.values())
+        context['bounding_boxes'] = bounding_boxes
+        context['json_bounding_boxes'] = json.dumps(bounding_boxes_plain, cls=DecimalEncoder)
 
         try:
             context['picture'] = CameraMotionDetectedPicture.objects.get(event_ref=camera_motion_detected.event_ref)

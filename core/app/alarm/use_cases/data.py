@@ -1,13 +1,20 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional, Sequence
 
+
+@dataclass
+class Detection:
+    bounding_box: Any
+    bounding_box_point_and_size: Any
+    class_id: str
+    score: float
 
 @dataclass
 class InMotionCameraData:
     device_id: str
     event_ref: str
     status: bool
-    seen_in: Optional[dict]
+    detections: Sequence[Detection]
 
 
 @dataclass

@@ -1,4 +1,4 @@
-from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMotionVideoData
+from alarm.use_cases.data import Detection, InMotionCameraData, InMotionPictureData, InMotionVideoData
 import dataclasses
 import uuid
 from unittest.mock import patch
@@ -189,12 +189,19 @@ class OnMotionTestCase(TestCase):
         self.device = DeviceFactory()
         self.device_id = self.device.device_id
         self.status = False
-        self.seen_in = {'full': True}
+        self.detections_plain = [{
+            "bounding_box": {"ymin": 0, "xmin": 0, "ymax": 0, "xmax": 0},
+            "bounding_box_point_and_size": {"x": 0, "y": 0, "w": 0, "h": 0}, "class_id": "class_id", "score": 0.5}] 
+        
+        self.detections = [Detection(**d) for d in self.detections_plain]
 
         self.topic = f'motion/picture/{self.device.device_id}/{self.event_ref}/1'
         self.retain = False
         self.qos = 1
-        self.payload = {'event_ref': self.event_ref, 'status': self.status, 'seen_in': self.seen_in}
+        self.payload = {
+            "status": self.status, "event_ref": self.event_ref,
+            "detections": self.detections_plain
+        }
         self.timestamp = timezone.now()
 
     def test_camera_motion(self) -> None:
@@ -211,7 +218,7 @@ class OnMotionTestCase(TestCase):
             on_motion_camera(message)
             
             expected = InMotionCameraData(
-                device_id=self.device_id, event_ref=self.event_ref, status=self.status, seen_in=self.seen_in
+                device_id=self.device_id, event_ref=self.event_ref, status=self.status, detections=self.detections
             )
             camera_motion_detected.apply_async.assert_called_once_with(args=[dataclasses.asdict(expected)])
 

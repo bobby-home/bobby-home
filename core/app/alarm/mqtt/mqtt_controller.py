@@ -2,7 +2,7 @@ import dataclasses
 from dataclasses import dataclass, field
 import re
 import os
-from typing import Optional, Type, TypeVar 
+from typing import Optional, Sequence, Type, TypeVar 
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
@@ -11,7 +11,7 @@ from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.business.alarm_ping import register_ping
 import hello_django.settings as settings
-from alarm.use_cases.data import InMotionCameraData, InMotionPictureData, InMotionVideoData
+from alarm.use_cases.data import Detection, InMotionCameraData, InMotionPictureData, InMotionVideoData
 
 
 CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
@@ -67,7 +67,8 @@ class CameraMotionVideoTopic(CameraTopic):
 class CameraMotionPayload:
     event_ref: str
     status: bool
-    seen_in: dict = field(default_factory=dict)
+    detections: Sequence[Detection]
+
 
 @dataclass
 class CameraMotionTopic(CameraTopic):
@@ -85,18 +86,22 @@ def topic_regex(topic: str, t: T) -> Optional[T]:
     raise ValueError(f'topic {topic} wrong format. {t._topic_matcher}')
 
 
-def on_motion_camera(message: MqttMessage):
+def on_motion_camera(message: MqttMessage) -> None:
     topic = topic_regex(message.topic, CameraMotionTopic)
     payload = message.payload
 
     LOGGER.info(f'on_motion_camera payload={payload} topic={topic}')
 
+    detections_plain = payload.get('detections', [])
+    payload['detections'] = [Detection(**d) for d in detections_plain]
+
     data_payload = CameraMotionPayload(**payload)
+
     in_data = InMotionCameraData(
         device_id=topic.device_id,
         event_ref=data_payload.event_ref,
         status=data_payload.status,
-        seen_in=data_payload.seen_in,
+        detections=data_payload.detections,
     )
 
     if in_data.event_ref != '0':

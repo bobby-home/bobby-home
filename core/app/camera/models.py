@@ -59,10 +59,12 @@ class CameraMotionDetectedBoundingBox(models.Model):
     This is given by Tensorflow, they are bounding boxes around an object.
     This coordinates have been rescaled on the picture, they are not relatives ([0;1]).
     """
-    x = models.DecimalField(max_digits=8, decimal_places=4)
-    y = models.DecimalField(max_digits=8, decimal_places=4)
-    w = models.DecimalField(max_digits=8, decimal_places=4)
-    h = models.DecimalField(max_digits=8, decimal_places=4)
+    x = models.IntegerField()
+    y = models.IntegerField()
+    w = models.IntegerField()
+    h = models.IntegerField()
+
+    score = models.FloatField(blank=True, null=True)
 
     camera_motion_detected = models.ForeignKey(CameraMotionDetected, on_delete=models.CASCADE)
 

@@ -4,14 +4,20 @@ from django.db.models import F
 from django.utils import timezone
 
 
+def _update(queryset) -> None:
+    queryset.update(
+        failures=F('consecutive_failures') + F('failures'),
+        consecutive_failures=0,
+        last_update=timezone.now()
+    )
+
+
 def reset_ping(device_id: str, service_name: str) -> None:
-    Ping.objects.filter(device_id=device_id, service_name=service_name) \
-                    .update(failures=F('consecutive_failures') + F('failures'), consecutive_failures=0)
+    _update(Ping.objects.filter(device_id=device_id, service_name=service_name))
 
 
 def reset_pings(device_ids: List[str], service_name: str) -> None:
-    Ping.objects.filter(device_id__in=device_ids, service_name=service_name) \
-        .update(failures=F('consecutive_failures') + F('failures'), consecutive_failures=0)
+    _update(Ping.objects.filter(device_id__in=device_ids, service_name=service_name))
 
 
 def register_ping(device_id: str, service_name: str) -> None:
@@ -23,7 +29,6 @@ def register_ping(device_id: str, service_name: str) -> None:
             'consecutive_failures': 0
         }
     )
-    
+
     if not created:
         reset_ping(device_id, service_name)
-

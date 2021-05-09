@@ -1,18 +1,16 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpRequest, HttpResponse
-
-# Create your views here.
 from django.urls import reverse
 from django.views.generic import TemplateView, CreateView
 
 from alarm.views.alarm_status_views import AlarmStatusCreate
 from devices.models import Device
 from house.models import Location, TelegramBot, TelegramBotStart
-from notification.models import UserTelegramBotChatId
+from notification.models import UserSetting, UserTelegramBotChatId
 from setup.models import StepDone
 from utils.django.forms import ChangeForm
 
@@ -73,6 +71,14 @@ class TelegramBotStartView(LoginRequiredMixin, ChangeForm, CreateView):
         context['starts'] = TelegramBotStart.objects.all()
         return context
 
+    @transaction.atomic
+    def form_valid(self, form) -> HttpResponse:
+        response = super().form_valid(form)
+
+        UserSetting.objects.create(telegram_chat=form.instance, user=self.request.user)
+
+        return response
+
 
 class MainDeviceLocationView(LoginRequiredMixin, ChangeForm, CreateView):
     model = Location
@@ -85,6 +91,7 @@ class MainDeviceLocationView(LoginRequiredMixin, ChangeForm, CreateView):
 
         return context
 
+    @transaction.atomic
     def form_valid(self, form) -> HttpResponse:
         response = super().form_valid(form)
 

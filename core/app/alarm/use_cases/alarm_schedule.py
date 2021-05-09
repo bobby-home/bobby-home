@@ -1,6 +1,9 @@
+import uuid
+import json
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from django.db import transaction
 from alarm.models import AlarmSchedule
+from house.models import House
 
 
 def model_boolean_fields_to_cron_days(schedule: AlarmSchedule) -> str:
@@ -14,6 +17,7 @@ def model_boolean_fields_to_cron_days(schedule: AlarmSchedule) -> str:
     for day_int, day_str in enumerate(possible_days, start=0):
         if getattr(schedule, day_str):
             days.append(str(day_int))
+
     # Celery crontab want a list as str, ex: "monday,tuesday,..."
     cron_days = ','.join(days)
     return cron_days
@@ -24,38 +28,38 @@ def create_alarm_schedule(schedule: AlarmSchedule):
     cron_days = model_boolean_fields_to_cron_days(schedule)
     house_timezone = House.objects.get_system_house().timezone
 
-    self.uuid = str(uuid.uuid4())
+    schedule.uuid = str(uuid.uuid4())
 
     schedule_turn_on_alarm = CrontabSchedule.objects.create(
-        minute=self.start_time.minute,
-        hour=self.start_time.hour,
+        minute=schedule.start_time.minute,
+        hour=schedule.start_time.hour,
         day_of_week=cron_days,
         timezone=house_timezone
     )
 
-    self.turn_on_task = PeriodicTask.objects.create(
-        name=f'Turn on alarm {self.uuid}',
+    schedule.turn_on_task = PeriodicTask.objects.create(
+        name=f'Turn on alarm {schedule.uuid}',
         task='alarm.set_alarm_on',
         crontab=schedule_turn_on_alarm,
-        args=json.dumps([self.uuid])
+        args=json.dumps([schedule.uuid])
     )
 
     schedule_turn_off_alarm = CrontabSchedule.objects.create(
-        minute=self.end_time.minute,
-        hour=self.end_time.hour,
+        minute=schedule.end_time.minute,
+        hour=schedule.end_time.hour,
         day_of_week=cron_days,
         timezone=house_timezone
     )
 
-    self.turn_off_task = PeriodicTask.objects.create(
-        name=f'Turn off alarm {self.uuid}',
+    schedule.turn_off_task = PeriodicTask.objects.create(
+        name=f'Turn off alarm {schedule.uuid}',
         task='alarm.set_alarm_off',
         crontab=schedule_turn_off_alarm,
-        args=json.dumps([self.uuid])
+        args=json.dumps([schedule.uuid])
     )
 
     schedule.save()
-
+    return schedule
 
 @transaction.atomic
 def update_alarm_schedule(schedule: AlarmSchedule):
@@ -75,3 +79,5 @@ def update_alarm_schedule(schedule: AlarmSchedule):
     on_crontab.save()
     off_crontab.save()
     schedule.save()
+
+    return schedule

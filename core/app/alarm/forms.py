@@ -20,11 +20,13 @@ class AlarmScheduleForm(forms.ModelForm):
         instance = super().save(commit=False)
 
         if self._creating:
-            create_alarm_schedule(instance)
+            self.instance = create_alarm_schedule(instance)
         else:
-            update_alarm_schedule(instance)
-
-        return instance
+            self.instance = update_alarm_schedule(instance)
+        
+        self.save_m2m()
+        
+        return self.instance
 
 
 class AlarmStatusForm(forms.ModelForm):

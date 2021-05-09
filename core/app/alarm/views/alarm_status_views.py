@@ -1,4 +1,4 @@
-from alarm.forms import AlarmStatusForm
+from alarm.forms import AlarmScheduleForm, AlarmStatusForm
 from typing import List
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -82,16 +82,18 @@ class AlarmStatusDetail(LoginRequiredMixin, DetailView):
 
         return context
 
-class AlarmScheduleUpdate(LoginRequiredMixin, JsonableResponseMixin, ChangeForm, UpdateView):
+class AlarmScheduleUpdate(LoginRequiredMixin, ChangeForm, UpdateView):
+    form_class = AlarmScheduleForm
     model = AlarmSchedule
-    fields = '__all__'
 
     def get_success_url(self):
         return reverse('alarm:schedule-detail', args=(self.object.id,))
 
+
 class AlarmScheduleCreate(LoginRequiredMixin, ChangeForm, CreateView):
+    form_class = AlarmScheduleForm
     model = AlarmSchedule
-    fields = '__all__'
+
 
 class AlarmScheduleDetail(DetailView):
     model = AlarmSchedule

@@ -1,3 +1,4 @@
+import json
 from alarm.forms import AlarmScheduleForm
 from datetime import time
 from itertools import count
@@ -58,7 +59,6 @@ class ViewAlarmScheduleTestCase(TestCase):
 
 
     def test_create(self):
-        
         data = {
             'sunday': True,
             'alarm_statuses': [self.alarm_statuses[0].pk],
@@ -209,7 +209,9 @@ class UseCaseAlarmScheduleTestCase(TestCase):
         return schedule
 
 
-    def _check_underlying_objects(self):
+    def _check_underlying_objects(self, obj_schedule):
+        cron_days = model_boolean_fields_to_cron_days(obj_schedule)
+
         schedules = AlarmSchedule.objects.all()
         self.assertEqual(len(schedules), 1)
         schedule = schedules[0]
@@ -223,21 +225,28 @@ class UseCaseAlarmScheduleTestCase(TestCase):
         self.assertEqual(schedule.turn_on_task, turn_on_task)
         self.assertEqual(schedule.turn_off_task, turn_off_task)
 
+        turn_on_cron = CrontabSchedule.objects.get(hour=schedule.start_time.hour, minute=schedule.start_time.minute)
+        turn_off_cron = CrontabSchedule.objects.get(hour=schedule.end_time.hour, minute=schedule.end_time.minute)
+
+        for task, cron in zip([turn_off_task, turn_on_task], [turn_off_cron, turn_on_cron]):
+            self.assertEqual(task.args, json.dumps([str(schedule.uuid)]))
+            self.assertEqual(task.crontab, cron)
+
         cons = CrontabSchedule.objects.all()
         self.assertEqual(len(cons), 2)
 
-        turn_on_cron = CrontabSchedule.objects.get(hour=schedule.start_time.hour, minute=schedule.start_time.minute)
-        turn_off_cron = CrontabSchedule.objects.get(hour=schedule.end_time.hour, minute=schedule.end_time.minute)
+        for cron in [turn_on_cron, turn_off_cron]:
+            self.assertEqual(cron.day_of_week, cron_days)
+            self.assertEqual(str(cron.timezone), self.house.timezone)
 
         self.assertEqual(turn_off_task.crontab, turn_off_cron)
         self.assertEqual(turn_on_task.crontab, turn_on_cron)
 
     def test_create_alarm_schedule(self):
         schedule = self.create_model_schedule()
-        #schedule.alarm_statuses.set(self.alarm_statuses)
 
         create_alarm_schedule(schedule)
-        self._check_underlying_objects()
+        self._check_underlying_objects(schedule)
 
     def test_update_alarm_schedule(self):
         schedule = self.create_model_schedule()
@@ -245,10 +254,10 @@ class UseCaseAlarmScheduleTestCase(TestCase):
  
         schedule.start_time = time(hour=4, minute=15)
         schedule.end_time = time(hour=9,minute=30)
-
+        schedule.tuesday = True
         update_alarm_schedule(schedule)
         
-        self._check_underlying_objects()
+        self._check_underlying_objects(schedule)
 
 class AlarmScheduleTestCase(TestCase):
     def setUp(self) -> None:

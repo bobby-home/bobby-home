@@ -12,7 +12,7 @@ from django.utils import timezone
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from celery.schedules import schedule, crontab
 
-from alarm.use_cases.alarm_schedule import create_alarm_schedule, update_alarm_schedule
+from alarm.use_cases.alarm_schedule import create_alarm_schedule, model_boolean_fields_to_cron_days, update_alarm_schedule
 from alarm.use_cases.alarm_status import alarm_statuses_changed
 from alarm.business.alarm_schedule import get_current_day
 from alarm.factories import AlarmScheduleFactory, AlarmStatusFactory
@@ -20,6 +20,29 @@ from alarm.models import AlarmSchedule
 from house.factories import HouseFactory
 from account.factories import AccountFactory
 
+
+class AlarmScheduleToCrondays(TestCase):
+
+    def create_model_schedule(self):
+        schedule = AlarmSchedule(
+            start_time=time(hour=6, minute=10),
+            end_time=time(hour=8, minute=30),
+            monday=True,
+            tuesday=False,
+            wednesday=True,
+            thursday=False,
+            friday=True,
+            saturday=False,
+            sunday=True,
+        )
+
+        return schedule
+
+    def test_cron_day_of_week(self):
+        schedule = self.create_model_schedule()
+        cron_days = model_boolean_fields_to_cron_days(schedule)
+
+        self.assertEqual('0,1,3,5', cron_days)
 
 class ViewAlarmScheduleTestCase(TestCase):
     def setUp(self) -> None:

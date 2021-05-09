@@ -1,4 +1,7 @@
 from datetime import timedelta
+from itertools import count
+from celery.schedules import crontab
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 import factory
 from django.utils import timezone
@@ -17,6 +20,16 @@ class AlarmStatusFactory(factory.DjangoModelFactory):
     device = factory.SubFactory(DeviceFactory)
 
 
+_ids = count(0)
+
+
+def _task():
+    schedule = crontab(minute='*/10')
+    c = CrontabSchedule.from_schedule(schedule)
+    c.save()
+    return PeriodicTask.objects.create(name='t{0}'.format(next(_ids)), crontab=c)
+
+
 class AlarmScheduleFactory(factory.DjangoModelFactory):
     class Meta:
         model = AlarmSchedule
@@ -31,3 +44,6 @@ class AlarmScheduleFactory(factory.DjangoModelFactory):
     friday    = factory.Faker('pybool')
     saturday  = factory.Faker('pybool')
     sunday    = factory.Faker('pybool')
+
+    turn_on_task = factory.LazyFunction(_task)
+    turn_off_task = factory.LazyFunction(_task)

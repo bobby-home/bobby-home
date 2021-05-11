@@ -18,7 +18,7 @@ def mqtt_publish(actions: Sequence[ActionMqttPublish]) -> None:
             retain=action.retain,
             hostname=mqtt_client.host,
             port=mqtt_client.port,
-            protocol=mqtt.MQTTv5,
+            protocol=mqtt.MQTTv311,
             transport="tcp",
             auth={"username": mqtt_client.username, "password": mqtt_client.password},
             client_id=f"automation-{str(uuid.uuid4())}"

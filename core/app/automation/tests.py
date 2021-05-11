@@ -54,7 +54,7 @@ class AutomationTestCase(TestCase):
                 retain=action.retain,
                 hostname=mqtt_client.host,
                 port=mqtt_client.port,
-                protocol=5,
+                protocol=4,
                 transport='tcp',
                 auth={'username': mqtt_client.username, 'password': mqtt_client.password},
                 client_id=mock.ANY

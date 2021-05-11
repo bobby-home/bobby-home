@@ -1,3 +1,6 @@
+from alarm.models import AlarmStatus
+from devices.models import Device
+from alarm.use_cases.alarm_status import AlarmChangeStatus
 import dataclasses
 from dataclasses import dataclass, field
 import re
@@ -6,7 +9,7 @@ from typing import Optional, Sequence, Type, TypeVar
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
-    MqttMessage, MqttTopicSubscriptionJson
+    MqttMessage, MqttTopicSubscriptionBoolean, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.business.alarm_ping import register_ping
@@ -30,6 +33,7 @@ class CameraTopic:
 @dataclass
 class CameraMotionPicturePayload:
     image: bytearray
+
 
 @dataclass
 class CameraMotionPictureTopic(CameraTopic):
@@ -63,6 +67,7 @@ class CameraMotionVideoTopic(CameraTopic):
 
         self.video_ref = f'{self.event_ref}-{self.video_split_number}'
 
+
 @dataclass
 class CameraMotionPayload:
     event_ref: str
@@ -70,11 +75,21 @@ class CameraMotionPayload:
     detections: Sequence[Detection]
 
 
+UPDATE_STATUS_MATCHER = r"^(?P<service>[\w]+)/(?P<device_id>[\w]+)"
+
+@dataclass
+class UpdateStatusTopic:
+    service: str
+    device_id: Optional[str] = None
+
+    _topic_matcher = UPDATE_STATUS_MATCHER
+
+
 @dataclass
 class CameraMotionTopic(CameraTopic):
     _topic_matcher = CAMERA_TOPIC_MATCHER
 
-T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic])
+T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic], Type[UpdateStatusTopic])
 
 def topic_regex(topic: str, t: T) -> Optional[T]:
     match = re.match(t._topic_matcher, topic) 
@@ -183,24 +198,67 @@ def on_ping(message: MqttMessage) -> None:
     register_ping(data.device_id, data.service_name)
 
 
+@dataclass()
+class UpdateStatusPayload:
+    status: str
+    force: str
+
+    status_bool: bool = field(init=False)
+    force_bool: bool = field(init=False)
+
+    def __post_init__(self):
+        if self.status == 'on':
+            self.status_bool = True
+        elif self.status == 'off':
+            self.status_bool = False
+        else:
+            raise ValueError()
+
+        if self.force == 'on':
+            self.force_bool = True
+        elif self.force == 'off':
+            self.force_bool = False
+        else:
+            raise ValueError()
+
+
+def on_update_status(message: MqttMessage) -> None:
+    topic = topic_regex(message.topic, UpdateStatusTopic)
+    data_payload = UpdateStatusPayload(**message.payload)
+    
+    if topic.device_id is not None:
+        AlarmChangeStatus.all_change_status(status=data_payload.status, force=data_payload.force)
+        # the device
+    else:
+        alarm_status = AlarmStatus.objects.get(device__device_id=topic.device_id)
+        alarm_status.running = data_payload.status
+
+
 def register(mqtt: MQTT):
     mqtt.add_subscribe((
-       MqttTopicFilterSubscription(
-           topic='motion/#',
-           qos=1,
-           topics=[
-               MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
-               MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
-               MqttTopicSubscription('motion/video/+/+', on_motion_video),
-           ],
-       ),
-       MqttTopicFilterSubscription(
+        MqttTopicFilterSubscription(
+            topic='update/status/+/+',
+            qos=1,
+            topics=[
+                MqttTopicSubscriptionBoolean('update/status/+/+', on_update_status),
+            ]
+        ),
+        MqttTopicFilterSubscription(
+            topic='motion/#',
+            qos=1,
+            topics=[
+                MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
+                MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
+                MqttTopicSubscription('motion/video/+/+', on_motion_video),
+            ],
+        ),
+        MqttTopicFilterSubscription(
            # ping/{service_name}/{device_id}
-           topic='ping/+/+',
-           qos=1,
-           topics=[
-               MqttTopicSubscription('ping/+/+', on_ping)
-           ]
-       ),
+            topic='ping/+/+',
+            qos=1,
+            topics=[
+                MqttTopicSubscription('ping/+/+', on_ping)
+            ]
+        ),
     ))
 

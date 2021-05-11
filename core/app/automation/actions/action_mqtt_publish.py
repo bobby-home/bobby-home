@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import Sequence
 from django.utils import timezone
 from automation.models import ActionMqttPublish
@@ -19,7 +20,8 @@ def mqtt_publish(actions: Sequence[ActionMqttPublish]) -> None:
             port=mqtt_client.port,
             protocol=mqtt.MQTTv5,
             transport="tcp",
-            auth={"username": mqtt_client.username, "password": mqtt_client.password}
+            auth={"username": mqtt_client.username, "password": mqtt_client.password},
+            client_id=f"automation-{str(uuid.uuid4())}"
         )
 
         action.last_run_datetime = timezone.now()

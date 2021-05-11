@@ -1,7 +1,8 @@
+from unittest import mock
 from django.utils import timezone
 from automation.models import ActionMqttPublish
 import json
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 from automation.actions import Triggers
 from automation.tasks import on_motion_detected
 from django.test import TestCase
@@ -12,7 +13,7 @@ from automation.factories import ActionMqttPublishFactory, AutomationFactory, Mq
 # Create your tests here.
 class AutomationTestCase(TestCase):
     def setUp(self) -> None:
-        self.automation = AutomationFactory(trigger_name=Triggers.ON_MOTION_DETECTED.value)
+        self.automation = AutomationFactory(trigger_name=Triggers.ON_MOTION_DETECTED.name)
         self.mqtt_client = MqttClientFactory()
 
         self.payload_json = {
@@ -55,7 +56,8 @@ class AutomationTestCase(TestCase):
                 port=mqtt_client.port,
                 protocol=5,
                 transport='tcp',
-                auth={'username': mqtt_client.username, 'password': mqtt_client.password}
+                auth={'username': mqtt_client.username, 'password': mqtt_client.password},
+                client_id=mock.ANY
             ))
         
         publish_mock.assert_has_calls(calls)

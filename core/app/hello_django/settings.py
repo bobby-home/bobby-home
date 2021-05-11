@@ -43,6 +43,7 @@ CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
 
 # Application definition
 INSTALLED_APPS = [
+    'automation',
     'account',
 
     'api_keys',

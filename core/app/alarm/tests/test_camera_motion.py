@@ -6,7 +6,6 @@ from django.test import TestCase
 from alarm.use_cases.camera_motion import camera_motion_detected
 from alarm.factories import AlarmStatusFactory
 from alarm.models import AlarmStatus
-from camera.models import CameraMotionDetected 
 from devices.factories import DeviceFactory
 
 
@@ -30,10 +29,15 @@ class CameraMotionTestCase(TestCase):
     @patch('alarm.notifications.object_no_more_detected')
     @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     @patch('alarm.business.in_motion.save_motion')
-    def test_camera_motion_detected(self, save_motion_mock, notify_alarm_status_mock, object_no_more_detected_mock, alarm_notifications_mock, play_sound_mock):
+    @patch('automation.tasks.on_motion_detected')
+    @patch('automation.tasks.on_motion_left')
+    def test_camera_motion_detected(self, on_motion_left, on_motion_detected, save_motion_mock, notify_alarm_status_mock, object_no_more_detected_mock, alarm_notifications_mock, play_sound_mock):
         in_data = self._get_in_motion_camera_data(status=True) 
         camera_motion_detected(in_data)
         self._assert_save_motion(save_motion_mock, status=True)
+
+        on_motion_detected.apply_async.assert_called_once_with()
+        on_motion_left.apply_async.assert_not_called()
         
         play_sound_mock.assert_called_once_with(self.device.device_id, True)
         alarm_notifications_mock.assert_called_once_with(self.device)
@@ -46,13 +50,17 @@ class CameraMotionTestCase(TestCase):
     @patch('alarm.notifications.object_no_more_detected')
     @patch('alarm.use_cases.out_alarm.notify_alarm_status_factory')
     @patch('alarm.business.in_motion.save_motion')
-    def test_camera_motion_no_more_motion(self, save_motion_mock, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
+    @patch('automation.tasks.on_motion_detected')
+    @patch('automation.tasks.on_motion_left')
+    def test_camera_motion_no_more_motion(self, on_motion_left, on_motion_detected, save_motion_mock, notify_alarm_status_mock, object_no_more_detected_mock, object_detected_mock, play_sound_mock):
         in_data = self._get_in_motion_camera_data(status=True) 
         camera_motion_detected(in_data)
         self._assert_save_motion(save_motion_mock, status=True)
         object_detected_mock.reset_mock()
         play_sound_mock.reset_mock()
         save_motion_mock.reset_mock()
+        on_motion_left.reset_mock()
+        on_motion_detected.reset_mock()
 
         in_data = self._get_in_motion_camera_data(status=False) 
         camera_motion_detected(in_data)
@@ -61,6 +69,9 @@ class CameraMotionTestCase(TestCase):
         play_sound_mock.assert_called_once_with(self.device.device_id, False)
         object_no_more_detected_mock.assert_called_once_with(self.device)
 
+        on_motion_left.apply_async.assert_called_once_with()
+        on_motion_detected.apply_async.assert_not_called()
+        
     @patch('alarm.use_cases.camera_motion.play_sound')
     @patch('alarm.notifications.object_detected')
     @patch('alarm.notifications.object_no_more_detected')

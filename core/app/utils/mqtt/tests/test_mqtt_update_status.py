@@ -129,12 +129,17 @@ class OnUpdateMqttSubscribeTestCase(TestCase):
     def test_mqtt_subscribe(self):
         call_param = []
         for service in self.updates:
-            p = MqttTopicSubscriptionJson(
+            call_param.append(MqttTopicSubscriptionJson(
+                topic=f'update/{service.name}',
+                _callback=ANY,
+                qos=1
+            ))
+
+            call_param.append(MqttTopicSubscriptionJson(
                 topic=f'update/{service.name}/+',
                 _callback=ANY,
                 qos=1
-            )
-            call_param.append(p)
+            ))
 
         on_updates(self.mqtt, self.updates)
         self.mqtt.add_subscribe.assert_called_once_with(call_param)

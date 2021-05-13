@@ -1,10 +1,11 @@
+import re
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Optional, Sequence, Type, TypeVar
+import itertools
+
 from utils.mqtt import MQTT
 from utils.mqtt.mqtt_data import MqttMessage, MqttTopicSubscriptionJson
-from distutils.util import strtobool
-import re
 
 
 @dataclass
@@ -75,13 +76,16 @@ class UpdateStatusDescriptor:
     payload_type: Type[Any]
 
 
-def bind_on_update(service_name: str, handler_instance: OnUpdateStatusHandler, payload_type) -> MqttTopicSubscriptionJson:
+def bind_on_update(service_name: str, handler_instance: OnUpdateStatusHandler, payload_type) -> Sequence[MqttTopicSubscriptionJson]:
     on_update = OnUpdate(handler_instance, payload_type)
 
-    return MqttTopicSubscriptionJson(f'update/{service_name}/+', on_update.on_update)
-
+    return (
+        MqttTopicSubscriptionJson(f'update/{service_name}', on_update.on_update),
+        MqttTopicSubscriptionJson(f'update/{service_name}/+', on_update.on_update)
+    )
 
 def on_updates(mqtt: MQTT, services: Sequence[UpdateStatusDescriptor]) -> None:
     subscriptions = [bind_on_update(service.name, service.on_update(), service.payload_type) for service in services]
+    subscriptions = list(itertools.chain.from_iterable(subscriptions))
     mqtt.add_subscribe(subscriptions) 
  

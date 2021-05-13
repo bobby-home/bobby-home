@@ -1,3 +1,4 @@
+from distutils.util import strtobool
 from alarm.models import AlarmStatus
 from devices.models import Device
 from alarm.use_cases.alarm_status import AlarmChangeStatus
@@ -196,42 +197,6 @@ def on_ping_data_from_topic(topic: str) -> PingData:
 def on_ping(message: MqttMessage) -> None:
     data = on_ping_data_from_topic(message.topic)
     register_ping(data.device_id, data.service_name)
-
-
-@dataclass()
-class UpdateStatusPayload:
-    status: str
-    force: str
-
-    status_bool: bool = field(init=False)
-    force_bool: bool = field(init=False)
-
-    def __post_init__(self):
-        if self.status == 'on':
-            self.status_bool = True
-        elif self.status == 'off':
-            self.status_bool = False
-        else:
-            raise ValueError()
-
-        if self.force == 'on':
-            self.force_bool = True
-        elif self.force == 'off':
-            self.force_bool = False
-        else:
-            raise ValueError()
-
-
-def on_update_status(message: MqttMessage) -> None:
-    topic = topic_regex(message.topic, UpdateStatusTopic)
-    data_payload = UpdateStatusPayload(**message.payload)
-    
-    if topic.device_id is not None:
-        AlarmChangeStatus.all_change_status(status=data_payload.status, force=data_payload.force)
-        # the device
-    else:
-        alarm_status = AlarmStatus.objects.get(device__device_id=topic.device_id)
-        alarm_status.running = data_payload.status
 
 
 def register(mqtt: MQTT):

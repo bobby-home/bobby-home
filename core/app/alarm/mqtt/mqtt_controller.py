@@ -1,7 +1,3 @@
-from distutils.util import strtobool
-from alarm.models import AlarmStatus
-from devices.models import Device
-from alarm.use_cases.alarm_status import AlarmChangeStatus
 import dataclasses
 from dataclasses import dataclass, field
 import re
@@ -10,7 +6,7 @@ from typing import Optional, Sequence, Type, TypeVar
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
-    MqttMessage, MqttTopicSubscriptionBoolean, MqttTopicSubscriptionJson
+    MqttMessage, MqttTopicSubscriptionJson
 from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.business.alarm_ping import register_ping
@@ -76,21 +72,11 @@ class CameraMotionPayload:
     detections: Sequence[Detection]
 
 
-UPDATE_STATUS_MATCHER = r"^(?P<service>[\w]+)/(?P<device_id>[\w]+)"
-
-@dataclass
-class UpdateStatusTopic:
-    service: str
-    device_id: Optional[str] = None
-
-    _topic_matcher = UPDATE_STATUS_MATCHER
-
-
 @dataclass
 class CameraMotionTopic(CameraTopic):
     _topic_matcher = CAMERA_TOPIC_MATCHER
 
-T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic], Type[UpdateStatusTopic])
+T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic])
 
 def topic_regex(topic: str, t: T) -> Optional[T]:
     match = re.match(t._topic_matcher, topic) 

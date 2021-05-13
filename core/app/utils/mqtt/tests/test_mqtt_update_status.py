@@ -40,6 +40,7 @@ class MqttUpdateStatusTestCase(TestCase):
         self.on_update.on_update(message)
 
         expected_payload = UpdateStatusPayload(**message.payload)
+        self.handler_mock.on_toggle_device.assert_not_called()
         self.handler_mock.on_update_all.assert_not_called()
         self.handler_mock.on_update_device.assert_called_once_with(expected_payload, self.device_id)
 
@@ -63,6 +64,8 @@ class MqttUpdateStatusTestCase(TestCase):
 
         self.on_update.on_update(message)
         self.handler_mock.on_toggle_device.assert_called_once_with(expected_payload, self.device_id)
+        self.handler_mock.on_update_all.assert_not_called()
+        self.handler_mock.on_update_device.assert_not_called()
 
 
     def test_on_update_toggle_raise(self):
@@ -83,6 +86,9 @@ class MqttUpdateStatusTestCase(TestCase):
 
         with self.assertRaises(ValueError) as _context:
             self.on_update.on_update(message)
+        self.handler_mock.on_update_all.assert_not_called()
+        self.handler_mock.on_toggle_device.assert_not_called()
+        self.handler_mock.on_update_device.assert_not_called()
 
     def test_on_update_all(self):
         topic = f'update/{self.service_name}'
@@ -105,6 +111,7 @@ class MqttUpdateStatusTestCase(TestCase):
         expected_payload = UpdateStatusPayload(**message.payload)
         self.handler_mock.on_update_all.assert_called_once_with(expected_payload)
         self.handler_mock.on_update_device.assert_not_called()
+        self.handler_mock.on_toggle_device.assert_not_called()
 
 
 class OnUpdateMqttSubscribeTestCase(TestCase):

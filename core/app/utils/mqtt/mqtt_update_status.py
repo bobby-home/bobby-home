@@ -60,6 +60,7 @@ class OnUpdate:
                 raise ValueError(f'device_id in topic is mandatory to toggle got {message.topic}')
 
             self._handler.on_toggle_device(data_payload, topic.device_id)
+            return None
 
         if topic.device_id is not None:
             self._handler.on_update_device(data_payload, topic.device_id)

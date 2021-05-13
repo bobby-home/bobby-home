@@ -13,7 +13,7 @@ class UpdateStatusPayload:
     force: str = 'off'
 
     status_bool: Optional[bool] = field(init=False, default=None)
-    force_bool: Optional[bool] = field(init=False, default=None)
+    force_bool: Optional[bool] = field(init=False, default=False)
     toggle: Optional[bool] = field(init=False, default=None)
 
     def __post_init__(self):

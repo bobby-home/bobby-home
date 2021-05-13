@@ -40,7 +40,7 @@ class UpdateStatusTopic:
     service: str
     device_id: Optional[str] = None
 
-    _topic_matcher: str = r"^(?P<service>[\w]+)/(?P<device_id>[\w]+)"
+    _topic_matcher: str = r"^update\/(?P<service>[\w]+)(?:\/(?P<device_id>[\w]+)?)?"
 
 
 class OnUpdate:
@@ -68,7 +68,7 @@ class UpdateStatusDescriptor:
 def bind_on_update(service_name: str, handler_instance: OnUpdateStatusHandler, payload_type) -> MqttTopicSubscriptionJson:
     on_update = OnUpdate(handler_instance, payload_type)
 
-    return MqttTopicSubscriptionJson(f'connected/{service_name}/+', on_update.on_update)
+    return MqttTopicSubscriptionJson(f'update/{service_name}/+', on_update.on_update)
 
 
 def on_updates(mqtt: MQTT, services: Sequence[UpdateStatusDescriptor]) -> None:

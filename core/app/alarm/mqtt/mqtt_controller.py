@@ -202,13 +202,6 @@ def on_ping(message: MqttMessage) -> None:
 def register(mqtt: MQTT):
     mqtt.add_subscribe((
         MqttTopicFilterSubscription(
-            topic='update/status/+/+',
-            qos=1,
-            topics=[
-                MqttTopicSubscriptionBoolean('update/status/+/+', on_update_status),
-            ]
-        ),
-        MqttTopicFilterSubscription(
             topic='motion/#',
             qos=1,
             topics=[

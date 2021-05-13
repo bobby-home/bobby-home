@@ -25,6 +25,9 @@ def topic_regex(topic: str, t: T) -> T:
     raise ValueError(f'topic {topic} wrong format. {t._topic_matcher}')
 
 class OnUpdateStatusHandler(ABC):
+    @abstractmethod
+    def on_toggle_device(self, data_payload, device_id: str) -> None:
+        pass
  
     @abstractmethod
     def on_update_device(self, payload, device_id: str) -> None:
@@ -51,6 +54,12 @@ class OnUpdate:
     def on_update(self, message: MqttMessage) -> None:
         topic = topic_regex(message.topic, UpdateStatusTopic)
         data_payload = self._payload_type(**message.payload)
+
+        if data_payload.toggle is True:
+            if not topic.device_id:
+                raise ValueError(f'device_id in topic is mandatory to toggle got {message.topic}')
+
+            self._handler.on_toggle_device(data_payload, topic.device_id)
 
         if topic.device_id is not None:
             self._handler.on_update_device(data_payload, topic.device_id)

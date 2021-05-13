@@ -1,11 +1,11 @@
-
-from alarm.mqtt.on_status_update import UpdateStatusPayload
-from unittest.mock import Mock
-from utils.mqtt.mqtt_data import MqttMessage
-from utils.mqtt.mqtt_update_status import OnUpdate
+from alarm.mqtt.on_status_update import OnUpdateStatus, UpdateStatusPayload
+from unittest.mock import ANY, Mock
+from utils.mqtt.mqtt_data import MqttMessage, MqttTopicSubscriptionJson
+from utils.mqtt.mqtt_update_status import OnUpdate, OnUpdateStatusHandler, UpdateStatusDescriptor, on_updates
 from devices.factories import DeviceFactory
 from django.test.testcases import TestCase
 import utils.date as dt_utils
+from alarm.mqtt.mqtt_updates import MqttUpdates
 
 
 class MqttUpdateStatusTestCase(TestCase):
@@ -64,3 +64,29 @@ class MqttUpdateStatusTestCase(TestCase):
         expected_payload = UpdateStatusPayload(**message.payload)
         self.handler_mock.on_update_all.assert_called_once_with(expected_payload)
         self.handler_mock.on_update_device.assert_not_called()
+
+
+class OnUpdateMqttSubscribeTestCase(TestCase):
+    def setUp(self) -> None:
+        self.mqtt = Mock()
+        
+        self.updates = (
+            UpdateStatusDescriptor(
+                name=MqttUpdates.ALARM.value,
+                on_update=OnUpdateStatus,
+                payload_type=UpdateStatusPayload
+            ),
+        ) 
+
+    def test_mqtt_subscribe(self):
+        call_param = []
+        for service in self.updates:
+            p = MqttTopicSubscriptionJson(
+                topic=f'update/{service.name}/+',
+                _callback=ANY,
+                qos=1
+            )
+            call_param.append(p)
+
+        on_updates(self.mqtt, self.updates)
+        self.mqtt.add_subscribe.assert_called_once_with(call_param)

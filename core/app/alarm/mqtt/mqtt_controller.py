@@ -31,6 +31,7 @@ class CameraTopic:
 class CameraMotionPicturePayload:
     image: bytearray
 
+
 @dataclass
 class CameraMotionPictureTopic(CameraTopic):
     event_ref: str
@@ -62,6 +63,7 @@ class CameraMotionVideoTopic(CameraTopic):
         self.video_split_number = int(self.video_split_number)
 
         self.video_ref = f'{self.event_ref}-{self.video_split_number}'
+
 
 @dataclass
 class CameraMotionPayload:
@@ -185,22 +187,22 @@ def on_ping(message: MqttMessage) -> None:
 
 def register(mqtt: MQTT):
     mqtt.add_subscribe((
-       MqttTopicFilterSubscription(
-           topic='motion/#',
-           qos=1,
-           topics=[
-               MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
-               MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
-               MqttTopicSubscription('motion/video/+/+', on_motion_video),
-           ],
-       ),
-       MqttTopicFilterSubscription(
+        MqttTopicFilterSubscription(
+            topic='motion/#',
+            qos=1,
+            topics=[
+                MqttTopicSubscriptionJson('motion/camera/+', on_motion_camera),
+                MqttTopicSubscription('motion/picture/+/+/+', on_motion_picture),
+                MqttTopicSubscription('motion/video/+/+', on_motion_video),
+            ],
+        ),
+        MqttTopicFilterSubscription(
            # ping/{service_name}/{device_id}
-           topic='ping/+/+',
-           qos=1,
-           topics=[
-               MqttTopicSubscription('ping/+/+', on_ping)
-           ]
-       ),
+            topic='ping/+/+',
+            qos=1,
+            topics=[
+                MqttTopicSubscription('ping/+/+', on_ping)
+            ]
+        ),
     ))
 

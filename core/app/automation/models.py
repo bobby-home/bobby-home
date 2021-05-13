@@ -41,3 +41,5 @@ class ActionMqttPublish(models.Model):
             editable=False,
             help_text=_('Datetime that the automation last triggered the action to run. '))
 
+    def __str__(self):
+        return _('Publish to %(topic)s') % self.__dict__

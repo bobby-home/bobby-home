@@ -3,7 +3,7 @@ from typing import List
 
 from django.db import transaction
 from alarm.use_cases.out_alarm import notify_alarm_status_factory
-from alarm.models import AlarmStatus, AlarmSchedule, Ping
+from alarm.models import AlarmStatus, AlarmSchedule
 
 
 def alarm_status_changed(alarm_status: AlarmStatus, force=False):
@@ -62,10 +62,10 @@ class AlarmChangeStatus:
             change_status(alarm_statuses, status, force)
 
     @staticmethod
-    def save_status(alarm_status: AlarmStatus) -> AlarmStatus:
+    def save_status(alarm_status: AlarmStatus, force: bool = False) -> AlarmStatus:
         with transaction.atomic():
             alarm_status.save()
-            change_status([alarm_status], alarm_status.running, force=False)
+            change_status([alarm_status], alarm_status.running, force=force)
 
             return alarm_status
 

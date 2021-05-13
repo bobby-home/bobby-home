@@ -3,6 +3,7 @@ from alarm.mqtt.on_connected_services import OnConnectedCamera, OnConnectedCamer
 from utils.mqtt.mqtt_service import ServiceDescriptor
 from camera.mqtt import MqttServices as CameraMqttServices
 
+
 class MqttServices(Enum):
     OBJECT_DETECTION_MANAGER = 'object_detection_manager'
     OBJECT_DETECTION = 'object_detection'

@@ -14,9 +14,9 @@ curl -sSL https://get.docker.com | sh
 # enable the pi camera. Warning: need reboot (done at the end).
 sudo raspi-config nonint do_camera 0
 
-docker network create --gateway 172.80.0.1 --subnet 172.80.0.0/16 backend_mqtt
-docker volume create --driver local --name camera_videos
-docker plugin install grafana/loki-docker-driver:arm-v7 --alias loki --grant-all-permissions
+sudo docker network create --gateway 172.80.0.1 --subnet 172.80.0.0/16 backend_mqtt
+sudo docker volume create --driver local --name camera_videos
+sudo docker plugin install grafana/loki-docker-driver:arm-v7 --alias loki --grant-all-permissions
 
 # Disable DHCP for virtual interfaces (created by docker)
 # without this line, the raspberry pi crashes after 5-10 seconds on WiFi.

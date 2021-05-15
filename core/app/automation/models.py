@@ -6,7 +6,11 @@ from utils.django.models import ChoiceArrayField
 
 class Automation(models.Model):
     trigger_name = ChoiceArrayField(
-            models.CharField(max_length=100, choices=Triggers.choices()))
+            models.CharField(
+                max_length=100,
+                choices=Triggers.choices()),
+            help_text=_('Any of these trigger names will trigger this automation to run.')
+        )
 
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=400, default=None, blank=True, null=True)

@@ -8,6 +8,7 @@ from automation.tasks import on_motion_detected, on_motion_left
 from django.test import TestCase
 from freezegun import freeze_time
 from automation.factories import ActionMqttPublishFactory, AutomationFactory, MqttClientFactory
+from devices.factories import DeviceFactory
 
 
 class AutomationTestCase(TestCase):
@@ -48,7 +49,7 @@ class AutomationTestCase(TestCase):
         self.assertEqual(2, mqtt_publish_mock.call_count)
 
         for args in mqtt_publish_mock.call_args_list:
-            self.assertEqual(1, len(args.args))
+            #self.assertEqual(1, len(args.args))
             self.assertQuerysetEqual(args.args[0], actions, ordered=False)
 
 
@@ -73,3 +74,58 @@ class AutomationTestCase(TestCase):
             ))
         
         publish_mock.assert_has_calls(calls)
+
+
+class ActionMqttPublishTestCase(TestCase):
+    def setUp(self) -> None:
+        self.automation = AutomationFactory(trigger_name=[Triggers.ON_MOTION_DETECTED.name, Triggers.ON_MOTION_LEFT.name])
+        self.mqtt_client = MqttClientFactory()
+
+    @patch('automation.actions.action_mqtt_publish.single')
+    def test_fstring_topic(self, publish_mock):
+        device = DeviceFactory()
+
+        action = ActionMqttPublishFactory(
+            topic='test/{device.device_id}/{device.location.structure}',
+            automation=self.automation,
+            mqtt_client=self.mqtt_client
+        )
+
+        on_motion_detected(data={'device_id': device.device_id})
+        
+        mqtt_client = action.mqtt_client
+
+        publish_mock.assert_called_once()
+        args, _kwargs = publish_mock.call_args
+        
+        self.assertEqual(args, (f'test/{device.device_id}/{device.location.structure}',))
+
+    @patch('automation.actions.action_mqtt_publish.single')
+    def test_fstring_json(self, publish_mock):
+        payload_json = {
+            'device_id': '{device.device_id}',
+            'location': '{device.location.structure}'
+        }
+
+        device = DeviceFactory()
+
+        action = ActionMqttPublishFactory(
+            payload_json=json.dumps(payload_json),
+            automation=self.automation,
+            mqtt_client=self.mqtt_client
+        )
+
+        on_motion_detected(data={'device_id': device.device_id})
+        
+        mqtt_client = action.mqtt_client
+
+        publish_mock.assert_called_once()
+        _args, kwargs = publish_mock.call_args
+       
+        expected_payload_json = {
+            'device_id': f'{device.device_id}',
+            'location': f'{device.location.structure}'
+        }
+
+        self.assertEqual(kwargs.get('payload'), json.dumps(expected_payload_json))
+

@@ -1,10 +1,17 @@
 from automation.actions import Triggers
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from utils.django.models import ChoiceArrayField
 
 
 class Automation(models.Model):
-    trigger_name = models.CharField(max_length=100, choices=Triggers.choices())
+    trigger_name = ChoiceArrayField(
+            models.CharField(
+                max_length=100,
+                choices=Triggers.choices()),
+            help_text=_('Any of these trigger names will trigger this automation to run.')
+        )
+
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=400, default=None, blank=True, null=True)
 

@@ -1,19 +1,18 @@
 from unittest import mock
 from django.utils import timezone
-from automation.models import ActionMqttPublish
+from automation.models import ActionMqttPublish, Automation
 import json
 from unittest.mock import ANY, call, patch
 from automation.actions import Triggers
-from automation.tasks import on_motion_detected
+from automation.tasks import on_motion_detected, on_motion_left
 from django.test import TestCase
 from freezegun import freeze_time
 from automation.factories import ActionMqttPublishFactory, AutomationFactory, MqttClientFactory
 
 
-# Create your tests here.
 class AutomationTestCase(TestCase):
     def setUp(self) -> None:
-        self.automation = AutomationFactory(trigger_name=Triggers.ON_MOTION_DETECTED.name)
+        self.automation = AutomationFactory(trigger_name=[Triggers.ON_MOTION_DETECTED.name, Triggers.ON_MOTION_LEFT.name])
         self.mqtt_client = MqttClientFactory()
 
         self.payload_json = {
@@ -38,6 +37,19 @@ class AutomationTestCase(TestCase):
 
         for action in actions:
             self.assertEqual(action.last_run_datetime, timezone.now())
+
+    @patch('automation.tasks.mqtt_publish')
+    def test_automation_multi_trigger(self, mqtt_publish_mock):
+        actions = ActionMqttPublish.objects.all()
+
+        on_motion_detected(data={})
+        on_motion_left(data={})
+
+        self.assertEqual(2, mqtt_publish_mock.call_count)
+
+        for args in mqtt_publish_mock.call_args_list:
+            self.assertEqual(1, len(args.args))
+            self.assertQuerysetEqual(args.args[0], actions, ordered=False)
 
 
     @patch('automation.actions.action_mqtt_publish.single')

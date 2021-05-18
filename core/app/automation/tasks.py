@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from automation.models import Automation
 from celery import shared_task
 
@@ -6,14 +6,6 @@ from automation.actions.action_mqtt_publish import mqtt_publish
 from automation.actions import Triggers
 from automation.dataclasses import OnMotionData
 from devices.models import Device
-
-
-actions = [
-    {
-        'related_name': 'actions_mqtt_publish',
-        'action': mqtt_publish
-    }
-]
 
 
 def _run_automations(trigger_name: Triggers, data: Optional[Any] = None) -> None:
@@ -37,5 +29,5 @@ def on_motion_detected(*_args, device_id: str) -> None:
 @shared_task()
 def on_motion_left(*_args, device_id: str) -> None:
     d = _motion_data(device_id)
-    _run_automations(Triggers.ON_MOTION_LEFT)
+    _run_automations(Triggers.ON_MOTION_LEFT, d)
 

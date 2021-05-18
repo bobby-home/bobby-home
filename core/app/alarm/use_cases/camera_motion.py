@@ -23,10 +23,10 @@ def camera_motion_detected(data: InMotionCameraData) -> None:
 
     if data.status is True:
         alarm_notifications.object_detected(device)
-        automation_tasks.on_motion_detected.apply_async()
+        automation_tasks.on_motion_detected.apply_async(kwargs={'device_id': device.device_id})
     else:
         alarm_notifications.object_no_more_detected(device)
-        automation_tasks.on_motion_left.apply_async()
+        automation_tasks.on_motion_left.apply_async(kwargs={'device_id': device.device_id})
         
         alarm_status = AlarmStatus.objects.get(device=device)
         if alarm_status.running is False:

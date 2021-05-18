@@ -1,19 +1,46 @@
+import dataclasses
+from typing import Any, Dict
 import json
 import uuid
-from typing import Sequence
+from typing import Any, Optional, Sequence
 from django.utils import timezone
 from automation.models import ActionMqttPublish
 from paho.mqtt.publish import single
 import paho.mqtt.client as mqtt
 
 
-def mqtt_publish(actions: Sequence[ActionMqttPublish]) -> None:
+def _payload_str_format(payload: Dict[Any, Any], data: Dict[Any, Any]) -> Dict[Any, Any]:
+    r = {}
+
+    for key, value in payload.items():
+        if isinstance(value, str) and '{' in value:
+            r[key] = value.format(**data)
+        else:
+            r[key] = value
+
+    return r
+
+
+def mqtt_publish(actions: Sequence[ActionMqttPublish], data: Optional[Any] = None) -> None:
     for action in actions:
         mqtt_client = action.mqtt_client
 
+        topic = action.topic
+        payload = action.payload_json
+
+        if data and dataclasses.is_dataclass(data):
+            d = dataclasses.asdict(data)
+            topic = topic.format(**d)
+            
+            if payload:
+                if isinstance(payload, str):
+                    payload = json.loads(payload)
+
+                payload = _payload_str_format(payload, d)
+
         single(
-            action.topic,
-            payload=json.dumps(action.payload_json),
+            topic,
+            payload=json.dumps(payload),
             qos=action.qos,
             retain=action.retain,
             hostname=mqtt_client.host,

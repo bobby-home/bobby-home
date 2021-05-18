@@ -31,8 +31,12 @@ def mqtt_publish(actions: Sequence[ActionMqttPublish], data: Optional[Any] = Non
         if data and dataclasses.is_dataclass(data):
             d = dataclasses.asdict(data)
             topic = topic.format(**d)
-            if action.payload_json:
-                payload = _payload_str_format(json.loads(action.payload_json), d)
+            
+            if payload:
+                if isinstance(payload, str):
+                    payload = json.loads(payload)
+
+                payload = _payload_str_format(payload, d)
 
         single(
             topic,

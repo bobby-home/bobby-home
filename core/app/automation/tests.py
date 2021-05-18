@@ -28,11 +28,14 @@ class AutomationTestCase(TestCase):
             automation=self.automation,
             mqtt_client=self.mqtt_client
         )
+        
+        self.device = DeviceFactory()
+        self.device_id = self.device.device_id
 
     @patch('automation.actions.action_mqtt_publish.single')
     @freeze_time('2021-05-11')
     def test_last_run_datetime_update(self, _publish_mock):
-        on_motion_detected(data={})
+        on_motion_detected(device_id=self.device_id)
 
         actions = ActionMqttPublish.objects.all()
 
@@ -43,8 +46,8 @@ class AutomationTestCase(TestCase):
     def test_automation_multi_trigger(self, mqtt_publish_mock):
         actions = ActionMqttPublish.objects.all()
 
-        on_motion_detected(data={})
-        on_motion_left(data={})
+        on_motion_detected(device_id=self.device_id)
+        on_motion_left(device_id=self.device_id)
 
         self.assertEqual(2, mqtt_publish_mock.call_count)
 
@@ -55,7 +58,7 @@ class AutomationTestCase(TestCase):
 
     @patch('automation.actions.action_mqtt_publish.single')
     def test_mqtt_publish(self, publish_mock):
-        on_motion_detected(data={})
+        on_motion_detected(device_id=self.device_id)
 
         calls = []
         for action in self.actions:
@@ -91,7 +94,7 @@ class ActionMqttPublishTestCase(TestCase):
             mqtt_client=self.mqtt_client
         )
 
-        on_motion_detected(data={'device_id': device.device_id})
+        on_motion_detected(device_id=device.device_id)
         
         mqtt_client = action.mqtt_client
 
@@ -115,7 +118,7 @@ class ActionMqttPublishTestCase(TestCase):
             mqtt_client=self.mqtt_client
         )
 
-        on_motion_detected(data={'device_id': device.device_id})
+        on_motion_detected(device_id=device.device_id)
         
         mqtt_client = action.mqtt_client
 

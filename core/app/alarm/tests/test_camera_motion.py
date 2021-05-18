@@ -35,8 +35,9 @@ class CameraMotionTestCase(TestCase):
         in_data = self._get_in_motion_camera_data(status=True) 
         camera_motion_detected(in_data)
         self._assert_save_motion(save_motion_mock, status=True)
-
-        on_motion_detected.apply_async.assert_called_once_with()
+    
+        d = {'device_id': self.device_id}
+        on_motion_detected.apply_async.assert_called_once_with(kwargs=d)
         on_motion_left.apply_async.assert_not_called()
         
         play_sound_mock.assert_called_once_with(self.device.device_id, True)
@@ -69,7 +70,8 @@ class CameraMotionTestCase(TestCase):
         play_sound_mock.assert_called_once_with(self.device.device_id, False)
         object_no_more_detected_mock.assert_called_once_with(self.device)
 
-        on_motion_left.apply_async.assert_called_once_with()
+        d = {'device_id': self.device_id}
+        on_motion_left.apply_async.assert_called_once_with(kwargs=d)
         on_motion_detected.apply_async.assert_not_called()
         
     @patch('alarm.use_cases.camera_motion.play_sound')

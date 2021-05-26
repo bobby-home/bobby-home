@@ -81,6 +81,7 @@ class AlarmChangeStatus:
             change_status([db_status], status, force)
             return db_status
 
+
 class AlarmScheduleChangeStatus:
     """
     Class to change the status of an Alarm through a Schedule.

@@ -35,7 +35,10 @@ class MqttClient(models.Model):
 
 class ActionMqttPublish(models.Model):
     topic = models.CharField(max_length=100)
+
     payload_json = models.JSONField(default=None, blank=True, null=True)
+    payload_boolean = models.BooleanField(default=None, blank=True, null=True)
+
     retain = models.BooleanField(default=False)
     qos = models.PositiveSmallIntegerField(default=1, help_text=_('The quality of service level to use.'))
 

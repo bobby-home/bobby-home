@@ -1,4 +1,7 @@
-from alarm.use_cases.data import Detection, InMotionCameraData, InMotionPictureData, InMotionVideoData
+from utils.mqtt import mqtt_factory
+import uuid
+from devices.models import Device, DeviceType
+from alarm.use_cases.data import Detection, DiscoverAlarmData, InMotionCameraData, InMotionPictureData, InMotionVideoData
 import logging
 from typing import Tuple
 
@@ -31,6 +34,32 @@ def camera_motion_video(data: dict) -> None:
     in_data = InMotionVideoData(**data)
     camera_video.camera_video_factory().camera_video(in_data)
 
+@shared_task()
+def discover_alarm(data: dict) -> None:
+    in_data = DiscoverAlarmData(**data)
+    device_id = uuid.uuid4().__str__().split('-')[0]
+    i_device_type, _created_type = DeviceType.objects.get_or_create(
+        type=in_data.type,
+        defaults={'type': in_data.type},
+    )
+
+    # todo: while exists, renegerate uuid. Edge case! but could happen.
+    device = Device.objects.create(
+        device_id=device_id,
+        device_type=i_device_type,
+    )
+
+    AlarmStatus.objects.create(
+        running=False,
+        device=device,
+    )
+
+    payload = {
+        'device_id': device_id,
+        'id': in_data.id,
+    }
+
+    mqtt_factory().publish('registered/alarm', payload)
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):

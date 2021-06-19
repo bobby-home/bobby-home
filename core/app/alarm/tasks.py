@@ -12,6 +12,7 @@ import alarm.notifications as notifications
 import alarm.use_cases.camera_picture as camera_picture
 import alarm.use_cases.camera_motion as camera_motion
 import alarm.use_cases.camera_video as camera_video
+import alarm.use_cases.alarm_discovery as alarm_discovery
 from alarm.use_cases.alarm_status import AlarmScheduleChangeStatus
 
 
@@ -37,29 +38,7 @@ def camera_motion_video(data: dict) -> None:
 @shared_task()
 def discover_alarm(data: dict) -> None:
     in_data = DiscoverAlarmData(**data)
-    device_id = uuid.uuid4().__str__().split('-')[0]
-    i_device_type, _created_type = DeviceType.objects.get_or_create(
-        type=in_data.type,
-        defaults={'type': in_data.type},
-    )
-
-    # todo: while exists, renegerate uuid. Edge case! but could happen.
-    device = Device.objects.create(
-        device_id=device_id,
-        device_type=i_device_type,
-    )
-
-    AlarmStatus.objects.create(
-        running=False,
-        device=device,
-    )
-
-    payload = {
-        'device_id': device_id,
-        'id': in_data.id,
-    }
-
-    mqtt_factory().publish('registered/alarm', payload)
+    alarm_discovery.discover_alarm(in_data)
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):

@@ -34,7 +34,7 @@ class Device(models.Model):
 
     device_id = models.CharField(max_length=8, unique=True)
 
-    name = models.CharField(max_length=100, unique=True, blank=True)
+    name = models.CharField(max_length=100, unique=True)
     is_main = models.BooleanField(default=False)
 
     # When we're installing the system, location may be unknown at the beginning.

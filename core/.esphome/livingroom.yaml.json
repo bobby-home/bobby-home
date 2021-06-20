@@ -1,0 +1,28 @@
+{
+  "storage_version": 1,
+  "name": "livingroom",
+  "comment": null,
+  "esphome_version": "1.16.2",
+  "src_version": 1,
+  "arduino_version": "espressif8266@2.6.2",
+  "address": "livingroom.local",
+  "esp_platform": "ESP8266",
+  "board": "nodemcuv2",
+  "build_path": "livingroom",
+  "firmware_bin_path": "livingroom/.pioenvs/livingroom/firmware.bin",
+  "loaded_integrations": [
+    "api",
+    "async_tcp",
+    "binary_sensor",
+    "captive_portal",
+    "esphome",
+    "logger",
+    "network",
+    "ota",
+    "rc522",
+    "rc522_spi",
+    "spi",
+    "web_server_base",
+    "wifi"
+  ]
+}

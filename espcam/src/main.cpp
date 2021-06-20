@@ -5,6 +5,9 @@
 #include <Preferences.h>
 #include <ArduinoJson.h>
 
+// Allocate a temporary JsonDocument
+// Use https://arduinojson.org/v6/assistant to compute the capacity.
+
 Preferences preferences;
 
 WiFiClient espClient;
@@ -21,7 +24,6 @@ const char *ssid = "Livebox-FFD0";
 const char *password = "wKzooRJtrJiE3X9kVP";
 const char *mqtt_server = "192.168.1.14";
 const char *HostName = "ESP_RFID_2";
-const char *topicPush = "test/rfid";
 const char *mqttUser = "mx";
 const char *mqttPassword = "coucou";
 
@@ -29,7 +31,7 @@ const char *mqttPassword = "coucou";
 #define TOPIC_RECV_REGISTERED "registered/alarm"
 
 // <!> will add /<device_id> at the end.
-#define TOPIC_CAMERA_MANAGER "status/camera_manager"
+#define TOPIC_CAMERA_MANAGER "status/camera_manager/"
 
 
 #define CAMERA_MODEL_AI_THINKER
@@ -37,17 +39,13 @@ const char *mqttPassword = "coucou";
 
 void initMqttCamera(String device_id);
 
-// struct MqttWill {
-//   const char willTopic;
-//   int willQos;
-//   bool willRetain;
-//   const char willMessage;
-// };
-
-// MqttWill mqtt_will;
-
-int period = 1000;
-unsigned long time_now = 0;
+const int send_picture_period_ms = 1000;
+const int send_ping_period_ms = 60000;
+unsigned long time_now_send_picture = 0;
+unsigned long time_now_send_ping = 0;
+String device_id = "";
+bool run_camera = false;
+uint16_t bufferSize = client.getBufferSize();
 
 
 void setup_wifi()
@@ -68,20 +66,35 @@ void setup_wifi()
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  Serial.println("Mac address: ");
+  Serial.println(WiFi.macAddress());
 }
 
-void reconnect()
-{
-  while (!client.connected())
-  {
+void reconnect() {
+  bool connected = false;
+  while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    // @TODO check if will is set to inject it.
-    if (client.connect(HostName, mqttUser, mqttPassword))
-    {
+
+    if (device_id.equals("")) {
+      Serial.println("connect without will message because device_id is unkown.");
+      connected = client.connect(HostName, mqttUser, mqttPassword);
+    } else {
+      Serial.println("connect with will message to sync status.");
+      char will_topic[100];
+      const char* id = device_id.c_str();
+
+      snprintf(will_topic, sizeof(will_topic), "status/camera_manager/%s", id);
+
+      // \x00 = binary of false
+      // @todo: will message does not work.
+      connected = client.connect(HostName, mqttUser, mqttPassword, (const char *) will_topic, 1, true, "\x00");
+      // device id is known, set will message.
+    }
+
+    if (connected) {
       Serial.println("connected");
     }
-    else
-    {
+    else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
@@ -153,19 +166,18 @@ esp_err_t camera_init() {
   return ESP_OK;
 }
 
-uint16_t bufferSize = client.getBufferSize();
-
-
 void mqttCallback(String topic, byte* message, unsigned int length) {
   String payload;
   for (int i = 0; i < length; i++) {
     payload += (char)message[i];
   }
 
+  Serial.println("mqtt callback called with topic: ");
   Serial.println(topic);
 
-  if (topic.equals(TOPIC_PUBLISH_PICTURE)) {
-    DynamicJsonDocument CONFIG(2048);
+  if (topic.equals(TOPIC_RECV_REGISTERED)) {
+    StaticJsonDocument<2048> CONFIG;
+
     deserializeJson(CONFIG, payload);
 
     Serial.print("\n Got the device_id from bobby core");
@@ -176,40 +188,41 @@ void mqttCallback(String topic, byte* message, unsigned int length) {
     preferences.putString("device_id", device_id);
     initMqttCamera(device_id);
   }
-  else if (topic.indexOf(TOPIC_CAMERA_MANAGER) > 0) {
-    DynamicJsonDocument CAMERA_PAYLOAD(2048);
-    deserializeJson(CAMERA_PAYLOAD, payload);
+  else if (topic.equals(TOPIC_CAMERA_MANAGER + device_id)) {
+    StaticJsonDocument<1048> PAYLOAD_JSON;
+    deserializeJson(PAYLOAD_JSON, payload);
     Serial.println("handling camera status");
+
+    const bool status = PAYLOAD_JSON["status"];
     Serial.println(payload);
+    Serial.println("status: ");
+    Serial.println(status);
+    run_camera = status;
   }
 }
 
-void setup()
-{
+void setup() {
   Serial.begin(9600); // Initialize serial communications with the PC
-  while (!Serial)
-    ; // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
+  while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
 
   camera_init();
   delay(500);
   setup_wifi();
   client.setServer(broker_ip, MQTT_BROKER_PORT);
   client.setCallback(mqttCallback);
-  reconnect();
 
   // RW-mode (second parameter has to be false).
   preferences.begin("bobby-cam", false);
-  preferences.clear();
-  
-  String deviceId = preferences.getString("device_id", "");
-  if (deviceId.equals("")) {
-    // Allocate a temporary JsonDocument
-    // Use https://arduinojson.org/v6/assistant to compute the capacity.
-    DynamicJsonDocument payload(1024);
+
+  device_id = preferences.getString("device_id", "");
+
+  reconnect();
+
+  if (device_id.equals("")) {
+    StaticJsonDocument<1024> payload;
 
     payload["type"] = "esp32cam";
-    // @TODO: generate a random id!
-    payload["id"] = "some_random";
+    payload["id"] = WiFi.macAddress();
 
     char buffer[1024];
     serializeJson(payload, buffer);
@@ -218,15 +231,13 @@ void setup()
     client.subscribe(TOPIC_RECV_REGISTERED);
     client.publish("discover/alarm", buffer, false);
   } else {
-    Serial.print("\ndevice_id: ");
-    Serial.println(deviceId);
-    initMqttCamera(deviceId);
+    Serial.print("\n setup known device_id: ");
+    Serial.println(device_id);
+    initMqttCamera(device_id);
   }
-
 }
 
-esp_err_t process_image(camera_fb_t *fb, uint16_t *mqttBufferSize)
-{
+esp_err_t process_image(camera_fb_t *fb, uint16_t *mqttBufferSize) {
   if (fb->len > *mqttBufferSize) {
     size_t newSize = fb->len + ((20/100) * fb->len);
     bool is_realloc = client.setBufferSize(newSize);
@@ -241,16 +252,18 @@ esp_err_t process_image(camera_fb_t *fb, uint16_t *mqttBufferSize)
     }
   }
 
-  client.publish(topicPush, fb->buf, fb->len, false);
+  char buff[100];
+  const char* id = device_id.c_str();
+  snprintf(buff, sizeof(buff), "ia/picture/%s", id);
+
+  client.publish(buff, fb->buf, fb->len, false);
   return ESP_OK;
 }
 
-esp_err_t camera_capture()
-{
+esp_err_t camera_capture() {
   //acquire a frame
   camera_fb_t *fb = esp_camera_fb_get();
-  if (!fb)
-  {
+  if (!fb) {
     ESP_LOGE(TAG, "Camera Capture Failed");
     return ESP_FAIL;
   }
@@ -262,45 +275,50 @@ esp_err_t camera_capture()
     return processed;
   }
 
-  Serial.println("CLIC");
-
   // return the frame buffer back to the driver for reuse
   esp_camera_fb_return(fb);
   return ESP_OK;
 }
 
-void mqttLoop()
-{
-  if (!client.connected())
-  {
+void mqttLoop() {
+  if (!client.connected()) {
     reconnect();
   }
 
   client.loop();
 }
 
-void initMqttCamera(String device_id)
-{
-  // mqtt_will = {"will/topic", 1, true, "true"}
-
+void initMqttCamera(String device_id) {
   char buff[100];
   const char* id = device_id.c_str();
 
   snprintf(buff, sizeof(buff), "status/camera_manager/%s", id);
   // subscribe to mqtt camera topics to up/off.
-  client.subscribe(buff);
+  client.subscribe(buff, 1);
 
-  // @TODO publish your status and the will message.
+  // I need to know if we had to ask bobby core the device_id because will is not set (because device id was unkown when mqtt started)
+  // if so, I need to disconnect and reconnect the mqtt client :)
+  snprintf(buff, sizeof(buff), "connected/camera_manager/%s", id);
+  client.publish((const char *) buff, "\x01");
 }
 
-void loop()
-{
-  mqttLoop();
+void camera_loop() {
+  if (!run_camera) return;
 
   // if status given by core is true.
-  // if(millis() - time_now > period)
-  // {
-  //   time_now = millis();
-  //   camera_capture();
+  if(millis() - time_now_send_picture > send_picture_period_ms) {
+    time_now_send_picture = millis();
+    camera_capture();
+  }
+
+  // ping is handled by object detection (listen_frame) service.
+  // if(millis() - time_now_send_ping > send_ping_period_ms) {
+  //   time_now_send_ping = millis();
+  //   camera_ping();
   // }
+}
+
+void loop() {
+  mqttLoop();
+  camera_loop();
 }

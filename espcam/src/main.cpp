@@ -176,17 +176,23 @@ void mqttCallback(String topic, byte* message, unsigned int length) {
   Serial.println(topic);
 
   if (topic.equals(TOPIC_RECV_REGISTERED)) {
-    StaticJsonDocument<2048> CONFIG;
-
+    StaticJsonDocument<1024> CONFIG;
     deserializeJson(CONFIG, payload);
+    // check if CONFIG["id"] corresponds to our mac@
 
-    Serial.print("\n Got the device_id from bobby core");
-    Serial.println(payload);
-    const char* device_id = CONFIG["device_id"];
-    Serial.println(device_id);
+    const char* id = CONFIG["id"];
 
-    preferences.putString("device_id", device_id);
-    initMqttCamera(device_id);
+    if(WiFi.macAddress().equals(id)) {
+      Serial.print("\n Got the device_id from bobby core");
+      Serial.println(payload);
+      const char* device_id = CONFIG["device_id"];
+      Serial.println(device_id);
+
+      preferences.putString("device_id", device_id);
+      initMqttCamera(device_id);
+    } else {
+      Serial.println("Got a device_id but not for me.");
+    }
   }
   else if (topic.equals(TOPIC_CAMERA_MANAGER + device_id)) {
     StaticJsonDocument<1048> PAYLOAD_JSON;

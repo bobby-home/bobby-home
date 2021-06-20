@@ -62,6 +62,32 @@ class AlarmDiscoveryTestCase(TestCase):
         for alarm_status in alarm_statuses:
             self.assertEqual(alarm_status.device.device_type.type, 'esp32cam')
 
+    def test_it_retrieves_device_with_mac_address(self):
+        mac_address = '76:ec:4e:60:15:1e'
+        device = DeviceFactory(mac_address=mac_address)
+        device_id = device.device_id
+
+        in_data = DiscoverAlarmData(
+            id='some_id',
+            type='esp32cam',
+            mac_address=mac_address,
+        )
+
+        discover_alarm(in_data)
+        discover_alarm(in_data)
+
+        devices = Device.objects.all()
+        self.assertEqual(1, len(devices))
+
+        types = DeviceType.objects.all()
+        self.assertEqual(1, len(types))
+
+        alarm_statuses = AlarmStatus.objects.all()
+        self.assertEqual(1, len(alarm_statuses))
+        alarm_status = alarm_statuses[0]
+
+        self.assertEqual(alarm_status.device.device_id, device_id)
+
     def test_it_creates_alarm_status_for_given_device(self):
         device = DeviceFactory()
         device_id = device.device_id

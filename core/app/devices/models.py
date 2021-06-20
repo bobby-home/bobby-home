@@ -13,7 +13,7 @@ class DeviceType(models.Model):
     """
     RaspberryPI4, zero w, zero, arduino uno, esp8266...
     """
-    type = models.CharField(primary_key=True, max_length=100)
+    type = models.CharField(primary_key=True, max_length=100, blank=False, default=None)
 
     def __str__(self):
         return self.type
@@ -36,6 +36,8 @@ class Device(models.Model):
 
     name = models.CharField(max_length=100, unique=True)
     is_main = models.BooleanField(default=False)
+
+    mac_address = models.CharField(max_length=17, default=None, blank=True, null=True)
 
     # When we're installing the system, location may be unknown at the beginning.
     location = models.ForeignKey(Location, blank=True, null=True, on_delete=models.PROTECT)

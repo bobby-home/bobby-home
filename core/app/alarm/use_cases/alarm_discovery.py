@@ -11,6 +11,14 @@ def _get_device(in_data: DiscoverAlarmData) -> Device:
         device = Device.objects.get(device_id=device_id)
         return device
 
+    if in_data.mac_address:
+        try:
+            device = Device.objects.get(mac_address=in_data.mac_address)
+            return device
+        except Device.DoesNotExist:
+            # it is ok, we will create it.
+            pass
+
     # unkown device_id, need to create it.
     device_id = uuid.uuid4().__str__().split('-')[0]
     i_device_type, _created_type = DeviceType.objects.get_or_create(
@@ -31,9 +39,9 @@ def _get_device(in_data: DiscoverAlarmData) -> Device:
 def discover_alarm(in_data: DiscoverAlarmData) -> None:
     device = _get_device(in_data) 
 
-    AlarmStatus.objects.create(
-        running=False,
+    AlarmStatus.objects.get_or_create(
         device=device,
+        defaults={'device': device},
     )
 
     payload = {

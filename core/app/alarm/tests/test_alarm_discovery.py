@@ -1,3 +1,4 @@
+from devices.factories import DeviceFactory
 import json
 from unittest.mock import Mock, patch
 from alarm.models import AlarmStatus
@@ -60,6 +61,25 @@ class AlarmDiscoveryTestCase(TestCase):
         
         for alarm_status in alarm_statuses:
             self.assertEqual(alarm_status.device.device_type.type, 'esp32cam')
+
+    def test_it_creates_alarm_status_for_given_device(self):
+        device = DeviceFactory()
+        device_id = device.device_id
+
+        in_data = DiscoverAlarmData(id='some_id', device_id=device_id)
+        discover_alarm(in_data)
+
+        devices = Device.objects.all()
+        self.assertEqual(1, len(devices))
+
+        types = DeviceType.objects.all()
+        self.assertEqual(1, len(types))
+
+        alarm_statuses = AlarmStatus.objects.all()
+        self.assertEqual(1, len(alarm_statuses))
+        alarm_status = alarm_statuses[0]
+
+        self.assertEqual(alarm_status.device.device_id, device_id)
 
     @patch('alarm.use_cases.alarm_discovery.mqtt_factory')
     def test_it_sends_mqtt_answer(self, mqtt_factory_patch):

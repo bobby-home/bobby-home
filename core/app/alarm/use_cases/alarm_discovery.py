@@ -5,8 +5,13 @@ from alarm.models import AlarmStatus
 from devices.models import Device, DeviceType
 from alarm.use_cases.data import DiscoverAlarmData
 
+def _get_device(in_data: DiscoverAlarmData) -> Device:
+    if in_data.device_id:
+        device_id = in_data.device_id
+        device = Device.objects.get(device_id=device_id)
+        return device
 
-def discover_alarm(in_data: DiscoverAlarmData) -> None:
+    # unkown device_id, need to create it.
     device_id = uuid.uuid4().__str__().split('-')[0]
     i_device_type, _created_type = DeviceType.objects.get_or_create(
         type=in_data.type,
@@ -20,13 +25,19 @@ def discover_alarm(in_data: DiscoverAlarmData) -> None:
         device_type=i_device_type,
     )
 
+    return device
+
+
+def discover_alarm(in_data: DiscoverAlarmData) -> None:
+    device = _get_device(in_data) 
+
     AlarmStatus.objects.create(
         running=False,
         device=device,
     )
 
     payload = {
-        'device_id': device_id,
+        'device_id': device.device_id,
         'id': in_data.id,
     }
 

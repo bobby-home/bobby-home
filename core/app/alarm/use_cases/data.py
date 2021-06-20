@@ -35,5 +35,6 @@ class InMotionPictureData:
 @dataclass
 class DiscoverAlarmData:
     id: Any
-    type: str
+    type: Optional[str] = None
+    device_id: Optional[str] = None
 

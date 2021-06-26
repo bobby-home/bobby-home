@@ -1,3 +1,4 @@
+#include "SPIFFS.h"
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -16,16 +17,12 @@ PubSubClient client(espClient);
 const uint16_t size = 1024;
 
 #define MQTT_BROKER_PORT 8883
-#define MQTT_BROKER_IP 192, 168, 1, 14
+// #define MQTT_BROKER_IP 192, 168, 1, 14
+// IPAddress broker_ip(MQTT_BROKER_IP);
 
-IPAddress broker_ip(MQTT_BROKER_IP);
-
-const char *ssid = "Livebox-FFD0";
-const char *password = "wKzooRJtrJiE3X9kVP";
-const char *mqtt_server = "192.168.1.14";
-const char *HostName = "ESP_RFID_2";
-const char *mqttUser = "mx";
-const char *mqttPassword = "coucou";
+const char *ssid, *password, *mqtt_server, *mqtt_user, *mqtt_port, *mqtt_password, *host_name;
+// DynamicJsonDocument CONFIG_JSON(2048);
+StaticJsonDocument<2048> CONFIG_JSON;
 
 #define TOPIC_PUBLISH_PICTURE "test/picture"
 #define TOPIC_RECV_REGISTERED "registered/alarm"
@@ -33,11 +30,11 @@ const char *mqttPassword = "coucou";
 // <!> will add /<device_id> at the end.
 #define TOPIC_CAMERA_MANAGER "status/camera_manager/"
 
-
 #define CAMERA_MODEL_AI_THINKER
 #include "pins.h"
 
-void init_mqtt_camera(String device_id);
+void init_mqtt_camera(String device_id, bool new_device);
+void publish_camera_status(bool status);
 
 const int send_picture_period_ms = 1000;
 unsigned long time_now_send_picture = 0;
@@ -46,20 +43,72 @@ String device_id = "";
 bool run_camera = false;
 uint16_t bufferSize = client.getBufferSize();
 
+typedef int32_t conf_err_t;
+
+#define CONF_OK          0
+#define CONF_ERR_FILE_NOT_FOUND 0x101
+#define CONF_ERR_START_SPIFFS 0x102
+
+
+/**
+ * @brief Load configuration file to global variables.
+ */
+conf_err_t load_configuration() {
+  if (!SPIFFS.begin()) {
+    Serial.println("failed to mount FS");
+    return CONF_ERR_START_SPIFFS;
+  }
+
+  Serial.println("mounted file system");
+
+  if (SPIFFS.exists("/config.json")) {
+    //file exists, reading and loading
+    File config_file = SPIFFS.open("/config.json", "r");
+
+    if (config_file) {
+      Serial.println("opened config file");
+      String  config_string = config_file.readString();
+
+      deserializeJson(CONFIG_JSON, config_string);
+
+      ssid = CONFIG_JSON["ssid"];
+      password = CONFIG_JSON["password"];
+      mqtt_server = CONFIG_JSON["mqtt_server"];
+      host_name = CONFIG_JSON["host_name"];
+      mqtt_user = CONFIG_JSON["mqtt_user"];
+      mqtt_password = CONFIG_JSON["mqtt_password"];
+
+      config_file.close();
+      SPIFFS.end();
+
+      return CONF_OK;
+    }
+  } else {
+    Serial.println("Could not find the file config.json");
+    SPIFFS.end();
+    return CONF_ERR_FILE_NOT_FOUND;
+  }
+
+  SPIFFS.end();
+}
 
 void setup_wifi() {
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
+  Serial.println(password);
   WiFi.mode(WIFI_STA);
-  // WiFi.hostname(HostName);
+
+  // WiFi.HostName(host_name);
+
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
+
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
@@ -75,16 +124,24 @@ void reconnect() {
 
     if (device_id.equals("")) {
       Serial.println("connect without will message because device_id is unkown.");
-      connected = client.connect(HostName, mqttUser, mqttPassword);
+      connected = client.connect(host_name, mqtt_user, mqtt_password);
     } else {
-      Serial.println("connect with will message to sync status.");
       char will_topic[100];
+      char mqtt_hostname[100];
       const char* id = device_id.c_str();
 
       snprintf(will_topic, sizeof(will_topic), "status/camera/%s", id);
+      snprintf(mqtt_hostname, sizeof(mqtt_hostname), "esp-%s", id);
+
+      Serial.println("connect with will message to sync status.");
+
+      Serial.println(mqtt_hostname);
+      Serial.println(mqtt_user);
+      Serial.println(mqtt_password);
+      Serial.println(will_topic);
 
       // \x00 = binary of false
-      connected = client.connect(HostName, mqttUser, mqttPassword, will_topic, 1, true, "\x00");
+      connected = client.connect(mqtt_hostname, mqtt_user, mqtt_password, will_topic, 1, true, "\x00");
     }
 
     if (connected) {
@@ -244,10 +301,17 @@ void register_device() {
 
 void setup() {
   Serial.begin(9600); // Initialize serial communications with the PC
-  while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
+  while (!Serial); // Do nothing if no serial port is opened
+
+  conf_err_t status = load_configuration();
+  if (status != CONF_OK) {
+    Serial.println("Stop because configuration cannot load.");
+    return;
+  }
 
   setup_wifi();
-  client.setServer(broker_ip, MQTT_BROKER_PORT);
+
+  client.setServer(mqtt_server, MQTT_BROKER_PORT);
   client.setCallback(mqtt_callback);
 
   // RW-mode (second parameter has to be false).

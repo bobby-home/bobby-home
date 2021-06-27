@@ -15,6 +15,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class NotifyAlarmStatus:
+    """Class to coordinate the communication with alarm.
+    Methods to call when you need to communicate with an alarm.
+    It will takes decision and call
+    the underlying methods to actually send messages with corresponding data.
+    """
     def __init__(self, alarm_messaging: AlarmMessaging):
         self._alarm_messaging = alarm_messaging
 
@@ -23,10 +28,6 @@ class NotifyAlarmStatus:
         The only method that actually send an mqtt message.
         It formats the mqtt payload and decide whether or not a mqtt call has to be done.
         """
-        payload = {
-            'is_dumb': status.is_dumb
-        }
-
         if status.running is False and alarm_status.can_turn_off(device) is False and force is False:
             LOGGER.info(f'The alarm on device {device.device_id} should turn off but stay on because a motion is being detected.')
             return
@@ -34,7 +35,7 @@ class NotifyAlarmStatus:
         checks.verify_services_status(device.device_id, status.running, status.is_dumb)
 
         self._alarm_messaging \
-            .publish_alarm_status(device.device_id, status.running, status.is_dumb, payload)
+            .publish_alarm_status(device.device_id, device.device_type.type, status.running)
 
     def _publish_alarm_status_with_config(self, device: Device, status: AlarmStatus, force=False) -> None:
         self._publish(device, status, force)

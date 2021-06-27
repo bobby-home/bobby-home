@@ -31,9 +31,9 @@ class AlarmMessaging:
         camera_data = CameraData(to_analyze=True) if status else CameraData(to_analyze=False)
         
         if device_type == 'esp32cam':
-            camera_data.video_spport = False
+            camera_data.video_support = False
 
-        self._mqtt_status.publish(f'status/{MqttServices.OBJECT_DETECTION_MANAGER.value}/{device_id}', status, camera_data)
+        #self._mqtt_status.publish(f'status/{MqttServices.OBJECT_DETECTION_MANAGER.value}/{device_id}', status, camera_data)
 
         # will send to camera_manager
         self._camera_messaging.publish_status(device_id, status, camera_data)

@@ -9,7 +9,7 @@ from utils.mqtt.mqtt_status import MqttJsonStatus
 class CameraData:
     to_analyze: Optional[bool] = None
     stream: Optional[bool] = None
-    video_spport: Optional[bool] = None
+    video_support: Optional[bool] = None
 
 
 class CameraMessaging:

@@ -32,3 +32,10 @@ class InMotionPictureData:
     event_ref: str
     status: bool
 
+@dataclass
+class DiscoverAlarmData:
+    id: Any
+    type: Optional[str] = None
+    device_id: Optional[str] = None
+    mac_address: Optional[str] = None
+

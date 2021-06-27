@@ -1,8 +1,10 @@
 import dataclasses
+from devices.models import Device, DeviceType
+import uuid
 from dataclasses import dataclass, field
 import re
 import os
-from typing import Optional, Sequence, Type, TypeVar 
+from typing import Any, Optional, Sequence, Type, TypeVar 
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
@@ -11,7 +13,7 @@ from utils.mqtt import MQTT
 import alarm.tasks as tasks
 from alarm.business.alarm_ping import register_ping
 import hello_django.settings as settings
-from alarm.use_cases.data import Detection, InMotionCameraData, InMotionPictureData, InMotionVideoData
+from alarm.use_cases.data import Detection, DiscoverAlarmData, InMotionCameraData, InMotionPictureData, InMotionVideoData
 
 
 CAMERA_TOPIC_MATCHER = r"^(?P<type>[\w]+)/(?P<service>[\w]+)/(?P<device_id>[\w]+)"
@@ -185,9 +187,24 @@ def on_ping(message: MqttMessage) -> None:
     register_ping(data.device_id, data.service_name)
 
 
+def on_discover_alarm(message: MqttMessage) -> None:
+    payload = message.payload
+    in_data = DiscoverAlarmData(**payload)
+    print(f'on_discover_alarm data={in_data}')
+    
+    tasks.discover_alarm.apply_async(args=[dataclasses.asdict(in_data)])
+    
+
 def register(mqtt: MQTT):
     mqtt.add_subscribe((
         MqttTopicFilterSubscription(
+            topic='discover/#',
+            qos=1,
+            topics=[
+                MqttTopicSubscriptionJson('discover/alarm', on_discover_alarm),
+            ],
+        ),
+         MqttTopicFilterSubscription(
             topic='motion/#',
             qos=1,
             topics=[

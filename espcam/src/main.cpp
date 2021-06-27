@@ -130,18 +130,17 @@ void reconnect() {
       char mqtt_hostname[100];
       const char* id = device_id.c_str();
 
-      snprintf(will_topic, sizeof(will_topic), "status/camera/%s", id);
+      snprintf(will_topic, sizeof(will_topic), "connected/camera/%s", id);
       snprintf(mqtt_hostname, sizeof(mqtt_hostname), "esp-%s", id);
 
       Serial.println("connect with will message to sync status.");
 
-      Serial.println(mqtt_hostname);
-      Serial.println(mqtt_user);
-      Serial.println(mqtt_password);
-      Serial.println(will_topic);
+      // Serial.println(mqtt_hostname);
+      // Serial.println(mqtt_user);
+      // Serial.println(mqtt_password);
+      // Serial.println(will_topic);
 
-      // \x00 = binary of false
-      connected = client.connect(mqtt_hostname, mqtt_user, mqtt_password, will_topic, 1, true, "\x00");
+      connected = client.connect(mqtt_hostname, mqtt_user, mqtt_password, will_topic, 1, true, "0");
     }
 
     if (connected) {
@@ -276,7 +275,7 @@ void mqtt_callback(String topic, byte* message, unsigned int length) {
     in_device_register(payload);
   }
   else if (topic.equals(TOPIC_CAMERA_MANAGER + device_id)) {
-    in_camera_status(topic);
+    in_camera_status(payload);
   }
 }
 
@@ -384,19 +383,20 @@ void mqtt_loop() {
  * @brief Inform Bobby the status of the camera.
  */
 void publish_camera_status(bool status) {
-  String payload = "";
-
-  if (status) {
-    payload = "\x01";
-  } else {
-    payload = "\x00";
-  }
+  byte payload_false[] = {0x00};
+  byte payload_true[] = {0x01};
 
   const char* id = device_id.c_str();
   char camera_topic[100];
   snprintf(camera_topic, sizeof(camera_topic), "connected/camera/%s", id);
 
-  client.publish(camera_topic, payload.c_str());
+  if (status) {
+    Serial.println("Publish camera status true");
+    client.publish(camera_topic, payload_true, sizeof(payload_true), true);
+  } else {
+    Serial.println("Publish camera status false");
+    client.publish(camera_topic, payload_false, sizeof(payload_false), true);
+  }
 }
 
 void init_mqtt_camera(String device_id, bool new_device) {

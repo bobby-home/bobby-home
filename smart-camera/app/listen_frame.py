@@ -47,6 +47,6 @@ mqtt_client.connect()
 
 # topics to know when a camera is up/off
 camera_manager = RunListenFrame(connected_devices)
-MqttManageRunnable(DEVICE_ID, 'object_detection_manager', get_mqtt(f'{DEVICE_ID}-object_detection_manager'), camera_manager, status_json=True, multi_device=True)
+MqttManageRunnable(DEVICE_ID, 'camera_manager', get_mqtt(f'{DEVICE_ID}-object_detection_manager'), camera_manager, status_json=True, multi_device=True)
 
 mqtt_client.client.loop_forever()

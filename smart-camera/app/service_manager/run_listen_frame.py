@@ -1,16 +1,22 @@
 from typing import Dict
 
+from camera.camera_recording import CameraRecording, NoCameraRecording
 from camera.camera_object_detection import CameraObjectDetection
 from camera.camera_object_detection_factory import camera_object_detection_factory
-from camera.camera_record import DumbCameraRecorder
+from camera.camera_record import CameraRecorder, DumbCameraRecorder
 from object_detection.detect_people_factory import detect_people_factory
 from service_manager.runnable import Runnable
 
 DETECT_PEOPLE = detect_people_factory()
 
-def dumb_camera_factory(mqtt, device_id: str) -> CameraObjectDetection:
-    camera_record = DumbCameraRecorder(mqtt.client, device_id)
-    camera = camera_object_detection_factory(device_id, camera_record, DETECT_PEOPLE)
+def camera_factory(mqtt, device_id: str, video_support: bool) -> CameraObjectDetection:
+    if video_support is False:
+        camera_recording = NoCameraRecording()
+    else:
+        camera_recorder = DumbCameraRecorder(mqtt.client, device_id)
+        camera_recording = CameraRecording(mqtt.client, device_id, camera_recorder)
+
+    camera = camera_object_detection_factory(device_id, camera_recording, DETECT_PEOPLE)
     camera.start()
 
     return camera
@@ -34,8 +40,8 @@ class ConnectedDevices:
     def has(self, device_id: str) -> bool:
         return device_id in self._connected_devices
 
-    def add(self, device_id: str) -> None:
-        camera = dumb_camera_factory(self._mqtt, device_id)
+    def add(self, device_id: str, video_support: bool) -> None:
+        camera = camera_factory(self._mqtt, device_id, video_support)
         self._connected_devices[device_id] = camera
 
     @property
@@ -49,15 +55,16 @@ class RunListenFrame(Runnable):
         self._connected_devices = connected_devices
 
     def run(self, device_id: str, status: bool, data=None) -> None:
+        print(f'run listen frame, data={data}')
+
         if status is False:
             self._connected_devices.remove(device_id)
             return None
 
-
         if self._connected_devices.has(device_id):
-            pass
-            # todo: check if analyzer differ to remove/add new config
-            # try to keep the same Camera object to avoid mqtt disconnect/reconnect.
-            # could be able to do it because its a composition
-        else:
-            self._connected_devices.add(device_id)
+            return
+        
+        to_analyze = data.get('to_analyze', False)
+        if to_analyze is True:
+            video_support = data.get('video_support', True)
+            self._connected_devices.add(device_id, video_support)

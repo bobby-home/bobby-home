@@ -44,7 +44,6 @@ class CameraObjectDetection:
 
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'
-    VIDEO = 'motion/video'
 
     PING = f'ping/object_detection'
     PING_SECONDS_FREQUENCY = 60
@@ -115,10 +114,6 @@ class CameraObjectDetection:
 
         self.mqtt_client.publish(f'{self.MOTION}/{self._device_id}', mqtt_payload, retain=True, qos=1)
 
-    def _publish_video_event(self, video_ref: str) -> None:
-        LOGGER.info(f'publish video {video_ref}')
-        self.mqtt_client.publish(f'{self.VIDEO}/{self._device_id}/{video_ref}', qos=1)
-
     def _publish_image(self, frame: BytesIO, is_motion: bool) -> None:
         byte_arr = self._transform_image_to_publish(frame)
 
@@ -136,7 +131,6 @@ class CameraObjectDetection:
         self._initialize = False
         self.event_ref = self.generate_event_ref()
 
-        LOGGER.info('start recording')
         self.camera_recording.start_recording(self.event_ref)
 
         payload = MotionPayload(
@@ -151,10 +145,7 @@ class CameraObjectDetection:
     def _detection(self) -> None:
         self._last_time_people_detected = datetime.datetime.now()
 
-        video_ref = self.camera_recording.split_recording(self.event_ref)
-
-        if isinstance(video_ref, str):
-            self._publish_video_event(video_ref)
+        self.camera_recording.split_recording(self.event_ref)
 
     def _no_more_detection(self, frame: BytesIO):
         payload = MotionPayload(
@@ -163,11 +154,7 @@ class CameraObjectDetection:
         )
 
         LOGGER.info(f'no more motion {payload}')
-        LOGGER.info('stop recording')
-        video_ref = self.camera_recording.stop_recording(self.event_ref)
-
-        if isinstance(video_ref, str):
-            self._publish_video_event(video_ref)
+        self.camera_recording.stop_recording(self.event_ref)
 
         self._publish_motion(payload)
         self._publish_image(frame, False)

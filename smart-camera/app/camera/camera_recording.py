@@ -3,7 +3,18 @@ from typing import Optional
 
 from camera.camera_record import CameraRecorder
 from utils.time import is_time_lapsed
+from loggers import LOGGER
 
+
+class NoCameraRecording:
+    def start_recording(self, event_ref: str):
+        pass
+
+    def split_recording(self, event_ref: str) -> Optional[str]:
+        pass
+    
+    def stop_recording(self, event_ref: str) -> Optional[str]:
+        pass
 
 class CameraRecording:
     """
@@ -11,8 +22,10 @@ class CameraRecording:
     """
     SECONDS_FIRST_MOTION_VIDEO = 10
     SECONDS_MOTION_VIDEO = 60
+    VIDEO = 'motion/video'
 
-    def __init__(self, device_id: str, camera_recorder: CameraRecorder):
+    def __init__(self, mqtt_client, device_id: str, camera_recorder: CameraRecorder):
+        self.mqtt_client = mqtt_client
         self._device_id = device_id
         self._camera_recorder = camera_recorder
 
@@ -21,7 +34,13 @@ class CameraRecording:
         self._start_recording_split_time = None
         self._record_video_number = 0
 
-    def start_recording(self, event_ref: str):
+    def _publish_video_event(self, video_ref: str) -> None:
+        LOGGER.info(f'publish video {video_ref}')
+        self.mqtt_client.publish(f'{self.VIDEO}/{self._device_id}/{video_ref}', qos=1)
+
+    def start_recording(self, event_ref: str) -> None:
+        LOGGER.info('start recording')
+
         if self._start_recording_time is None:
             self._start_recording_time = datetime.now()
             self._camera_recorder.start_recording(f'{event_ref}-{self._record_video_number}')
@@ -47,7 +66,7 @@ class CameraRecording:
 
         return old_video_ref
 
-    def split_recording(self, event_ref: str) -> Optional[str]:
+    def split_recording(self, event_ref: str) -> None:
         """
 
         Parameters
@@ -68,14 +87,19 @@ class CameraRecording:
             if time_lapsed:
                 self._first_video_recorded = True
                 self._start_recording_split_time = datetime.now()
-                return self._split_recording(event_ref)
+
+                old_video_ref = self._split_recording(event_ref)
+                self._publish_video_event(old_video_ref)
+
+                return None
         else:
             time_lapsed = is_time_lapsed(self._start_recording_split_time, CameraRecording.SECONDS_MOTION_VIDEO)
             if time_lapsed:
                 self._start_recording_split_time = datetime.now()
-                return self._split_recording(event_ref)
+                old_video_ref = self._split_recording(event_ref)
+                self._publish_video_event(old_video_ref)
 
-    def stop_recording(self, event_ref: str) -> Optional[str]:
+    def stop_recording(self, event_ref: str) -> None:
         """
 
         Parameters
@@ -87,6 +111,9 @@ class CameraRecording:
         If the records stop: the video_ref.
         Otherwise None.
         """
+
+        LOGGER.info('stop recording')
+
         if self._start_recording_time is None:
             return None
 
@@ -98,4 +125,6 @@ class CameraRecording:
         self._record_video_number = 0
 
         self._camera_recorder.stop_recording()
+        self._publish_video_event(video_ref)
+        
         return video_ref

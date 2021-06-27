@@ -1,4 +1,7 @@
-from alarm.use_cases.data import Detection, InMotionCameraData, InMotionPictureData, InMotionVideoData
+from utils.mqtt import mqtt_factory
+import uuid
+from devices.models import Device, DeviceType
+from alarm.use_cases.data import Detection, DiscoverAlarmData, InMotionCameraData, InMotionPictureData, InMotionVideoData
 import logging
 from typing import Tuple
 
@@ -9,6 +12,7 @@ import alarm.notifications as notifications
 import alarm.use_cases.camera_picture as camera_picture
 import alarm.use_cases.camera_motion as camera_motion
 import alarm.use_cases.camera_video as camera_video
+import alarm.use_cases.alarm_discovery as alarm_discovery
 from alarm.use_cases.alarm_status import AlarmScheduleChangeStatus
 
 
@@ -31,6 +35,10 @@ def camera_motion_video(data: dict) -> None:
     in_data = InMotionVideoData(**data)
     camera_video.camera_video_factory().camera_video(in_data)
 
+@shared_task()
+def discover_alarm(data: dict) -> None:
+    in_data = DiscoverAlarmData(**data)
+    alarm_discovery.discover_alarm(in_data)
 
 @shared_task(name="alarm.set_alarm_off")
 def set_alarm_off(alarm_status_uui):

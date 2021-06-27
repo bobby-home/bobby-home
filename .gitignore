@@ -7,3 +7,5 @@ htmlcov/
 .coverage.*
 coverage.xml
 *.cover
+
+*.pio

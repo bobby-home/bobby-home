@@ -3,6 +3,7 @@ from typing import Callable, List, Optional, Union
 import datetime
 import json
 import struct
+from distutils.util import strtobool
 
 from hello_django.loggers import LOGGER
 
@@ -85,17 +86,35 @@ class MqttTopicSubscriptionJson(MqttTopicSubscription):
 class MqttTopicSubscriptionBoolean(MqttTopicSubscription):
     """
     Handle boolean mqtt payload: "decode" it and convert it to Python boolean.
+    Either a byte representation (0x00 or 0x01)
+    or any boolean string representation (https://docs.python.org/3/distutils/apiref.html#distutils.util.strtobool)
+
+    Warning: hacky things... have to try strtobool before because unpack with b'0' gives True!
     """
     def callback(self, message: MqttMessage):
+        if isinstance(message.payload, bytes):
+            str_payload = message.payload.decode('utf-8')
+        else:
+            str_payload = message.payload
+
+        try:
+            payload = strtobool(str_payload) == 1
+        except ValueError:
+            pass
+        else:
+            message.payload = payload
+            return super().callback(message)
+
         try:
             decoded = struct.unpack('?', message.payload)
         except (struct.error, TypeError):
-            return self._log_error(message)
+            pass
+        else:
+            payload = decoded[0]
+            message.payload = payload
+            return super().callback(message)
 
-        payload = decoded[0]
-        message.payload = payload
-        super().callback(message)
-
+        return self._log_error(message)
 
 @dataclass
 class MqttTopicSubscriptionEncoding(MqttTopicSubscription):

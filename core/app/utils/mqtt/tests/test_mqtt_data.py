@@ -36,6 +36,36 @@ class MqttTopicSubscriptionBooleanTestCase(TestCase):
         ))
         self.callback_mock.assert_not_called()
 
+    def test_call_string_bool_true(self):
+        self.subscription.callback(MqttMessage(
+            f'connected/{self.service_name}',
+            b"1",
+            1,
+            False,
+        ))
+
+        self.callback_mock.assert_called_once_with(MqttMessage(
+            f'connected/{self.service_name}',
+            True,
+            1,
+            False,
+        ))
+
+    def test_call_string_bool_false(self):
+        self.subscription.callback(MqttMessage(
+            f'connected/{self.service_name}',
+            b"0",
+            1,
+            False,
+        ))
+
+        self.callback_mock.assert_called_once_with(MqttMessage(
+            f'connected/{self.service_name}',
+            False,
+            1,
+            False,
+        ))
+
 class MqttTopicSubscriptionJsonTestCase(TestCase):
     def setUp(self) -> None:
         self.service_name = 'some service'

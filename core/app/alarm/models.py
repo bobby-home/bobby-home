@@ -40,7 +40,8 @@ class AlarmStatus(models.Model):
     objects = AlarmStatusManager()
 
     running = models.BooleanField(
-        help_text='Either or not the alarm is running on the device. If it runs, it monitor the device camera to react if a danger is recognized.'
+        help_text='Either or not the alarm is running on the device. If it runs, it monitor the device camera to react if a danger is recognized.',
+        default=False
     )
 
     device = models.OneToOneField(

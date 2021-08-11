@@ -90,6 +90,7 @@ class ActionMqttPublishTestCase(TestCase):
 
         action = ActionMqttPublishFactory(
             topic='test/{device.device_id}/{device.location.structure}',
+            payload_boolean=True,
             automation=self.automation,
             mqtt_client=self.mqtt_client
         )

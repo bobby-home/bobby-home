@@ -37,8 +37,7 @@ def _get_payload(action: ActionMqttPublish, data: Optional[Dict]) -> Any:
     payload = action.payload_boolean
     if payload is not None:
         return struct.pack('?', payload)
-        
-    raise ValueError(f'action {action} does not contains any supported payload.')
+
 
 def mqtt_publish(actions: Sequence[ActionMqttPublish], data: Optional[Any] = None) -> None:
     data_parsed = None

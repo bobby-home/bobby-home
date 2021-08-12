@@ -3,7 +3,7 @@ import mqtt_services.tasks as tasks
 from alarm.mqtt import MqttServices, CameraMqttServices
 
 
-def verify_services_status(device_id: str, status: bool, is_dumb: bool) -> None:
+def verify_services_status(device_id: str, status: bool) -> None:
     """When the system turns on the camera, we verify that related services are up/off. It sends tasks to check that.
     """
 

@@ -12,7 +12,7 @@ class AlarmMessaging:
         self._mqtt_status = mqtt_status
         self._camera_messaging = camera_messaging
 
-    def publish_alarm_status(self, device_id: str, status: bool, is_dumb: bool, data=None) -> None:
+    def publish_alarm_status(self, device_id: str, status: bool, data=None) -> None:
         self._mqtt_status.publish(f'status/{MqttServices.OBJECT_DETECTION_MANAGER.value}/{device_id}', status, data)
 
         camera_cara = CameraData(to_analyze=True) if status else CameraData(to_analyze=False)

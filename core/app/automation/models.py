@@ -1,4 +1,5 @@
 from automation.actions import Triggers
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from utils.django.models import ChoiceArrayField
@@ -35,7 +36,10 @@ class MqttClient(models.Model):
 
 class ActionMqttPublish(models.Model):
     topic = models.CharField(max_length=100)
+
     payload_json = models.JSONField(default=None, blank=True, null=True)
+    payload_boolean = models.BooleanField(default=None, blank=True, null=True)
+
     retain = models.BooleanField(default=False)
     qos = models.PositiveSmallIntegerField(default=1, help_text=_('The quality of service level to use.'))
 
@@ -47,6 +51,10 @@ class ActionMqttPublish(models.Model):
             null=True,
             editable=False,
             help_text=_('Datetime that the automation last triggered the action to run. '))
+
+    def clean(self):
+        if not self.payload_json and self.payload_boolean is None:
+            raise ValidationError(_('Must include either payload_boolean or payload_json.'))
 
     def __str__(self):
         return _('Publish to %(topic)s') % self.__dict__

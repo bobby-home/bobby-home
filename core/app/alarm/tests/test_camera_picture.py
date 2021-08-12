@@ -18,12 +18,11 @@ class CameraMotionPictureTestCase(TransactionTestCase):
         self.event_ref = str(uuid.uuid4())
 
         self.create_and_send_notification = Mock()
-        self.play_sound = Mock()
         self.send_picture = Mock()
 
         self.notify_alarm_status_mock = Mock()
         self.notify_alarm_status_factory = lambda : self.notify_alarm_status_mock
-        
+
         self.motion_picture_path = '/some/path.png'
         self.in_data_motion =InMotionPictureData(
             device_id=self.device_id,
@@ -45,11 +44,11 @@ class CameraMotionPictureTestCase(TransactionTestCase):
         return CameraMotionDetectedPicture.objects.filter(event_ref=self.event_ref, device=self.device)
 
     def test_camera_motion_picture(self):
-        
+
         with patch('notification.tasks.send_picture') as send_picture_mock:
             camera_motion_picture(self.in_data_motion)
 
-            motion = self._get_motion() 
+            motion = self._get_motion()
             self.assertTrue(len(motion), 1)
             motion = motion[0]
 
@@ -57,7 +56,7 @@ class CameraMotionPictureTestCase(TransactionTestCase):
             self.assertFalse(motion.motion_ended_picture)
 
             kwargs = {
-                'picture_path': self.motion_picture_path 
+                'picture_path': self.motion_picture_path
             }
 
             send_picture_mock.apply_async.assert_called_once_with(kwargs=kwargs)
@@ -68,13 +67,13 @@ class CameraMotionPictureTestCase(TransactionTestCase):
             send_picture.reset_mock()
             camera_motion_picture(self.in_data_no_motion)
 
-            motion = self._get_motion() 
+            motion = self._get_motion()
             self.assertTrue(len(motion), 1)
             motion = motion[0]
 
             self.assertEqual(motion.motion_started_picture.name, 'path.png')
             self.assertEqual(motion.motion_ended_picture.name, 'path2.png')
-            
+
             kwargs = {
                 'picture_path': self.no_motion_picture_path
             }
@@ -86,7 +85,7 @@ class CameraMotionPictureTestCase(TransactionTestCase):
             with self.assertRaises(ValueError) as _context:
                 camera_motion_picture(self.in_data_no_motion)
 
-            motion = self._get_motion() 
+            motion = self._get_motion()
             self.assertEqual(0, len(motion))
             send_picture.assert_not_called()
 
@@ -97,7 +96,7 @@ class CameraMotionPictureTestCase(TransactionTestCase):
             camera_motion_picture(self.in_data_motion)
             send_picture.reset_mock()
             camera_motion_picture(self.in_data_no_motion)
-            
+
             with self.assertRaises(ValueError) as _context:
                 camera_motion_picture(self.in_data_no_motion)
 
@@ -109,8 +108,8 @@ class CameraMotionPictureTestCase(TransactionTestCase):
 
             with self.assertRaises(IntegrityError) as _context:
                 camera_motion_picture(self.in_data_motion)
-            
-            motion = self._get_motion() 
+
+            motion = self._get_motion()
             self.assertEqual(1, len(motion))
             send_picture.assert_not_called()
 

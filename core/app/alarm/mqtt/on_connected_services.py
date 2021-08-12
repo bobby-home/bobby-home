@@ -48,7 +48,3 @@ class OnConnectedCameraManager(OnConnectedHandlerLog):
         mx.publish_device_connected(device_id)
 
         return super().on_connect(service_name, device_id)
-
-
-class OnConnectedSpeakerHandler(OnConnectedHandlerLog):
-    pass

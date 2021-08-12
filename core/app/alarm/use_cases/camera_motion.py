@@ -1,10 +1,9 @@
 import logging
 import automation.tasks as automation_tasks
 from devices.models import Device
-from alarm.use_cases.data import InMotionCameraData 
+from alarm.use_cases.data import InMotionCameraData
 import alarm.business.in_motion as in_motion
 import alarm.use_cases.out_alarm as out_alarm
-from alarm.use_cases.play_sound import play_sound
 from alarm.models import AlarmStatus
 import alarm.notifications as alarm_notifications
 
@@ -27,12 +26,10 @@ def camera_motion_detected(data: InMotionCameraData) -> None:
     else:
         alarm_notifications.object_no_more_detected(device)
         automation_tasks.on_motion_left.apply_async(kwargs={'device_id': device.device_id})
-        
+
         alarm_status = AlarmStatus.objects.get(device=device)
         if alarm_status.running is False:
             LOGGER.info(f'The alarm on device {device.device_id} did not turn off because a motion was here. Not here anymore, turning off.')
             # we need to turn off the service
             out_alarm.notify_alarm_status_factory().publish_status_changed(device.pk, alarm_status)
-
-    play_sound(data.device_id, data.status)
 

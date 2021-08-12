@@ -15,6 +15,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class NotifyAlarmStatus:
+    """Class to coordinate the communication with alarm.
+    Methods to call when you need to communicate with an alarm.
+    It will takes decision and call
+    the underlying methods to actually send messages with corresponding data.
+    """
     def __init__(self, alarm_messaging: AlarmMessaging):
         self._alarm_messaging = alarm_messaging
 

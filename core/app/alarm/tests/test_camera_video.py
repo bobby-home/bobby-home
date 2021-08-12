@@ -1,13 +1,35 @@
 import uuid
-from devices.factories import DeviceFactory
+from devices.factories import DeviceFactory, DeviceTypeFactory
 from alarm.use_cases.data import InMotionVideoData
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import Mock, patch, MagicMock, call
 
 from django.test import TestCase
-from alarm.use_cases.camera_video import CameraVideo
+from alarm.use_cases.camera_video import RPICameraVideo, camera_video
 
 
 class CameraVideoTestCase(TestCase):
+    def setUp(self) -> None:
+        self.device_type = DeviceTypeFactory(type="Raspberry pi 4 something blabla")
+        self.device = DeviceFactory(device_type=self.device_type)
+
+        self.data = InMotionVideoData(
+                device_id=self.device.device_id,
+                video_ref='rr',
+                event_ref='rr',
+                video_split_number=0
+        )
+        
+    @patch('alarm.use_cases.camera_video.rpi_camera_video_factory')
+    def test_it_calls_rpiclass(self, mock: MagicMock):
+        rpi_camera_mock = Mock()
+        mock.return_value = rpi_camera_mock
+
+        camera_video(self.data)
+        mock.assert_called_once_with()
+        rpi_camera_mock.camera_video.assert_called_once_with(self.data)
+
+
+class RPICameraVideoTestCase(TestCase):
     def setUp(self) -> None:
         self.device = DeviceFactory()
         self.device_id = self.device.device_id
@@ -22,7 +44,7 @@ class CameraVideoTestCase(TestCase):
         
         self.video_ref = f'{self.event_ref}-{self.video_split_number}'
         self.video_ref_fist_video = f'{self.event_ref}-0'
-        self.camera_video = CameraVideo(self.video_folder, self.device_id)
+        self.camera_video = RPICameraVideo(self.video_folder, self.device_id)
 
         self.data = InMotionVideoData(
                 device_id=self.device_id,
@@ -96,7 +118,7 @@ class CameraVideoTestCase(TestCase):
         merge_videos.assert_not_called()
 
         retrieve_video_remotely.assert_called_once_with(
-            f'{CameraVideo.REMOTE_VIDEO_FOLDER}{data.video_ref}.h264',
+            f'{RPICameraVideo.REMOTE_VIDEO_FOLDER}{data.video_ref}.h264',
             self.raw_video,
             self.device2_id
         )
@@ -132,11 +154,11 @@ class CameraVideoTestCase(TestCase):
 
         retrieve_video_remotely.assert_has_calls([
             call(
-                f'{CameraVideo.REMOTE_VIDEO_FOLDER}{data.video_ref}.h264',
+                f'{RPICameraVideo.REMOTE_VIDEO_FOLDER}{data.video_ref}.h264',
                 self.raw_video,
                 self.device2_id),
             call(
-                f'{CameraVideo.REMOTE_VIDEO_FOLDER}{data.video_ref}-before.h264',
+                f'{RPICameraVideo.REMOTE_VIDEO_FOLDER}{data.video_ref}-before.h264',
                 self.before_raw_video,
                 self.device2_id)
         ])

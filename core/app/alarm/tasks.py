@@ -1,3 +1,4 @@
+from alarm.use_cases.camera_video import camera_video
 from utils.mqtt import mqtt_factory
 import uuid
 from devices.models import Device, DeviceType
@@ -11,7 +12,6 @@ from alarm.models import AlarmStatus, Ping
 import alarm.notifications as notifications
 import alarm.use_cases.camera_picture as camera_picture
 import alarm.use_cases.camera_motion as camera_motion
-import alarm.use_cases.camera_video as camera_video
 import alarm.use_cases.alarm_discovery as alarm_discovery
 from alarm.use_cases.alarm_status import AlarmScheduleChangeStatus
 
@@ -33,7 +33,7 @@ def camera_motion_detected(data: dict) -> None:
 @shared_task(name='security.camera_motion_video')
 def camera_motion_video(data: dict) -> None:
     in_data = InMotionVideoData(**data)
-    camera_video.camera_video_factory().camera_video(in_data)
+    camera_video(in_data)
 
 @shared_task()
 def discover_alarm(data: dict) -> None:

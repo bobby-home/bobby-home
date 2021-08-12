@@ -1,3 +1,4 @@
+from camera.messaging import CameraData
 from unittest.mock import Mock
 from django.test import TestCase
 
@@ -13,3 +14,14 @@ class AlarmMessagingTestCase(TestCase):
         self.json_status = MqttJsonStatus(self.mqtt_mock)
 
         self.alarm = AlarmMessaging(self.json_status, self.camera_messaging)
+
+    def test_camera_publish_true_status(self):
+        data = CameraData(to_analyze=True, stream=None)
+        self.alarm.publish_alarm_status(self.device_id, True)
+        self.camera_messaging.publish_status.assert_called_once_with(self.device_id, True, data)
+
+    def test_camera_publish_false_status(self):
+        data = CameraData(to_analyze=False, stream=None)
+        self.alarm.publish_alarm_status(self.device_id, False)
+        self.camera_messaging.publish_status.assert_called_once_with(self.device_id, False, data)
+

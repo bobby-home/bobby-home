@@ -9,7 +9,7 @@ from freezegun import freeze_time
 
 from alarm.use_cases.out_alarm import NotifyAlarmStatus
 from alarm.factories import AlarmStatusFactory
-from camera.factories import CameraROIFactoryConf 
+from camera.factories import CameraROIFactoryConf
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected
 from devices.models import Device
@@ -23,8 +23,8 @@ class NotifyAlarmStatusTestCase(TestCase):
         self.alarm_messaging_mock = Mock()
 
     def _except_publish_alarm_status_call(self):
-        expected_payload = {'is_dumb': self.alarm_status.is_dumb}
-        expected_calls = [call(self.device.device_id, self.alarm_status.running, self.alarm_status.is_dumb, expected_payload)]
+        expected_payload = {}
+        expected_calls = [call(self.device.device_id, self.alarm_status.running, expected_payload)]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
     def test_publish_false(self):

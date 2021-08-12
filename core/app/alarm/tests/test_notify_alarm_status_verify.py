@@ -18,8 +18,8 @@ class NotifyAlarmStatusVerify(TestCase):
     @patch('mqtt_services.tasks.verify_service_status')
     def test_verify_service_status(self, verify_service_status):
         def _test(status: bool):
-            verify_services_status(self.device_id, status, False)
-            
+            verify_services_status(self.device_id, status)
+
             kwargs = {
                 'device_id': self.device_id,
                 'service_name': MqttServices.OBJECT_DETECTION.value,
@@ -33,7 +33,7 @@ class NotifyAlarmStatusVerify(TestCase):
                 'status': status,
                 'since_time': timezone.now()
             }
-            
+
             calls = [
                 call(kwargs=kwargs, countdown=15),
                 call(kwargs=kwargs2, countdown=15),

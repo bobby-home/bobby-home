@@ -24,17 +24,16 @@ class NotifyAlarmStatus:
         It formats the mqtt payload and decide whether or not a mqtt call has to be done.
         """
         payload = {
-            'is_dumb': status.is_dumb
         }
 
         if status.running is False and alarm_status.can_turn_off(device) is False and force is False:
             LOGGER.info(f'The alarm on device {device.device_id} should turn off but stay on because a motion is being detected.')
             return
 
-        checks.verify_services_status(device.device_id, status.running, status.is_dumb)
+        checks.verify_services_status(device.device_id, status.running)
 
         self._alarm_messaging \
-            .publish_alarm_status(device.device_id, status.running, status.is_dumb, payload)
+            .publish_alarm_status(device.device_id, status.running, payload)
 
     def _publish_alarm_status_with_config(self, device: Device, status: AlarmStatus, force=False) -> None:
         self._publish(device, status, force)

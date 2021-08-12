@@ -1,3 +1,4 @@
+from devices.models import Device
 from alarm.use_cases.data import InMotionVideoData
 import re
 import os
@@ -10,8 +11,14 @@ import notification.tasks as notification
 
 LOGGER = logging.getLogger(__name__)
 
+def camera_video(in_data: InMotionVideoData) -> None:
+    device = Device.objects.with_type().get(device_id=in_data.device_id)
+    device_type = device.device_type.type.lower()
 
-class CameraVideo:
+    if "raspberry" in device_type:
+        rpi_camera_video_factory().camera_video(in_data)
+
+class RPICameraVideo:
     REMOTE_VIDEO_FOLDER = '/var/lib/camera/media/'
     RAW_EXT = '.h264'
 
@@ -44,11 +51,11 @@ class CameraVideo:
         -------
         str
         """
-        return path.join(CameraVideo.REMOTE_VIDEO_FOLDER, filename)
+        return path.join(RPICameraVideo.REMOTE_VIDEO_FOLDER, filename)
 
     @staticmethod
     def _raw_video_file(name: str) -> str:
-        return f'{name}{CameraVideo.RAW_EXT}'
+        return f'{name}{RPICameraVideo.RAW_EXT}'
 
 
     def camera_video(self, in_data: InMotionVideoData) -> None:
@@ -87,8 +94,8 @@ class CameraVideo:
         notification.send_video(output_video_file)
         in_motion.save_camera_video(in_data)
 
-def camera_video_factory():
+def rpi_camera_video_factory():
     videos_folder = os.environ['VIDEO_FOLDER']
     device_id = os.environ['DEVICE_ID']
 
-    return CameraVideo(videos_folder, device_id)
+    return RPICameraVideo(videos_folder, device_id)

@@ -1,4 +1,5 @@
 import dataclasses
+import struct
 from typing import Any, Dict
 import json
 import uuid
@@ -21,26 +22,39 @@ def _payload_str_format(payload: Dict[Any, Any], data: Dict[Any, Any]) -> Dict[A
     return r
 
 
+def _get_payload(action: ActionMqttPublish, data: Optional[Dict]) -> Any:
+    payload = action.payload_json
+
+    if payload:
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+
+        if data:
+            payload = _payload_str_format(payload, data)
+
+        return json.dumps(payload)
+
+    payload = action.payload_boolean
+    if payload is not None:
+        return struct.pack('?', payload)
+
+
 def mqtt_publish(actions: Sequence[ActionMqttPublish], data: Optional[Any] = None) -> None:
+    data_parsed = None
+    if data and dataclasses.is_dataclass(data):
+        data_parsed = dataclasses.asdict(data)
+    
     for action in actions:
         mqtt_client = action.mqtt_client
-
         topic = action.topic
-        payload = action.payload_json
+        payload = _get_payload(action, data_parsed)
 
-        if data and dataclasses.is_dataclass(data):
-            d = dataclasses.asdict(data)
-            topic = topic.format(**d)
-            
-            if payload:
-                if isinstance(payload, str):
-                    payload = json.loads(payload)
-
-                payload = _payload_str_format(payload, d)
-
+        if data_parsed:
+            topic = topic.format(**data_parsed)
+        
         single(
             topic,
-            payload=json.dumps(payload),
+            payload=payload,
             qos=action.qos,
             retain=action.retain,
             hostname=mqtt_client.host,

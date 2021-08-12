@@ -1,3 +1,4 @@
+import struct
 from unittest import mock
 from django.utils import timezone
 from automation.models import ActionMqttPublish, Automation
@@ -57,7 +58,7 @@ class AutomationTestCase(TestCase):
 
 
     @patch('automation.actions.action_mqtt_publish.single')
-    def test_mqtt_publish(self, publish_mock):
+    def test_mqtt_publish_json(self, publish_mock):
         on_motion_detected(device_id=self.device_id)
 
         calls = []
@@ -66,6 +67,47 @@ class AutomationTestCase(TestCase):
             calls.append(call(
                 action.topic,
                 payload=json.dumps(self.payload_json),
+                qos=action.qos,
+                retain=action.retain,
+                hostname=mqtt_client.host,
+                port=mqtt_client.port,
+                protocol=4,
+                transport='tcp',
+                auth={'username': mqtt_client.username, 'password': mqtt_client.password},
+                client_id=mock.ANY
+            ))
+        
+        publish_mock.assert_has_calls(calls)
+
+    @patch('automation.actions.action_mqtt_publish.single')
+    def test_mqtt_publish_boolean(self, publish_mock):
+        ActionMqttPublish.objects.all().delete()
+
+        ActionMqttPublishFactory.create_batch(
+            2,
+            payload_boolean=True,
+            automation=self.automation,
+            mqtt_client=self.mqtt_client
+        )
+
+        ActionMqttPublishFactory.create_batch(
+            2,
+            payload_boolean=False,
+            automation=self.automation,
+            mqtt_client=self.mqtt_client
+        )
+
+        self.actions = ActionMqttPublish.objects.all()
+        
+        on_motion_detected(device_id=self.device_id)
+
+        calls = []
+        for action in self.actions:
+            mqtt_client = action.mqtt_client
+            expected_payload = struct.pack('?', action.payload_boolean)
+            calls.append(call(
+                action.topic,
+                payload=expected_payload,
                 qos=action.qos,
                 retain=action.retain,
                 hostname=mqtt_client.host,
@@ -90,6 +132,7 @@ class ActionMqttPublishTestCase(TestCase):
 
         action = ActionMqttPublishFactory(
             topic='test/{device.device_id}/{device.location.structure}',
+            payload_boolean=True,
             automation=self.automation,
             mqtt_client=self.mqtt_client
         )

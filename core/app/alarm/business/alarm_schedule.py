@@ -1,4 +1,3 @@
-
 DAYS_OF_WEEK = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
 
 
@@ -48,3 +47,26 @@ def get_device_next_on_schedule(now, device_pk: int):
         return next_schedule[0]
 
     return None
+
+def disable_all_schedules() -> None:
+    from alarm.models import AlarmSchedule
+    schedules = AlarmSchedule.objects.select_related('turn_on_task', 'turn_off_task').all()
+
+    for schedule in schedules:
+        schedule.turn_on_task.enabled = False
+        schedule.turn_off_task.enabled = False
+
+        schedule.turn_on_task.save()
+        schedule.turn_off_task.save()
+
+def enable_all_schedules() -> None:
+    from alarm.models import AlarmSchedule
+    schedules = AlarmSchedule.objects.select_related('turn_on_task', 'turn_off_task').all()
+
+    for schedule in schedules:
+        schedule.turn_on_task.enabled = True
+        schedule.turn_off_task.enabled = True
+
+        schedule.turn_on_task.save()
+        schedule.turn_off_task.save()
+

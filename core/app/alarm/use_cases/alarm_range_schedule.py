@@ -1,3 +1,4 @@
+from alarm.use_cases.alarm_status import AlarmChangeStatus
 import json
 
 from django.utils import timezone
@@ -58,10 +59,10 @@ def update_alarm_range_schedule(schedule: AlarmScheduleDateRange):
 
 def start_schedule_range():
     disable_all_schedules()
-    # todo: mqtt start everything!
+    AlarmChangeStatus.all_change_status(True)
 
 
 def end_schedule_range():
     enable_all_schedules()
-    # todo: mqtt stop everything!
+    AlarmChangeStatus.all_change_status(False)
 

@@ -1,9 +1,10 @@
 import json
 from unittest.case import skip
+from unittest.mock import MagicMock, patch
 from django.utils import timezone
 
 from freezegun.api import freeze_time
-from alarm.use_cases.alarm_range_schedule import create_alarm_range_schedule
+from alarm.use_cases.alarm_range_schedule import create_alarm_range_schedule, end_schedule_range, start_schedule_range
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 from alarm.models import AlarmSchedule, AlarmScheduleDateRange
 from datetime import datetime, timedelta
@@ -107,7 +108,8 @@ class AlarmScheduleModelTestCase(TestCase):
         create_alarm_range_schedule(schedule)
         self._check_underlying_objects()
 
-    def test_create_schedule_start_now(self):
+    @patch('alarm.tasks.start_schedule_range')
+    def test_create_schedule_start_now(self, start_schedule_range_mock: MagicMock):
         schedule = self._create_model_schedule_range(futur=False)
         create_alarm_range_schedule(schedule)
 
@@ -116,3 +118,19 @@ class AlarmScheduleModelTestCase(TestCase):
  
         periodic_tasks = PeriodicTask.objects.all()
         self.assertEqual(len(periodic_tasks), 0)
+        
+        start_schedule_range_mock.assert_called_once_with(None)
+
+    @patch('alarm.use_cases.alarm_range_schedule.disable_all_schedules')
+    @patch('alarm.use_cases.alarm_range_schedule.AlarmChangeStatus')
+    def test_start_schedule_range(self, AlarmChangeStatusMock: MagicMock, disable_all_schedules_mock: MagicMock):
+        start_schedule_range()
+        disable_all_schedules_mock.assert_called_once_with()
+        AlarmChangeStatusMock.all_change_status.assert_called_once_with(True)
+
+    @patch('alarm.use_cases.alarm_range_schedule.enable_all_schedules')
+    @patch('alarm.use_cases.alarm_range_schedule.AlarmChangeStatus')
+    def test_end_schedule_range(self, AlarmChangeStatusMock: MagicMock, enable_all_schedules: MagicMock):
+        end_schedule_range()
+        enable_all_schedules.assert_called_once_with()
+        AlarmChangeStatusMock.all_change_status.assert_called_once_with(False)

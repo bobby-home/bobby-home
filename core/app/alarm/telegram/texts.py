@@ -9,7 +9,7 @@ ALL_ON = _('All of your alarms are on.')
 ALL_OFF = _('All of your alarms are off.')
 CHOOSE_EXPLAIN = _('What do you want to do?')
 WRONG = _('Something went wrong.')
-
+CANCEL = _('Cancel')
 
 def alarm_status(status: AlarmStatus) -> str:
     data = {

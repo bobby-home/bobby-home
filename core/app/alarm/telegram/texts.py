@@ -19,7 +19,7 @@ def alarm_status(status: AlarmStatus) -> str:
 
     if status.running:
         return _('Your alarm at %(location)s on device %(device)s is on.') % data
-    
+
     return _('Your alarm at %(location)s on device %(device)s is off.') % data
 
 
@@ -30,8 +30,8 @@ def change_alarm_status(status: AlarmStatus) -> str:
     }
 
     if status.running:
-        return _('Turn off %(location)s / %(device)s.') % data 
-    
+        return _('Turn off %(location)s / %(device)s.') % data
+
     return _('Turn on %(location)s / %(device)s.') % data
 
 
@@ -42,7 +42,6 @@ def alarm_status_changed(status: AlarmStatus) -> str:
     }
 
     if status.running:
-        return _('Your alarm at %(location)s on device %(device)s turned on.') % data 
+        return _('Your alarm at %(location)s on device %(device)s turned on.') % data
 
-    return _('Your alarm at %(location)s on device %(device)s turned off.') % data 
-
+    return _('Your alarm at %(location)s on device %(device)s turned off.') % data

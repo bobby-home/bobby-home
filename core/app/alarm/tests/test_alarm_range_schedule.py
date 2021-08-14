@@ -36,3 +36,12 @@ class AlarmRangeScheduleBusinessTestCase(TestCase):
         )
 
         self.assertIsNone(get_current_range_schedule())
+
+    def test_get_current_range_schedule_no_end(self):
+        AlarmScheduleDateRange.objects.create(
+           datetime_start=timezone.now() - timezone.timedelta(hours=1),
+        )
+
+        g = get_current_range_schedule()
+        self.assertIsNotNone(g)
+

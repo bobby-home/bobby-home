@@ -77,7 +77,7 @@ class AlarmScheduleManager(models.Manager):
 
 class AlarmScheduleDateRange(models.Model):
     datetime_start = models.DateTimeField()
-    datetime_end = models.DateTimeField()
+    datetime_end = models.DateTimeField(blank=True, null=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
     turn_on_task = models.OneToOneField(

@@ -29,14 +29,15 @@ def create_alarm_range_schedule(schedule: AlarmScheduleDateRange):
             args=json.dumps([uid])
         )
 
-        clocked_turn_off = ClockedSchedule.objects.create(clocked_time=schedule.datetime_end)
-        schedule.turn_off_task = PeriodicTask.objects.create(
-            name=f'Turn off alarm for range {uid}',
-            task="alarm.end_schedule_range",
-            clocked=clocked_turn_off,
-            one_off=True,
-            args=json.dumps([uid])
-        )
+        if schedule.datetime_end:
+            clocked_turn_off = ClockedSchedule.objects.create(clocked_time=schedule.datetime_end)
+            schedule.turn_off_task = PeriodicTask.objects.create(
+                name=f'Turn off alarm for range {uid}',
+                task="alarm.end_schedule_range",
+                clocked=clocked_turn_off,
+                one_off=True,
+                args=json.dumps([uid])
+            )
 
     schedule.save()
     return schedule

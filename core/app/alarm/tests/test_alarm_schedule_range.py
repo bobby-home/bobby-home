@@ -57,56 +57,76 @@ class AlarmScheduleModelTestCase(TestCase):
         self.house = House(timezone='Europe/Paris')
         self.house.save()
 
-    def _create_model_schedule_range(self, futur=True):
+    def _create_model_schedule_range(self, futur=True, end=True):
         if futur:
             start = timezone.now() + timezone.timedelta(hours=1) 
         else:
             start = timezone.now()
 
+        if end:
+            datetime_end = timezone.now() + timezone.timedelta(hours=8)
+        else:
+            datetime_end = None
+
         schedule = AlarmScheduleDateRange(
             datetime_start=start,
-            datetime_end=timezone.now() + timezone.timedelta(hours=8),
+            datetime_end=datetime_end
         )
 
         return schedule
 
-    def _check_underlying_objects(self):
+    def _check_underlying_objects(self, end=True):
         schedules = AlarmScheduleDateRange.objects.all()
         self.assertEqual(len(schedules), 1)
         schedule = schedules[0]
 
         periodic_tasks = PeriodicTask.objects.all()
-        self.assertEqual(len(periodic_tasks), 2)
+        if end:
+            self.assertEqual(len(periodic_tasks), 2)
+        else:
+            self.assertEqual(len(periodic_tasks), 1)
 
         turn_on_task = PeriodicTask.objects.get(task='alarm.start_schedule_range')
-        turn_off_task = PeriodicTask.objects.get(task='alarm.end_schedule_range')
-
         self.assertEqual(schedule.turn_on_task, turn_on_task)
-        self.assertEqual(schedule.turn_off_task, turn_off_task)
-
+        
         turn_on_clock = ClockedSchedule.objects.get(clocked_time=schedule.datetime_start)
-        turn_off_clock = ClockedSchedule.objects.get(clocked_time=schedule.datetime_end)
+        clocks = [turn_on_clock]
+        tasks = [turn_on_task]
 
-        for task, cron in zip([turn_off_task, turn_on_task], [turn_off_clock, turn_on_clock]):
+        if end:
+            turn_off_task = PeriodicTask.objects.get(task='alarm.end_schedule_range')
+            self.assertEqual(schedule.turn_off_task, turn_off_task)
+            turn_off_clock = ClockedSchedule.objects.get(clocked_time=schedule.datetime_end)
+            self.assertEqual(turn_off_task.clocked, turn_off_clock)
+            clocks.append(turn_off_clock)
+            tasks.append(turn_off_task)
+
+        for task, cron in zip(tasks, clocks):
             self.assertEqual(task.args, json.dumps([str(schedule.uuid)]))
             self.assertEqual(task.clocked, cron)
 
         cons = ClockedSchedule.objects.all()
-        self.assertEqual(len(cons), 2)
-
+        if end:
+            self.assertEqual(len(cons), 2)
+        else:
+            self.assertEqual(len(cons), 1)
         # no timezone for ClockedSchedule, how does it work?? UTC?? TZ in datetime ????
         #for clocked in [turn_on_clocked, turn_off_clocked]:
         #    self.assertEqual(str(cron.timezone), self.house.timezone)
 
-        self.assertEqual(turn_off_task.clocked, turn_off_clock)
         self.assertEqual(turn_on_task.clocked, turn_on_clock)
-
 
     @freeze_time("2021-08-13 21:40:00")
     def test_create_schedule(self):
         schedule = self._create_model_schedule_range()
         create_alarm_range_schedule(schedule)
         self._check_underlying_objects()
+
+    @freeze_time("2021-08-13 21:40:00")
+    def test_create_schedule_no_end(self):
+        schedule = self._create_model_schedule_range(end=False)
+        create_alarm_range_schedule(schedule)
+        self._check_underlying_objects(end=False)
 
     @patch('alarm.tasks.start_schedule_range')
     def test_create_schedule_start_now(self, start_schedule_range_mock: MagicMock):

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from django.utils import timezone
 
 from freezegun.api import freeze_time
-from alarm.use_cases.alarm_range_schedule import create_alarm_range_schedule, end_schedule_range, start_schedule_range
+from alarm.use_cases.alarm_range_schedule import create_alarm_range_schedule, end_schedule_range, start_schedule_range, stop_current_alarm_range_schedule
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 from alarm.models import AlarmSchedule, AlarmScheduleDateRange
 from datetime import datetime, timedelta
@@ -120,6 +120,33 @@ class AlarmScheduleModelTestCase(TestCase):
         self.assertEqual(len(periodic_tasks), 0)
         
         start_schedule_range_mock.assert_called_once_with(None)
+
+    @freeze_time("2021-08-14 17:45:00")
+    def test_stop_current_alarm_range_schedule(self):
+        schedule = self._create_model_schedule_range(futur=False)
+        schedule.save()
+        updated_schedule = stop_current_alarm_range_schedule()
+        self.assertIsNotNone(updated_schedule)
+
+        db_schedule = AlarmScheduleDateRange.objects.all()
+        self.assertEqual(1, len(db_schedule))
+        db_schedule = db_schedule[0]
+
+        self.assertEqual(db_schedule.datetime_end, timezone.now())
+
+    @patch('alarm.tasks.end_schedule_range')
+    def test_stop_current_alarm_range_schedule_delete_turn_off_task(self, end_schedule_range_mock):
+        schedule = self._create_model_schedule_range(futur=False)
+        create_alarm_range_schedule(schedule)
+        updated_schedule = stop_current_alarm_range_schedule()
+        self.assertIsNotNone(updated_schedule)
+
+        db_schedule = AlarmScheduleDateRange.objects.all()
+        self.assertEqual(1, len(db_schedule))
+        db_schedule = db_schedule[0]
+        
+        self.assertIsNone(db_schedule.turn_off_task)
+        end_schedule_range_mock.assert_called_once_with(str(schedule.uuid))
 
     @patch('alarm.use_cases.alarm_range_schedule.disable_all_schedules')
     @patch('alarm.use_cases.alarm_range_schedule.AlarmChangeStatus')

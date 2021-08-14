@@ -1,3 +1,5 @@
+from alarm.business.alarm_range_schedule import get_current_range_schedule
+from typing import Optional
 from alarm.use_cases.alarm_status import AlarmChangeStatus
 import json
 
@@ -12,12 +14,7 @@ import alarm.tasks as alarm_tasks
 
 @transaction.atomic()
 def create_alarm_range_schedule(schedule: AlarmScheduleDateRange):
-    print(schedule.datetime_start)
-    print('---')
-    print(timezone.now())
-
     if schedule.datetime_start <= timezone.now():
-        print('past! trigger right now!')
         alarm_tasks.start_schedule_range(None)
     else:
         uid = str(uuid.uuid4())
@@ -56,6 +53,22 @@ def update_alarm_range_schedule(schedule: AlarmScheduleDateRange):
     on_clock.save()
     off_clock.save()
 
+
+@transaction.atomic()
+def stop_current_alarm_range_schedule() -> Optional[AlarmScheduleDateRange]:
+    schedule = get_current_range_schedule()
+    if schedule is None:
+        return None
+
+    schedule.datetime_end = timezone.now()
+    
+    if schedule.turn_off_task:
+        schedule.turn_off_task.delete()
+
+    alarm_tasks.end_schedule_range(str(schedule.uuid))
+
+    schedule.save()
+    return schedule
 
 def start_schedule_range():
     disable_all_schedules()

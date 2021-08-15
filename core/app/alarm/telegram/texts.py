@@ -1,6 +1,8 @@
 from alarm.models import AlarmStatus
 from django.utils.translation import gettext as _
 
+
+# Alarm status
 OFF_ALL = _('Turn off all')
 ON_ALL = _('Turn on all')
 CHOOSE = _('Manage alarm')
@@ -10,6 +12,10 @@ ALL_OFF = _('All of your alarms are off.')
 CHOOSE_EXPLAIN = _('What do you want to do?')
 WRONG = _('Something went wrong.')
 CANCEL = _('Cancel')
+
+# Alarm schedule range
+ABSENT_MODE = _('Absent mode.')
+REMOVE_ABSENT_MODE = _('Remove absent mode.')
 
 def alarm_status(status: AlarmStatus) -> str:
     data = {

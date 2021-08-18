@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-22 12:02+0000\n"
+"POT-Creation-Date: 2021-08-18 12:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,67 +56,146 @@ msgstr ""
 "Le service object_detection de l’appareil %(device_name)s répond de nouveau. "
 "Tout est revenu à la normale."
 
-#: alarm/telegram/texts.py:4
+#: alarm/telegram/texts.py:6
 msgid "Turn off all"
 msgstr "Tout désactiver"
 
-#: alarm/telegram/texts.py:5
+#: alarm/telegram/texts.py:7
 msgid "Turn on all"
 msgstr "Tout activer"
 
-#: alarm/telegram/texts.py:6
+#: alarm/telegram/texts.py:8
 msgid "Manage alarm"
 msgstr "Gérer une alarme"
 
-#: alarm/telegram/texts.py:7
+#: alarm/telegram/texts.py:9
 msgid "No alarm configured."
 msgstr "Vous n'avez pas d'alarme configurée."
 
-#: alarm/telegram/texts.py:8
+#: alarm/telegram/texts.py:10
 msgid "All of your alarms are on."
 msgstr "Toutes vos alarmes sont activées."
 
-#: alarm/telegram/texts.py:9
+#: alarm/telegram/texts.py:11
 msgid "All of your alarms are off."
 msgstr "Toutes vos alarmes sont désactivées."
 
-#: alarm/telegram/texts.py:10
+#: alarm/telegram/texts.py:12
 msgid "What do you want to do?"
 msgstr "Que voulez-vous faire ?"
 
-#: alarm/telegram/texts.py:11
+#: alarm/telegram/texts.py:13
 msgid "Something went wrong."
 msgstr "Nous avons rencontré un problème technique."
 
-#: alarm/telegram/texts.py:21
+#: alarm/telegram/texts.py:14
+msgid "Cancel"
+msgstr "Annuler"
+
+#: alarm/telegram/texts.py:15
+msgid "Ok, I don't do anything."
+msgstr "D'accord, je ne fais rien."
+
+#: alarm/telegram/texts.py:18
+msgid "Absent mode."
+msgstr "Mode absence prolongée."
+
+#: alarm/telegram/texts.py:19
+msgid ""
+"If you are leaving home, you can activate absent mode. It will turn on all "
+"your alarms and disable your schedules."
+msgstr "Si vous quittez votre domicile, vous pouvez activer le mode absence prolongée. Il allume vos alarmes et met vos planifications en pause."
+
+#: alarm/telegram/texts.py:20
+msgid "Ok, all your alarm is running and won't be interrupted by schedules."
+msgstr "D'accord, toutes vos alarmes sont activées et vos planifications sont en pause. Vous pouvez partir tranquille, je monte la garde !"
+
+#: alarm/telegram/texts.py:22
+msgid "Remove absent mode."
+msgstr "Désactiver le mode absence prolongée."
+
+#: alarm/telegram/texts.py:23
+msgid ""
+"If you are back home, you can deactivate absent mode. It will turn off all "
+"your alarms and get your schedules back."
+msgstr "Si vous êtes de retour chez vous, vous pouvez désactiver le mode absence prolongée. Vos alarmes seront désactivées et vos planifications seront restaurées."
+
+#: alarm/telegram/texts.py:24
+msgid "Ok, all your alarms is off and your schedules are back. Welcome home!"
+msgstr "D'accord, toutes vos alarmes sont désactivées et vos planifications sont restaurées. Bon retour chez vous."
+
+#: alarm/telegram/texts.py:25
+msgid "Bobby is not in absent mode so I cannot remmove this mode."
+msgstr "Bobby n'est pas en mode absence prolongée, je ne peux donc pas désactiver ce mode."
+
+#: alarm/telegram/texts.py:34
 #, python-format
 msgid "Your alarm at %(location)s on device %(device)s is on."
 msgstr "Votre alarme %(location)s sur l'appareil %(device)s est activée."
 
-#: alarm/telegram/texts.py:23
+#: alarm/telegram/texts.py:36
 #, python-format
 msgid "Your alarm at %(location)s on device %(device)s is off."
 msgstr "Votre alarme %(location)s sur l'appareil %(device)s est désactivée."
 
-#: alarm/telegram/texts.py:33
+#: alarm/telegram/texts.py:46
 #, python-format
 msgid "Turn off %(location)s / %(device)s."
 msgstr "Désactiver %(location)s / %(device)s."
 
-#: alarm/telegram/texts.py:35
+#: alarm/telegram/texts.py:48
 #, python-format
 msgid "Turn on %(location)s / %(device)s."
 msgstr "Activer %(location)s / %(device)s."
 
-#: alarm/telegram/texts.py:45
+#: alarm/telegram/texts.py:58
 #, python-format
 msgid "Your alarm at %(location)s on device %(device)s turned on."
 msgstr "Votre alarme %(location)s sur l'appareil %(device)s s'active."
 
-#: alarm/telegram/texts.py:47
+#: alarm/telegram/texts.py:60
 #, python-format
 msgid "Your alarm at %(location)s on device %(device)s turned off."
 msgstr "Votre alarme %(location)s sur l'appareil %(device)s se désactive."
+
+#: automation/models.py:13
+msgid "Any of these trigger names will trigger this automation to run."
+msgstr ""
+
+#: automation/models.py:23
+#, python-format
+msgid "%(title)s automation triggered by %(trigger_name)s."
+msgstr ""
+
+#: automation/models.py:27
+msgid "The hostname or IP address of the remote broker."
+msgstr ""
+
+#: automation/models.py:28
+msgid "The network port of the server host to connect to."
+msgstr ""
+
+#: automation/models.py:34
+#, python-format
+msgid "Mqtt client for host %(host)s."
+msgstr ""
+
+#: automation/models.py:44
+msgid "The quality of service level to use."
+msgstr ""
+
+#: automation/models.py:53
+msgid "Datetime that the automation last triggered the action to run. "
+msgstr ""
+
+#: automation/models.py:57
+msgid "Must include either payload_boolean or payload_json."
+msgstr ""
+
+#: automation/models.py:60
+#, python-format
+msgid "Publish to %(topic)s"
+msgstr ""
 
 #: mqtt_services/notifications.py:7
 msgid "turn on"
@@ -186,12 +265,38 @@ msgstr ""
 msgid "New alarm"
 msgstr ""
 
+#: templates/camera/camera_motion_detected_detail.html:5
+msgid "Camera motion detail"
+msgstr ""
+
 #: templates/camera/camera_motion_detected_detail.html:16
 msgid "Device information"
 msgstr ""
 
 #: templates/camera/camera_motion_detected_detail.html:29
 msgid "Motion information"
+msgstr ""
+
+#: templates/camera/camera_motion_detected_detail.html:38
+msgid "Picture taken when people was detected."
+msgstr ""
+
+#: templates/camera/camera_motion_detected_detail.html:45
+msgid "Picture taken when people left."
+msgstr ""
+
+#: templates/camera/camera_motion_detected_detail.html:46
+msgid "Motion ended picture."
+msgstr ""
+
+#: templates/camera/camera_motion_detected_detail.html:48
+msgid ""
+"No picture was taken when people left. Could happens when the device linked "
+"to the camera turn off before people left."
+msgstr ""
+
+#: templates/camera/camera_motion_detected_detail.html:51
+msgid "The system does not have any picture for this event."
 msgstr ""
 
 #: templates/camera/camera_motion_detected_list.html:12
@@ -214,7 +319,7 @@ msgstr ""
 
 #: templates/configuration.html:18 templates/configuration.html:37
 #: templates/partials/_alarm_list.html:13
-#: templates/partials/_alarm_schedule_info.html:31
+#: templates/partials/_alarm_schedule_info.html:33
 msgid "Update"
 msgstr ""
 
@@ -241,9 +346,18 @@ msgid "Hello"
 msgstr ""
 
 #: templates/partials/_alarm_list.html:15
-#: templates/partials/_alarm_schedule_info.html:33
+#: templates/partials/_alarm_schedule_info.html:35
 #: templates/partials/_camera_motion_list.html:16
 msgid "See more"
+msgstr ""
+
+#: templates/partials/_alarm_schedule_info.html:14
+#, python-format
+msgid ""
+"\n"
+"            <span class=\"l-ml1\">Alarm turns on from %(start_time)s to "
+"%(end_time)s</span>\n"
+"            "
 msgstr ""
 
 #: templates/partials/_alarm_status_info.html:43
@@ -270,7 +384,11 @@ msgstr ""
 msgid "Configuration"
 msgstr ""
 
-#: templates/partials/_topbar.html:30 templates/registration/login.html:22
+#: templates/partials/_topbar.html:20
+msgid "Admin"
+msgstr ""
+
+#: templates/partials/_topbar.html:35 templates/registration/login.html:22
 msgid "Login"
 msgstr ""
 

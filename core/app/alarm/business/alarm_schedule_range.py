@@ -4,9 +4,9 @@ from alarm.models import AlarmScheduleDateRange
 from typing import Optional
 
 
-def get_current_range_schedule() -> Optional[AlarmScheduleDateRange]:
+def get_current_schedule_range() -> Optional[AlarmScheduleDateRange]:
     now = timezone.now()
-    
+
     try:
         return AlarmScheduleDateRange.objects.get(
                 Q(datetime_start__lte=now),

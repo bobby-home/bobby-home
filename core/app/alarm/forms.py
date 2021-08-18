@@ -1,5 +1,5 @@
 from django.forms.widgets import DateTimeInput
-from alarm.use_cases.alarm_range_schedule import create_alarm_range_schedule, update_alarm_range_schedule
+from alarm.use_cases.alarm_schedule_range import create_alarm_schedule_range, update_alarm_schedule_range
 from alarm.use_cases.alarm_schedule import create_alarm_schedule, update_alarm_schedule
 from django import forms
 from django.db import transaction
@@ -13,7 +13,7 @@ class FormInformation():
     def __init__(self, *args, **kwargs):
         self._creating = kwargs.get('instance') is None
         super().__init__(*args, **kwargs)
- 
+
     @property
     def is_creating(self) -> bool:
         return self._creating
@@ -39,9 +39,9 @@ class AlarmRangeScheduleForm(FormInformation, forms.ModelForm):
         instance = super().save(commit=False)
 
         if self.is_creating:
-            self.instance = create_alarm_range_schedule(instance)
+            self.instance = create_alarm_schedule_range(instance)
         else:
-            self.instance = update_alarm_range_schedule(instance)
+            self.instance = update_alarm_schedule_range(instance)
 
         return self.instance
 
@@ -58,9 +58,9 @@ class AlarmScheduleForm(FormInformation, forms.ModelForm):
             self.instance = create_alarm_schedule(instance)
         else:
             self.instance = update_alarm_schedule(instance)
-        
+
         self.save_m2m()
-        
+
         return self.instance
 
 
@@ -68,7 +68,7 @@ class AlarmStatusForm(forms.ModelForm):
     class Meta:
         model = AlarmStatus
         fields = ['running']
-    
+
     def save(self, commit: bool = True) -> AlarmStatus:
         instance = super().save(commit=False)
         AlarmChangeStatus().save_status(instance)

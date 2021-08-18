@@ -1,6 +1,6 @@
 from enum import Enum
-from alarm.business.alarm_range_schedule import get_current_range_schedule
-from alarm.use_cases.alarm_range_schedule import create_alarm_range_schedule, stop_current_alarm_range_schedule
+from alarm.business.alarm_schedule_range import get_current_schedule_range
+from alarm.use_cases.alarm_schedule_range import create_alarm_schedule_range, stop_current_alarm_schedule_range
 from django.utils import timezone
 from alarm.models import AlarmScheduleDateRange
 from alarm.telegram import texts
@@ -23,7 +23,7 @@ CONFIRMATION = range(1)
 class BotData(Enum):
     ABSENT_MODE = 'on_absence'
     REMOVE_ABSENT_MODE = 'off_absence'
-    CANCEL = 'cancel_absence' 
+    CANCEL = 'cancel_absence'
 
 
 class AlarmScheduleRangeBot():
@@ -31,8 +31,8 @@ class AlarmScheduleRangeBot():
         self._register_commands(telegram_updater)
 
     def _schedule_range_handler(self, update: Update, _c: CallbackContext):
-        schedule = get_current_range_schedule()
-        
+        schedule = get_current_schedule_range()
+
         buttons = []
 
         if schedule is not None:
@@ -63,24 +63,24 @@ class AlarmScheduleRangeBot():
 
         if BotData.ABSENT_MODE.value in query.data:
             schedule = AlarmScheduleDateRange(datetime_start=timezone.now())
-            create_alarm_range_schedule(schedule)
+            create_alarm_schedule_range(schedule)
             query.edit_message_text(texts.OK_ABSENT_MODE)
         elif BotData.REMOVE_ABSENT_MODE.value in query.data:
-            schedule = stop_current_alarm_range_schedule()
+            schedule = stop_current_alarm_schedule_range()
             if schedule:
                 query.edit_message_text(texts.OK_REMOVE_ABSENT_MODE)
             else:
                 query.edit_message_text(texts.KO_REMOVE_ABSENT_MODE)
         elif BotData.CANCEL.value in query.data:
             query.edit_message_text(texts.OK_CANCEL)
-        
+
         return ConversationHandler.END
 
     def _cancel(self, update: Update, _c: CallbackContext) -> int:
         update.message.reply_text(
             texts.OK_CANCEL, reply_markup=ReplyKeyboardRemove()
         )
-    
+
         return ConversationHandler.END
 
     def _register_commands(self, update: Updater) -> None:

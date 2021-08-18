@@ -13,7 +13,7 @@ import alarm.tasks as alarm_tasks
 
 
 @transaction.atomic()
-def create_alarm_range_schedule(schedule: AlarmScheduleDateRange):
+def create_alarm_range_schedule(schedule: AlarmScheduleDateRange) -> AlarmScheduleDateRange:
     if schedule.datetime_start <= timezone.now():
         alarm_tasks.start_schedule_range(None)
     else:
@@ -45,15 +45,12 @@ def create_alarm_range_schedule(schedule: AlarmScheduleDateRange):
 
 @transaction.atomic()
 def update_alarm_range_schedule(schedule: AlarmScheduleDateRange):
-    on_clock = schedule.turn_on_task.clocked
-    off_clock = schedule.turn_off_task.clocked
-
-    on_clock.clocked_time = schedule.datetime_start
-    off_clock.clocked_time = schedule.datetime_end
-
-    on_clock.save()
-    off_clock.save()
-
+    """
+    Update operation is complexe involving same tests as the creation.
+    To remove this complexity, we delete the schedule and recreate one.
+    """
+    schedule.delete()
+    return create_alarm_range_schedule(schedule)
 
 @transaction.atomic()
 def stop_current_alarm_range_schedule() -> Optional[AlarmScheduleDateRange]:

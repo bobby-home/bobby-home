@@ -7,12 +7,21 @@
 
             <div class="flex justify-between items-center wrap gap-1">
                 <h2 class="h4">{% trans 'Your alarms' %}</h2>
-                <a class="btn-secondary" href="{% url 'alarm:status-add' %}">
-                    {% svg_icon 'plus' 'left' %}
-                    <span>
-                        {% trans 'New alarm' %}
-                    </span>
-                </a>
+
+                <div>
+                    <a class="btn-secondary" href="{% url 'alarm:absence-add' %}">
+                        {% svg_icon 'plus' 'left' %}
+                        <span>
+                            {% trans 'Absence mode' %}
+                        </span>
+                    </a>
+                    <a class="btn-secondary" href="{% url 'alarm:status-add' %}">
+                        {% svg_icon 'plus' 'left' %}
+                        <span>
+                            {% trans 'New alarm' %}
+                        </span>
+                    </a>
+                </div>
             </div>
             {% include 'partials/_alarm_list.html' %}
         </div>

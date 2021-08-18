@@ -161,8 +161,9 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, "locale"),
 )
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Paris'
 
+# https://docs.djangoproject.com/en/3.2/topics/i18n/formatting
 USE_L10N = True
 
 USE_TZ = True

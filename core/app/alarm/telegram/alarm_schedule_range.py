@@ -36,12 +36,12 @@ class AlarmScheduleRangeBot():
         buttons = []
 
         if schedule is not None:
-            text = "If you are back home, you can deactivate absent mode. It will turn off all your alarms and get your schedules back."
+            text = texts.EXPLAIN_REMOVE_ABSENT_MODE
             buttons.append(
                 [InlineKeyboardButton(texts.REMOVE_ABSENT_MODE, callback_data=BotData.REMOVE_ABSENT_MODE.value)]
             )
         else:
-            text = "If you are leaving home, you can activate absent mode. It will turn on all your alarms and disable your schedules."
+            text = texts.EXPLAIN_ABSENT_MODE
             buttons.append(
                 [InlineKeyboardButton(texts.ABSENT_MODE, callback_data=BotData.ABSENT_MODE.value)],
             )
@@ -64,28 +64,28 @@ class AlarmScheduleRangeBot():
         if BotData.ABSENT_MODE.value in query.data:
             schedule = AlarmScheduleDateRange(datetime_start=timezone.now())
             create_alarm_range_schedule(schedule)
-            query.edit_message_text("Ok, your alarm is running and won't be interrupted by schedules")
+            query.edit_message_text(texts.OK_ABSENT_MODE)
         elif BotData.REMOVE_ABSENT_MODE.value in query.data:
             schedule = stop_current_alarm_range_schedule()
             if schedule:
-                query.edit_message_text("Ok, your alarm is off and your schedules are back. Welcome home!")
+                query.edit_message_text(texts.OK_REMOVE_ABSENT_MODE)
             else:
-                query.edit_message_text("Bobby is not in absent mode so I cannot remmove this mode.")
+                query.edit_message_text(texts.KO_REMOVE_ABSENT_MODE)
         elif BotData.CANCEL.value in query.data:
-            query.edit_message_text("Ok, I don't do anything.")
+            query.edit_message_text(texts.OK_CANCEL)
         
         return ConversationHandler.END
 
     def _cancel(self, update: Update, _c: CallbackContext) -> int:
         update.message.reply_text(
-            'Bye! I hope we can talk again some day.', reply_markup=ReplyKeyboardRemove()
+            texts.OK_CANCEL, reply_markup=ReplyKeyboardRemove()
         )
     
         return ConversationHandler.END
 
     def _register_commands(self, update: Updater) -> None:
         conv_handler = ConversationHandler(
-            entry_points=[CommandHandler('mx', self._schedule_range_handler)],
+            entry_points=[CommandHandler('absence', self._schedule_range_handler)],
             states={
                 CONFIRMATION: [CallbackQueryHandler(self._confirm)]
             },

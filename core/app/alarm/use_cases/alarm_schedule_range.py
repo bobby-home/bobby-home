@@ -14,12 +14,12 @@ import alarm.tasks as alarm_tasks
 
 @transaction.atomic()
 def create_alarm_schedule_range(schedule: AlarmScheduleDateRange) -> AlarmScheduleDateRange:
+    uid = str(uuid.uuid4())
+    schedule.uuid = uid
+
     if schedule.datetime_start <= timezone.now():
         alarm_tasks.start_schedule_range(None)
     else:
-        uid = str(uuid.uuid4())
-        schedule.uuid = uid
-
         clocked_turn_on = ClockedSchedule.objects.create(clocked_time=schedule.datetime_start)
         schedule.turn_on_task = PeriodicTask.objects.create(
             name=f'Turn on alarm for range {uid}',
@@ -29,15 +29,15 @@ def create_alarm_schedule_range(schedule: AlarmScheduleDateRange) -> AlarmSchedu
             args=json.dumps([uid])
         )
 
-        if schedule.datetime_end:
-            clocked_turn_off = ClockedSchedule.objects.create(clocked_time=schedule.datetime_end)
-            schedule.turn_off_task = PeriodicTask.objects.create(
-                name=f'Turn off alarm for range {uid}',
-                task="alarm.end_schedule_range",
-                clocked=clocked_turn_off,
-                one_off=True,
-                args=json.dumps([uid])
-            )
+    if schedule.datetime_end:
+        clocked_turn_off = ClockedSchedule.objects.create(clocked_time=schedule.datetime_end)
+        schedule.turn_off_task = PeriodicTask.objects.create(
+            name=f'Turn off alarm for range {uid}',
+            task="alarm.end_schedule_range",
+            clocked=clocked_turn_off,
+            one_off=True,
+            args=json.dumps([uid])
+        )
 
     schedule.save()
     return schedule
@@ -59,13 +59,15 @@ def stop_current_alarm_schedule_range() -> Optional[AlarmScheduleDateRange]:
         return None
 
     schedule.datetime_end = timezone.now()
+    turn_off_task = schedule.turn_off_task
+    schedule.turn_off_task = None
+    schedule.save()
 
-    if schedule.turn_off_task:
-        schedule.turn_off_task.delete()
+    if turn_off_task:
+        turn_off_task.delete()
 
     alarm_tasks.end_schedule_range(str(schedule.uuid))
 
-    schedule.save()
     return schedule
 
 def start_schedule_range():

@@ -57,46 +57,7 @@ class AlarmRangeScheduleBusinessTestCase(TestCase):
         self.assertIsNotNone(g)
 
 
-class AlarmScheduleDateRangeTestCase(TestCase):
-    def setUp(self):
-        self.house = House(timezone='Europe/Paris')
-        self.house.save()
-
-    @skip
-    def test_create_schedule(self):
-        alarm_schedule = AlarmScheduleFactory()
-
-        data = {
-            'datetime_start': datetime.now(),
-            'datetime_end': datetime.now(),
-        }
-
-        alarm_schedule = AlarmScheduleDateRange(**data)
-        alarm_schedule.save()
-
-        to_test = {
-            'start': alarm_schedule.turn_on_task,
-            'end': alarm_schedule.turn_off_task
-        }
-
-        for key, value in to_test.items():
-            self.assertEqual(value.clocked.clocked_time, data[f'datetime_{key}'])
-
-        all_schedules = AlarmSchedule.objects.all()
-
-        for schedule in all_schedules:
-            self.assertEqual(schedule.turn_on_task.enabled, False)
-            self.assertEqual(schedule.turn_off_task.enabled, False)
-
-        alarm_schedule.delete()
-        all_schedules = AlarmSchedule.objects.all()
-
-        for schedule in all_schedules:
-            self.assertEqual(schedule.turn_on_task.enabled, True)
-            self.assertEqual(schedule.turn_off_task.enabled, True)
-
-
-class AlarmScheduleModelTestCase(TestCase):
+class AlarmScheduleRangeUseCasesTestCase(TestCase):
     def setUp(self):
         self.house = House(timezone='Europe/Paris')
         self.house.save()
@@ -119,23 +80,21 @@ class AlarmScheduleModelTestCase(TestCase):
 
         return schedule
 
-    def _check_underlying_objects(self, end=True):
+    def _check_underlying_objects(self, past=False, end=True):
         schedules = AlarmScheduleDateRange.objects.all()
         self.assertEqual(len(schedules), 1)
         schedule = schedules[0]
 
-        periodic_tasks = PeriodicTask.objects.all()
-        if end:
-            self.assertEqual(len(periodic_tasks), 2)
-        else:
-            self.assertEqual(len(periodic_tasks), 1)
+        tasks = []
+        clocks = []
 
-        turn_on_task = PeriodicTask.objects.get(task='alarm.start_schedule_range')
-        self.assertEqual(schedule.turn_on_task, turn_on_task)
-
-        turn_on_clock = ClockedSchedule.objects.get(clocked_time=schedule.datetime_start)
-        clocks = [turn_on_clock]
-        tasks = [turn_on_task]
+        if not past:
+            turn_on_task = PeriodicTask.objects.get(task='alarm.start_schedule_range')
+            self.assertEqual(schedule.turn_on_task, turn_on_task)
+            turn_on_clock = ClockedSchedule.objects.get(clocked_time=schedule.datetime_start)
+            self.assertEqual(turn_on_task.clocked, turn_on_clock)
+            clocks.append(turn_on_clock)
+            tasks.append(turn_on_task)
 
         if end:
             turn_off_task = PeriodicTask.objects.get(task='alarm.end_schedule_range')
@@ -149,16 +108,6 @@ class AlarmScheduleModelTestCase(TestCase):
             self.assertEqual(task.args, json.dumps([str(schedule.uuid)]))
             self.assertEqual(task.clocked, cron)
 
-        cons = ClockedSchedule.objects.all()
-        if end:
-            self.assertEqual(len(cons), 2)
-        else:
-            self.assertEqual(len(cons), 1)
-        # no timezone for ClockedSchedule, how does it work?? UTC?? TZ in datetime ????
-        #for clocked in [turn_on_clocked, turn_off_clocked]:
-        #    self.assertEqual(str(cron.timezone), self.house.timezone)
-
-        self.assertEqual(turn_on_task.clocked, turn_on_clock)
 
     @freeze_time("2021-08-13 21:40:00")
     def test_create_schedule(self):
@@ -177,16 +126,13 @@ class AlarmScheduleModelTestCase(TestCase):
         schedule = self._create_model_schedule_range(futur=False)
         create_alarm_schedule_range(schedule)
 
-        schedules = AlarmScheduleDateRange.objects.all()
-        self.assertEqual(len(schedules), 1)
-
-        periodic_tasks = PeriodicTask.objects.all()
-        self.assertEqual(len(periodic_tasks), 0)
+        self._check_underlying_objects(past=True)
 
         start_schedule_range_mock.assert_called_once_with(None)
 
     @freeze_time("2021-08-14 17:45:00")
-    def test_stop_current_alarm_schedule_range(self):
+    @patch('alarm.tasks.end_schedule_range')
+    def test_stop_current_alarm_schedule_range(self, end_schedule_range_mock):
         schedule = self._create_model_schedule_range(futur=False)
         schedule.save()
         updated_schedule = stop_current_alarm_schedule_range()
@@ -197,20 +143,12 @@ class AlarmScheduleModelTestCase(TestCase):
         db_schedule = db_schedule[0]
 
         self.assertEqual(db_schedule.datetime_end, timezone.now())
-
-    @patch('alarm.tasks.end_schedule_range')
-    def test_stop_current_alarm_schedule_range_delete_turn_off_task(self, end_schedule_range_mock):
-        schedule = self._create_model_schedule_range(futur=False)
-        create_alarm_schedule_range(schedule)
-        updated_schedule = stop_current_alarm_schedule_range()
-        self.assertIsNotNone(updated_schedule)
-
-        db_schedule = AlarmScheduleDateRange.objects.all()
-        self.assertEqual(1, len(db_schedule))
-        db_schedule = db_schedule[0]
+        end_schedule_range_mock.assert_called_once_with(str(schedule.uuid))
 
         self.assertIsNone(db_schedule.turn_off_task)
-        end_schedule_range_mock.assert_called_once_with(str(schedule.uuid))
+        
+        tasks = PeriodicTask.objects.all()
+        self.assertEqual(0, len(tasks))
 
     @patch('alarm.use_cases.alarm_schedule_range.disable_all_schedules')
     @patch('alarm.use_cases.alarm_schedule_range.AlarmChangeStatus')

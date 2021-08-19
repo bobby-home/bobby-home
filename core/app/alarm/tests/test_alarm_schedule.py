@@ -1,4 +1,5 @@
 import json
+from typing import Sequence
 from alarm.forms import AlarmScheduleForm
 from datetime import time
 from itertools import count
@@ -15,7 +16,7 @@ from celery.schedules import schedule, crontab
 
 from alarm.use_cases.alarm_schedule import create_alarm_schedule, model_boolean_fields_to_cron_days, update_alarm_schedule
 from alarm.use_cases.alarm_status import alarm_statuses_changed
-from alarm.business.alarm_schedule import get_current_day
+from alarm.business.alarm_schedule import disable_all_schedules, enable_all_schedules, get_current_day
 from alarm.factories import AlarmScheduleFactory, AlarmStatusFactory
 from alarm.models import AlarmSchedule
 from house.factories import HouseFactory
@@ -259,7 +260,7 @@ class UseCaseAlarmScheduleTestCase(TestCase):
         
         self._check_underlying_objects(schedule)
 
-class AlarmScheduleTestCase(TestCase):
+class BusinessAlarmScheduleTestCase(TestCase):
     def setUp(self) -> None:
         HouseFactory()
 
@@ -313,4 +314,25 @@ class AlarmScheduleTestCase(TestCase):
             **{f'{current_day}': True})
 
         next_off = AlarmSchedule.objects.get_next_off()
+
+    def _test_schedules_status(self, schedules: Sequence[AlarmSchedule], enabled: bool) -> None:
+        for schedule in schedules:
+            self.assertEqual(schedule.turn_on_task.enabled, enabled)
+            self.assertEqual(schedule.turn_off_task.enabled, enabled)
+
+    def test_disable_all_schedules(self):
+        AlarmScheduleFactory()
+        AlarmScheduleFactory()
+
+        disable_all_schedules()
+        schedules = AlarmSchedule.objects.all()
+        self._test_schedules_status(schedules, False)
+
+    def test_enable_all_schedules(self):
+        AlarmScheduleFactory()
+        AlarmScheduleFactory()
+
+        enable_all_schedules()
+        schedules = AlarmSchedule.objects.all()
+        self._test_schedules_status(schedules, True)
 

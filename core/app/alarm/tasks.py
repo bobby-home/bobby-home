@@ -3,6 +3,7 @@ from utils.mqtt import mqtt_factory
 import uuid
 from devices.models import Device, DeviceType
 from alarm.use_cases.data import Detection, DiscoverAlarmData, InMotionCameraData, InMotionPictureData, InMotionVideoData
+import alarm.use_cases.alarm_schedule_range as alarm_schedule_range
 import logging
 from typing import Tuple
 
@@ -48,6 +49,16 @@ def set_alarm_off(alarm_status_uui):
 @shared_task(name="alarm.set_alarm_on")
 def set_alarm_on(alarm_status_uui):
     AlarmScheduleChangeStatus().turn_on(alarm_status_uui)
+
+
+@shared_task(name="alarm.start_schedule_range")
+def start_schedule_range(_schedule_range_uuid):
+    alarm_schedule_range.start_schedule_range()
+
+
+@shared_task(name="alarm.end_schedule_range")
+def end_schedule_range(_schedule_range_uuid):
+    alarm_schedule_range.end_schedule_range()
 
 
 def check_ping(status: AlarmStatus) -> Tuple[bool, Ping]:

@@ -2,6 +2,7 @@ import os, sys
 from typing import List
 
 import django
+from telegram.ext.conversationhandler import ConversationHandler
 sys.path.append('/usr/src/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
 django.setup()
@@ -25,6 +26,8 @@ class BotData(Enum):
     OFF = 'off'
     ON = 'on'
     CHOOSE = 'choose' # the user choose which alarm to manage.
+
+FIRST, SECOND = range(2)
 
 
 class AlarmStatusBot:
@@ -52,30 +55,11 @@ class AlarmStatusBot:
 
         markup = InlineKeyboardMarkup.from_column(keyboard)
         update.message.reply_text('\n'.join(texts_alarm_status), reply_markup=markup, parse_mode=telegram_constants.PARSEMODE_HTML)
+        return FIRST
 
-    def _set_alarm_status(self, update: Update, _c: CallbackContext):
+    def _set_alarm_status_id(self, update: Update, _c: CallbackContext):
         query = update.callback_query
         status = query.data
-        
-        if status == BotData.ON.value:
-            AlarmChangeStatus().all_change_status(True, force=True)
-            text = texts.ALL_ON 
-            return query.edit_message_text(text)
-
-        if status == BotData.OFF.value:
-            AlarmChangeStatus().all_change_status(False, force=True)
-            text = texts.ALL_OFF
-            return query.edit_message_text(text)
-
-        if status == BotData.CHOOSE.value:
-            statuses = AlarmStatus.objects.all()
-            
-            keyboard = [InlineKeyboardButton(texts.change_alarm_status(status), callback_data=status.pk) for status in statuses]
-            query.answer()
-
-            # one button per row, only one column.
-            markup = InlineKeyboardMarkup.from_column(keyboard)
-            return query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup) 
 
         if status.isdigit():
             status_pk = int(status)
@@ -90,16 +74,53 @@ class AlarmStatusBot:
             db_status = AlarmChangeStatus().reverse_status(status_pk, force=True)
             text = texts.alarm_status_changed(db_status)
             query.edit_message_text(text)
+            return ConversationHandler.END
 
-            return
-        
-        query.edit_message_text(texts.WRONG)
+    def _set_alarm_status(self, update: Update, _c: CallbackContext):
+        query = update.callback_query
+        status = query.data
 
+        if status == BotData.ON.value:
+            AlarmChangeStatus().all_change_status(True, force=True)
+            text = texts.ALL_ON 
+            query.edit_message_text(text)
+            return ConversationHandler.END
 
-    def _register_commands(self, update: Updater) -> None:
-        update.dispatcher.add_handler(CommandHandler('alarm', self._alarm_status))
-        update.dispatcher.add_handler(CallbackQueryHandler(self._set_alarm_status))
+        if status == BotData.OFF.value:
+            AlarmChangeStatus().all_change_status(False, force=True)
+            text = texts.ALL_OFF
+            query.edit_message_text(text)
+            return ConversationHandler.END
 
+        if status == BotData.CHOOSE.value:
+            statuses = AlarmStatus.objects.all()
+            
+            keyboard = [InlineKeyboardButton(texts.change_alarm_status(status), callback_data=status.pk) for status in statuses]
+            query.answer()
+
+            # one button per row, only one column.
+            markup = InlineKeyboardMarkup.from_column(keyboard)
+            query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup) 
+            return SECOND
+
+    def _cancel(self, update: Update, _c: CallbackContext) -> int:
+        update.message.reply_text(
+            'Bye! I hope we can talk again some day.'
+        )
+
+        return ConversationHandler.END
+
+    def _register_commands(self, updater: Updater) -> None:
+        conv_handler = ConversationHandler(
+            entry_points=[CommandHandler('alarm', self._alarm_status)],
+            states={
+                FIRST: [CallbackQueryHandler(self._set_alarm_status)],
+                SECOND: [CallbackQueryHandler(self._set_alarm_status_id)],
+            },
+            fallbacks=[CommandHandler('cancel', self._cancel)]
+        )
+
+        updater.dispatcher.add_handler(conv_handler)
 
 def alarm_status_bot_factory(telegram_updater: Updater) -> AlarmStatusBot:
     return AlarmStatusBot(telegram_updater)

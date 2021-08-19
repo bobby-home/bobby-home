@@ -1,0 +1,27 @@
+{% extends '_layout.html' %}
+{% load i18n %}
+
+{% block body %}
+    <main class="l-container">
+        <section class="l-section l-row">
+            <div class="copy variant--content variant--box">
+                <div class="copy__body l-stack">
+            
+                    <div class="l-stack-bottom-separator">
+                        <h3 class="h5">Absence mode</h3>
+                    </div>
+            
+                    <p class="flex items-center">
+                        {% svg_icon 'shield' %}
+                        <span class="l-ml1">Alarm turns on from {{ object.datetime_start }}
+                            {% if object.datetime_end %}
+                                to {{ object.datetime_end }}
+                            {% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div> 
+        </section>
+    </main>
+
+{% endblock body %}

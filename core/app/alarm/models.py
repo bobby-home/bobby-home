@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from django.utils import timezone
@@ -7,7 +6,6 @@ from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from alarm.business.alarm_schedule import get_next_off_schedule, get_next_on_schedule, get_device_next_off_schedule, \
     get_device_next_on_schedule
 from devices.models import Device
-from house.models import House
 from django.db import transaction
 from django.urls import reverse
 
@@ -77,6 +75,28 @@ class AlarmScheduleManager(models.Manager):
         return get_next_on_schedule(timezone.now(), self)
 
 
+class AlarmScheduleDateRange(models.Model):
+    datetime_start = models.DateTimeField()
+    datetime_end = models.DateTimeField(blank=True, null=True)
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+
+    turn_on_task = models.OneToOneField(
+            PeriodicTask,
+            editable=False,
+            blank=True,
+            null=True,
+            on_delete=models.PROTECT,
+            related_name='alarm_schedule_date_range_on')
+
+    turn_off_task = models.OneToOneField(
+            PeriodicTask,
+            editable=False,
+            blank=True,
+            null=True,
+            on_delete=models.PROTECT,
+            related_name='alarm_schedule_date_range_off')
+
+
 class AlarmSchedule(models.Model):
     objects = AlarmScheduleManager()
 
@@ -96,8 +116,6 @@ class AlarmSchedule(models.Model):
     friday    = models.BooleanField()
     saturday  = models.BooleanField()
     sunday    = models.BooleanField()
-
-    is_disabled_by_system = models.BooleanField(default=False, editable=False)
 
     turn_on_task = models.OneToOneField(
         PeriodicTask,

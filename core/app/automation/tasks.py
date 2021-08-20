@@ -31,3 +31,10 @@ def on_motion_left(*_args, device_id: str) -> None:
     d = _motion_data(device_id)
     _run_automations(Triggers.ON_MOTION_LEFT, d)
 
+
+@shared_task()
+def on_alarm_status_changed(status: bool, device_id: str) -> None:
+    d = _motion_data(device_id)
+    trigger = Triggers.ON_ALARM_ON if status else Triggers.ON_ALARM_OFF
+    _run_automations(trigger, d)
+

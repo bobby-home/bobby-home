@@ -4,6 +4,7 @@ from typing import List
 from django.db import transaction
 from alarm.use_cases.out_alarm import notify_alarm_status_factory
 from alarm.models import AlarmStatus, AlarmSchedule
+import automation.tasks as automation_tasks
 
 
 def alarm_status_changed(alarm_status: AlarmStatus, force=False):
@@ -34,6 +35,10 @@ def alarm_statuses_changed(alarm_statuses: List[AlarmStatus], force=False):
     """
     for alarm_status in alarm_statuses:
         alarm_status_changed(alarm_status, force)
+        automation_tasks.on_alarm_status_changed.apply_async(kwargs={
+            'device_id': alarm_status.device.device_id,
+            'status': alarm_status.running
+        })
 
 def _reset_ping(alarm_statuses: List[AlarmStatus]):
     device_ids = [alarm_status.device.device_id for alarm_status in alarm_statuses]

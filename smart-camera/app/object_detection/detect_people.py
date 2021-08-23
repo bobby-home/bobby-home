@@ -10,10 +10,10 @@ from object_detection.model import BoundingBox, People
 
 class DetectPeople:
 
-    def __init__(self, tflite_file: str, labels_file: str):
+    def __init__(self, tflite_file: str, labels_file: str, threshold: float):
         self.model_file = tflite_file
         self.labels_file = labels_file
-        self.threshold = 0.6
+        self.threshold = threshold
 
         self.labels = self._load_labels(self.labels_file)
         self.interpreter = Interpreter(self.model_file)

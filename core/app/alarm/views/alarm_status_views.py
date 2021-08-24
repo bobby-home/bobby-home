@@ -8,7 +8,7 @@ from django.views.generic.edit import CreateView
 from django.forms import ModelForm
 
 from alarm.business.alarm_schedule import DAYS_OF_WEEK
-from alarm.use_cases.alarm_status import AlarmChangeStatus, alarm_status_changed
+from alarm.use_cases.alarm_status import AlarmChangeStatus
 from alarm.models import AlarmStatus, AlarmSchedule
 from devices.models import Device
 from utils.django.forms import ChangeForm
@@ -42,7 +42,7 @@ class AlarmStatusCreate(LoginRequiredMixin, ChangeForm, CreateView):
 
     def form_valid(self, form):
         res = super().form_valid(form)
-        alarm_status_changed(self.object)
+        # alarm_status_changed(self.object)
         return res
 
 

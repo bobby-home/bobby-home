@@ -20,10 +20,6 @@ class AlarmStatusChangedTestCase(TestCase):
 
         return super().setUp()
 
-    def _create_current_camera_motion(self):
-        event_ref = str(uuid.uuid4())
-        self.camera_motion_detected = CameraMotionDetected.objects.create(event_ref=event_ref, motion_started_at=timezone.now(), device=self.device)
-
     @patch("alarm.use_cases.alarm_status.can_turn_off")
     @patch("alarm.use_cases.alarm_status.integration_alarm_status_changed")
     def test_alarm_statuses_changed_should_not_call_integration(self, integration_alarm_status_changed: MagicMock, can_turn_off: MagicMock):
@@ -46,6 +42,16 @@ class AlarmStatusChangedTestCase(TestCase):
         alarm_statuses_changed([self.alarm_status], force=True)
         integration_alarm_status_changed.assert_called_once_with(self.alarm_status)
 
+    @patch("alarm.use_cases.alarm_status.can_turn_off")
+    @patch("alarm.use_cases.alarm_status.integration_alarm_status_changed")
+    def test_alarm_statuses_changed_call_integration_when_running_true(self, integration_alarm_status_changed: MagicMock, can_turn_off: MagicMock):
+        self.alarm_status: AlarmStatus = AlarmStatusFactory(running=True)
+        self.device: Device = self.alarm_status.device
+        can_turn_off.return_value = False
+        can_turn_off.assert_not_called()
+
+        alarm_statuses_changed([self.alarm_status], force=False)
+        integration_alarm_status_changed.assert_called_once_with(self.alarm_status)
 
 class ChangeStatusesTestCase(TransactionTestCase):
     def setUp(self) -> None:

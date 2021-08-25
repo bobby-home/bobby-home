@@ -1,12 +1,10 @@
-from alarm.integration.alarm_status import integration_alarm_status_changed
 import logging
-import automation.tasks as automation_tasks
+from alarm.integration.camera_motion import integration_camera_motion, integration_camera_no_more_motion
+from alarm.integration.alarm_status import integration_alarm_status_changed
 from devices.models import Device
 from alarm.use_cases.data import InMotionCameraData
 import alarm.business.in_motion as in_motion
-import alarm.use_cases.out_alarm as out_alarm
 from alarm.models import AlarmStatus
-import alarm.notifications as alarm_notifications
 
 
 LOGGER = logging.getLogger(__name__)
@@ -20,13 +18,10 @@ def camera_motion_detected(data: InMotionCameraData) -> None:
         # the motion is already save in db, and so the notification should have been already send.
         return None
 
-
     if data.status is True:
-        alarm_notifications.object_detected(device)
-        automation_tasks.on_motion_detected.apply_async(kwargs={'device_id': device.device_id})
+        integration_camera_motion(device)
     else:
-        alarm_notifications.object_no_more_detected(device)
-        automation_tasks.on_motion_left.apply_async(kwargs={'device_id': device.device_id})
+        integration_camera_no_more_motion(device)
 
         alarm_status = AlarmStatus.objects.get(device=device)
         if alarm_status.running is False:

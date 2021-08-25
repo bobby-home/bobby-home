@@ -1,8 +1,8 @@
-FROM python:3.9.4-slim-buster as base
+FROM python:3.9.6-slim-buster as base
 
 # do not use slim image to build
 # it misses a lot of necessary packages to build pip dependencies (gcc for example).
-FROM python:3.9.4 as builder
+FROM python:3.9.6-buster as builder
 
 # libpq-dev is used for psycopg2-binary, see: https://stackoverflow.com/a/12037133
 RUN apt-get update \

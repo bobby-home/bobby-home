@@ -13,7 +13,7 @@ services:
             - ./config/redis/redis-broker.conf:/usr/local/etc/redis/redis.conf
 
     database:
-        image: postgres:13.1
+        image: postgres:13.4
         environment:
           - POSTGRES_DB=hello_django_dev
           - POSTGRES_USER=hello_django
@@ -24,7 +24,7 @@ services:
             - webapp_backend
 
     mqtt_broker:
-        image: eclipse-mosquitto:2.0.10
+        image: eclipse-mosquitto:2.0.11
         volumes:
            - mosquitto-data:/mosquitto/data
         ports:

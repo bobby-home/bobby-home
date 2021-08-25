@@ -102,7 +102,7 @@ class AlarmChangeStatusTestCase(TransactionTestCase):
 
         super().setUp()
 
-    def test_all_change_status(self):
+    def test_all_change_statuses(self):
         AlarmChangeStatus().all_change_statuses(False)
         statuses = AlarmStatus.objects.filter(running=False)
         self.assertEqual(2, len(statuses))

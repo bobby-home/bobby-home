@@ -81,26 +81,25 @@ class AlarmStatusBot:
         status = query.data
 
         if status == BotData.ON.value:
-            AlarmChangeStatus().all_change_status(True, force=True)
-            text = texts.ALL_ON 
+            AlarmChangeStatus().all_change_statuses(True, force=True)
+            text = texts.ALL_ON
             query.edit_message_text(text)
             return ConversationHandler.END
 
         if status == BotData.OFF.value:
-            AlarmChangeStatus().all_change_status(False, force=True)
+            AlarmChangeStatus().all_change_statuses(False, force=True)
             text = texts.ALL_OFF
             query.edit_message_text(text)
             return ConversationHandler.END
 
         if status == BotData.CHOOSE.value:
             statuses = AlarmStatus.objects.all()
-            
             keyboard = [InlineKeyboardButton(texts.change_alarm_status(status), callback_data=status.pk) for status in statuses]
             query.answer()
 
             # one button per row, only one column.
             markup = InlineKeyboardMarkup.from_column(keyboard)
-            query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup) 
+            query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup)
             return SECOND
 
     def _cancel(self, update: Update, _c: CallbackContext) -> int:

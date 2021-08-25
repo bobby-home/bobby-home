@@ -21,7 +21,7 @@ class UpdateStatusPayload:
             self.toggle = True
         else:
             self.status_bool = strtobool(self.status) == 1
-            self.force_bool = strtobool(self.force) == 1 
+            self.force_bool = strtobool(self.force) == 1
 
 
 class OnUpdateStatus(OnUpdateStatusHandler):
@@ -36,5 +36,5 @@ class OnUpdateStatus(OnUpdateStatusHandler):
         AlarmChangeStatus.save_status(alarm_status, force=data_payload.force_bool)
 
     def on_update_all(self, data_payload: UpdateStatusPayload) -> None:
-        AlarmChangeStatus.all_change_status(status=data_payload.status_bool, force=data_payload.force_bool)
+        AlarmChangeStatus.all_change_statuses(status=data_payload.status_bool, force=data_payload.force_bool)
 

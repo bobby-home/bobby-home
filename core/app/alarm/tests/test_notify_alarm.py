@@ -1,3 +1,4 @@
+import unittest
 import uuid
 from unittest import skip
 from unittest.mock import Mock, call, patch
@@ -38,30 +39,6 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         self._except_publish_alarm_status_call()
 
-    def test_no_publish_motion_being(self):
-        self.alarm_status.running = False
-        self.alarm_status.save()
-
-        event_ref = str(uuid.uuid4())
-
-        CameraMotionDetected.objects.create(event_ref=event_ref, motion_started_at=timezone.now(), device=self.device)
-
-        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
-        notify.publish_status_changed(self.device.id, self.alarm_status)
-
-        self.alarm_messaging_mock.publish_alarm_status.assert_not_called()
-
-    def test_force_publish_motion_being(self):
-        self.alarm_status.running = False
-        self.alarm_status.save()
-        event_ref = str(uuid.uuid4())
-
-        CameraMotionDetected.objects.create(event_ref=event_ref, motion_started_at=timezone.now(), device=self.device)
-
-        notify = NotifyAlarmStatus(self.alarm_messaging_mock)
-        notify.publish_status_changed(self.device.id, self.alarm_status, force=True)
-        self._except_publish_alarm_status_call()
-
     def test_publish_false_motion_ended(self):
         self.alarm_status.running = False
         self.alarm_status.save()
@@ -78,6 +55,7 @@ class NotifyAlarmStatusTestCase(TestCase):
         notify.publish_status_changed(self.device.id, self.alarm_status)
         self._except_publish_alarm_status_call()
 
+    @skip('moving this to camera motion test!')
     def test_publish_false_last_motion_being_done(self):
         """
             We have a motion unfinished (something went wrong...)

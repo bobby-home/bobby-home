@@ -72,10 +72,10 @@ def stop_current_alarm_schedule_range() -> Optional[AlarmScheduleDateRange]:
 
 def start_schedule_range():
     disable_all_schedules()
-    AlarmChangeStatus.all_change_status(True)
+    AlarmChangeStatus.all_change_statuses(True)
 
 
 def end_schedule_range():
     enable_all_schedules()
-    AlarmChangeStatus.all_change_status(False)
+    AlarmChangeStatus.all_change_statuses(False)
 

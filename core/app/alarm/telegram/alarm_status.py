@@ -1,8 +1,7 @@
 import os, sys
-from typing import List
-
 import django
 from telegram.ext.conversationhandler import ConversationHandler
+
 sys.path.append('/usr/src/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hello_django.settings')
 django.setup()
@@ -12,11 +11,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 import telegram.constants as telegram_constants
 from telegram.ext.callbackcontext import CallbackContext
-from alarm.use_cases.alarm_status import AlarmChangeStatus, alarm_statuses_changed, change_status
+from alarm.use_cases.alarm_status import AlarmChangeStatus
 from utils.telegram.restrict import restricted
 from alarm.models import AlarmStatus
-from notification.models import UserTelegramBotChatId
-from django.db import transaction
 from django.utils.translation import gettext as _
 from telegram import Update
 from alarm.telegram import texts
@@ -47,7 +44,7 @@ class AlarmStatusBot:
             InlineKeyboardButton(texts.OFF_ALL, callback_data=BotData.OFF.value),
             InlineKeyboardButton(texts.ON_ALL, callback_data=BotData.ON.value)
         ]
-        
+
         if len(statuses) > 1:
             keyboard.append(
                 InlineKeyboardButton(texts.CHOOSE, callback_data=BotData.CHOOSE.value)
@@ -63,7 +60,7 @@ class AlarmStatusBot:
 
         if status.isdigit():
             status_pk = int(status)
-            
+
             """
             Why not use an update query like "NOT running"?
             Because I need to get the running information to display it to the user.
@@ -81,26 +78,25 @@ class AlarmStatusBot:
         status = query.data
 
         if status == BotData.ON.value:
-            AlarmChangeStatus().all_change_status(True, force=True)
-            text = texts.ALL_ON 
+            AlarmChangeStatus().all_change_statuses(True, force=True)
+            text = texts.ALL_ON
             query.edit_message_text(text)
             return ConversationHandler.END
 
         if status == BotData.OFF.value:
-            AlarmChangeStatus().all_change_status(False, force=True)
+            AlarmChangeStatus().all_change_statuses(False, force=True)
             text = texts.ALL_OFF
             query.edit_message_text(text)
             return ConversationHandler.END
 
         if status == BotData.CHOOSE.value:
             statuses = AlarmStatus.objects.all()
-            
             keyboard = [InlineKeyboardButton(texts.change_alarm_status(status), callback_data=status.pk) for status in statuses]
             query.answer()
 
             # one button per row, only one column.
             markup = InlineKeyboardMarkup.from_column(keyboard)
-            query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup) 
+            query.edit_message_text(texts.CHOOSE_EXPLAIN, reply_markup=markup)
             return SECOND
 
     def _cancel(self, update: Update, _c: CallbackContext) -> int:

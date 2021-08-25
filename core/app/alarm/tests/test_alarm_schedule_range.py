@@ -1,3 +1,4 @@
+from alarm.use_cases.alarm_status import AlarmChangeStatus
 import json
 from unittest.case import skip
 from unittest.mock import MagicMock, patch
@@ -146,20 +147,20 @@ class AlarmScheduleRangeUseCasesTestCase(TestCase):
         end_schedule_range_mock.assert_called_once_with(str(schedule.uuid))
 
         self.assertIsNone(db_schedule.turn_off_task)
-        
+
         tasks = PeriodicTask.objects.all()
         self.assertEqual(0, len(tasks))
 
     @patch('alarm.use_cases.alarm_schedule_range.disable_all_schedules')
-    @patch('alarm.use_cases.alarm_schedule_range.AlarmChangeStatus')
+    @patch('alarm.use_cases.alarm_schedule_range.AlarmChangeStatus', spec_set=AlarmChangeStatus)
     def test_start_schedule_range(self, AlarmChangeStatusMock: MagicMock, disable_all_schedules_mock: MagicMock):
         start_schedule_range()
         disable_all_schedules_mock.assert_called_once_with()
-        AlarmChangeStatusMock.all_change_status.assert_called_once_with(True)
+        AlarmChangeStatusMock.all_change_statuses.assert_called_once_with(True)
 
     @patch('alarm.use_cases.alarm_schedule_range.enable_all_schedules')
-    @patch('alarm.use_cases.alarm_schedule_range.AlarmChangeStatus')
+    @patch('alarm.use_cases.alarm_schedule_range.AlarmChangeStatus', spec_set=AlarmChangeStatus)
     def test_end_schedule_range(self, AlarmChangeStatusMock: MagicMock, enable_all_schedules: MagicMock):
         end_schedule_range()
         enable_all_schedules.assert_called_once_with()
-        AlarmChangeStatusMock.all_change_status.assert_called_once_with(False)
+        AlarmChangeStatusMock.all_change_statuses.assert_called_once_with(False)

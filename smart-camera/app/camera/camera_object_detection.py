@@ -71,7 +71,7 @@ class CameraObjectDetection:
     def start(self) -> None:
         mqtt = self.get_mqtt(client_name=f'{self._device_id}-{CameraObjectDetection.SERVICE_NAME}')
         mqtt.connect_keep_status(CameraObjectDetection.SERVICE_NAME, self._device_id)
-        
+ 
         self.mqtt_client = mqtt.client
         self.mqtt = mqtt
 

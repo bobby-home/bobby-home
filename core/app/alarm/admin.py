@@ -1,6 +1,6 @@
 from alarm.forms import AlarmStatusForm
 from django.contrib import admin
-from alarm.models import AlarmStatus, AlarmSchedule, Ping
+from alarm.models import AlarmStatus, AlarmSchedule, HTTPAlarmStatus, Ping
 
 
 class AlarmStatusAdmin(admin.ModelAdmin):
@@ -12,6 +12,6 @@ class AlarmStatusAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AlarmStatus, AlarmStatusAdmin)
+admin.site.register(HTTPAlarmStatus)
 admin.site.register(AlarmSchedule)
 admin.site.register(Ping)
-

@@ -1,17 +1,10 @@
+from external_cameras.data import HTTPCameraData
 from camera.camera_frame_producer import CameraFrameProducer
 from external_cameras.http_camera import HttpCamera
 import os
-from functools import partial
-from io import BytesIO
 from typing import Dict
-from multiprocessing import Process
 import logging
-
-from mqtt.mqtt_client import get_mqtt
-from camera.camera_config import camera_config
 from service_manager.runnable import Runnable
-CAMERA_WIDTH = camera_config.camera_width
-CAMERA_HEIGHT = camera_config.camera_height
 
 DEVICE_ID = os.environ['DEVICE_ID']
 LOGGER = logging.getLogger(__name__)
@@ -37,9 +30,9 @@ class ConnectedDevices:
     def has(self, device_id: str) -> bool:
         return device_id in self._connected_devices
 
-    def add(self, url: str, device_id: str) -> None:
+    def add(self, data: HTTPCameraData, device_id: str) -> None:
         camera = CameraFrameProducer(device_id)
-        http_camera = HttpCamera(url, camera)
+        http_camera = HttpCamera(data, camera)
         self._connected_devices[device_id] = http_camera
 
     @property
@@ -47,13 +40,13 @@ class ConnectedDevices:
         return self._connected_devices
 
 
-class RunExternalCameras(Runnable):
+class RunHTTPExternalCameras(Runnable):
     def __init__(self, connected_devices: ConnectedDevices):
         self._connected_devices = connected_devices
 
     def run(self, device_id: str, status: bool, data=None) -> None:
         if data:
-            if 'http_url' in data:
+            if 'http' in data:
                 if status is False:
                    self._connected_devices.remove(device_id)
                 else:
@@ -61,7 +54,8 @@ class RunExternalCameras(Runnable):
                         # do nothing, it's already running.
                         pass
                     else:
-                        self._connected_devices.add(data['http_url'], device_id)
+                        http = HTTPCameraData(**data['http'])
+                        self._connected_devices.add(http, device_id)
 
     def __str__(self) -> str:
         return 'run-external-cameras'

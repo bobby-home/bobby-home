@@ -8,9 +8,10 @@ from django.utils import timezone
 from faker import Factory
 
 from devices.factories import DeviceFactory
-from .models import AlarmStatus, AlarmSchedule
+from .models import AlarmStatus, AlarmSchedule, HTTPAlarmStatus
 
 faker = Factory.create()
+
 
 class AlarmStatusFactory(factory.DjangoModelFactory):
     class Meta:
@@ -18,6 +19,15 @@ class AlarmStatusFactory(factory.DjangoModelFactory):
 
     running = True
     device = factory.SubFactory(DeviceFactory)
+
+
+class HTTPAlarmStatusFactory(AlarmStatusFactory, factory.DjangoModelFactory):
+    class Meta:
+        model = HTTPAlarmStatus
+
+    user = factory.Faker('user_name')
+    password = factory.Faker('password')
+    endpoint = "http://060669816:8080/cgi-bin/snap.cgi"
 
 
 _ids = count(0)

@@ -1,10 +1,7 @@
 from typing import Optional
-from alarm.models import HTTPAlarmStatus
-from dataclasses import dataclass
-import dataclasses
 from alarm.mqtt import MqttServices
 from camera.messaging import CameraMessaging, HTTPCameraData, camera_messaging_factory
-from utils.mqtt.mqtt_status import MqttBooleanStatus, MqttJsonStatus
+from utils.mqtt.mqtt_status import MqttJsonStatus
 from camera.messaging import CameraData
 
 
@@ -16,7 +13,7 @@ class AlarmMessaging:
         self._mqtt_status = mqtt_status
         self._camera_messaging = camera_messaging
 
-    def publish_alarm_status(self, device_id: str, status: bool, http_camera_data: Optional[HTTPCameraData]) -> None:
+    def publish_alarm_status(self, device_id: str, status: bool, http_camera_data: Optional[HTTPCameraData]=None) -> None:
         self._mqtt_status.publish(f'status/{MqttServices.OBJECT_DETECTION_MANAGER.value}/{device_id}', status)
 
         camera_data = CameraData(to_analyze=True, http=http_camera_data) if status else CameraData(to_analyze=False, http=http_camera_data)

@@ -1,4 +1,4 @@
-from camera.messaging import CameraData
+from camera.messaging import CameraData, HTTPCameraData
 from unittest.mock import Mock
 from django.test import TestCase
 
@@ -23,5 +23,11 @@ class AlarmMessagingTestCase(TestCase):
     def test_camera_publish_false_status(self):
         data = CameraData(to_analyze=False, stream=None)
         self.alarm.publish_alarm_status(self.device_id, False)
+        self.camera_messaging.publish_status.assert_called_once_with(self.device_id, False, data)
+
+    def test_http_camera_publish(self):
+        http = HTTPCameraData(user='mx', password='coucou', endpoint='http://localhost')
+        data = CameraData(to_analyze=False, stream=None, http=http)
+        self.alarm.publish_alarm_status(self.device_id, False, http)
         self.camera_messaging.publish_status.assert_called_once_with(self.device_id, False, data)
 

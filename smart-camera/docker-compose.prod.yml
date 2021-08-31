@@ -26,3 +26,8 @@ services:
         <<: *cameraimage
         logging: *loki-logging
         restart: unless-stopped
+
+    http_external_cameras:
+        <<: *cameraimage
+        logging: *loki-logging
+        restart: unless-stopped

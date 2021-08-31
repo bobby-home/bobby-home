@@ -17,9 +17,12 @@ class HttpCamera:
         self._http_camera_data = http_camera_data
         self._scheduler = sched.scheduler(time.time, time.sleep)
         self._sender = sender
-
+        self._stop = False
         self._scheduler.enter(1, 1, self._send)
         self._scheduler.run()
+
+    def stop(self) -> None:
+        self._stop = True
 
     def _send(self) -> None:
         try:
@@ -39,4 +42,5 @@ class HttpCamera:
                 self._sender.process_frame(frame, stream=False, process=True)
 
         # Even if an exception got caught we need to schedule the next run.
-        self._scheduler.enter(1, 1, self._send)
+        if not self._stop:
+            self._scheduler.enter(1, 1, self._send)

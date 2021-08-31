@@ -9,6 +9,7 @@ from service_manager.runnable import Runnable
 DEVICE_ID = os.environ['DEVICE_ID']
 LOGGER = logging.getLogger(__name__)
 
+
 class ConnectedDevices:
     """
     Wrapper around the datastructures to hold connected devices with their configuration.
@@ -21,11 +22,9 @@ class ConnectedDevices:
 
     def remove(self, device_id: str) -> None:
         if device_id in self._connected_devices:
-            object_detection = self._connected_devices.pop(device_id, None)
-            if object_detection:
-                pass
-                #todo!!!!!
-                #object_detection.stop()
+            http_camera = self._connected_devices.pop(device_id, None)
+            if http_camera:
+                http_camera.stop()
 
     def has(self, device_id: str) -> bool:
         return device_id in self._connected_devices

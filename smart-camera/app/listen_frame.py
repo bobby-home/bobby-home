@@ -34,7 +34,7 @@ class FrameReceiver:
             try:
                 image = io.BytesIO(message.payload)
             except TypeError:
-                logger.critical("Cannot convert received payload to BytesIO. Actual type: %s", type(message.payload))
+                logger.critical("Cannot convert received payload to BytesIO. Actual type: %s", type(message.payload), exc_info=True)
                 return
 
             camera.process_frame(image)

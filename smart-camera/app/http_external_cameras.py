@@ -8,7 +8,7 @@ device_id = os.environ['DEVICE_ID']
 
 mqtt_client = get_mqtt(f"{device_id}-external-camera_manager")
 
-manager = RunHTTPExternalCameras(ConnectedDevices(mqtt_client))
+manager = RunHTTPExternalCameras(ConnectedDevices())
 MqttManageRunnable(device_id, 'camera_manager', mqtt_client, manager, multi_device=True, status_json=True)
 
 mqtt_client.client.loop_forever()

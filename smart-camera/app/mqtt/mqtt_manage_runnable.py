@@ -7,8 +7,7 @@ from service_manager.runnable import Runnable
 
 
 class MqttManageRunnable:
-    """
-    This class synchronise the alarm status with MQTT.
+    """This class synchronise the alarm status with MQTT.
     If we receive a message to switch on/off the alarm, we're doing it here.
     """
     def __init__(self, device_id: str, service_name: str, mqtt_client: MqttClient, runnable: Runnable, status_json=False, multi_device=False):
@@ -32,7 +31,7 @@ class MqttManageRunnable:
             # generic, connect for every devices.
             mqtt_topic = f'status/{service_name}/+'
             mqtt_client.connect()
-            mqtt_client.client.loop_start()
+            #mqtt_client.client.loop_start()
 
     @staticmethod
     def _get_device_id_from_topic(topic: str) -> str:

@@ -13,18 +13,24 @@ class HttpCamera:
     This class will retrieve frames from http when it should to send them to Bobby.
     Thanks to this, you could integrate any camera that expose an http endpoint to request a frame.
     """
-    def __init__(self, http_camera_data: HTTPCameraData, sender: CameraFrameProducer) -> None:
+    def __init__(self, http_camera_data: HTTPCameraData, device_id: str) -> None:
+        self._device_id = device_id
         self._http_camera_data = http_camera_data
-        self._scheduler = sched.scheduler(time.time, time.sleep)
-        self._sender = sender
         self._stop = False
+
+    def start(self) -> None:
+        print(f'start http camera {self._http_camera_data}')
+        self._sender = CameraFrameProducer(self._device_id)
+        self._scheduler = sched.scheduler(time.time, time.sleep)
         self._scheduler.enter(1, 1, self._send)
-        self._scheduler.run()
+        self._scheduler.run(blocking=True)
 
     def stop(self) -> None:
+        print('stoopppp')
         self._stop = True
 
     def _send(self) -> None:
+        print('send')
         try:
             response = requests.get(
                 self._http_camera_data.endpoint,

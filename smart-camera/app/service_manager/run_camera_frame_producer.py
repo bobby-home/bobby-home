@@ -1,4 +1,6 @@
 import os
+import threading
+import signal
 from functools import partial
 from io import BytesIO
 from typing import Dict
@@ -13,7 +15,6 @@ from service_manager.runnable import Runnable
 import multiprocessing as mp
 CAMERA_WIDTH = camera_config.camera_width
 CAMERA_HEIGHT = camera_config.camera_height
-from queue import Empty
 
 DEVICE_ID = os.environ['DEVICE_ID']
 LOGGER = logging.getLogger(__name__)
@@ -96,6 +97,13 @@ class RunCameraFrameProducer(Runnable):
         self._frame_producer = FrameProducer(self._stream_event, self._process_event)
         self._process = None
 
+    def _process_join(self, process) -> None:
+        process.join()
+        process.close()
+        if process.exitcode != -signal.SIGTERM:
+            # something went wrong.
+            exit()
+
     def run(self, device_id: str, status: bool, data=None) -> None:
         """
         Be careful to Falsy value! None does not mean to turn off the stream/process
@@ -119,7 +127,10 @@ class RunCameraFrameProducer(Runnable):
         if status is True and self._process is None:
             run = partial(self._frame_producer.run, device_id)
             self._process = Process(target=run)
+            verify = partial(self._process_join, self._process)
+            t = threading.Thread(target=verify)
             self._process.start()
+            t.start()
             return
 
         if status is False and self._process:

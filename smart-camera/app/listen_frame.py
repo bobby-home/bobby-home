@@ -1,11 +1,14 @@
 import io
 import os
+import logging
 
 from camera.camera_frame_producer import CameraFrameProducer
 from mqtt.mqtt_client import get_mqtt
 from mqtt.mqtt_manage_runnable import MqttManageRunnable
 from service_manager.run_listen_frame import RunListenFrame, ConnectedDevices
 
+
+logger = logging.getLogger(__name__)
 
 def extract_data_from_topic(topic: str):
     split = topic.split('/')
@@ -25,10 +28,15 @@ class FrameReceiver:
         data = extract_data_from_topic(message.topic)
         from_device_id = data['device_id']
 
-        image = io.BytesIO(message.payload)
         camera = self._connected_devices.connected_devices.get(from_device_id, None)
 
         if camera:
+            try:
+                image = io.BytesIO(message.payload)
+            except TypeError:
+                logger.critical("Cannot convert received payload to BytesIO. Actual type: %s", type(message.payload), exc_info=True)
+                return
+
             camera.process_frame(image)
 
 mqtt_client = get_mqtt(f'{DEVICE_ID}-analyzer')

@@ -1,3 +1,4 @@
+from camera.messaging import HTTPCameraData
 import unittest
 import uuid
 from unittest import skip
@@ -9,7 +10,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from alarm.use_cases.out_alarm import NotifyAlarmStatus
-from alarm.factories import AlarmStatusFactory
+from alarm.factories import AlarmStatusFactory, HTTPAlarmStatusFactory
 from camera.factories import CameraROIFactoryConf
 from alarm.models import AlarmStatus
 from camera.models import CameraMotionDetected
@@ -23,9 +24,8 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         self.alarm_messaging_mock = Mock()
 
-    def _except_publish_alarm_status_call(self):
-        expected_payload = {}
-        expected_calls = [call(self.device.device_id, self.alarm_status.running, expected_payload)]
+    def _except_publish_alarm_status_call(self, http_camera_data=None):
+        expected_calls = [call(self.device.device_id, self.alarm_status.running, http_camera_data)]
         self.alarm_messaging_mock.publish_alarm_status.assert_has_calls(expected_calls)
 
     def test_publish_false(self):
@@ -39,21 +39,19 @@ class NotifyAlarmStatusTestCase(TestCase):
 
         self._except_publish_alarm_status_call()
 
-    def test_publish_false_motion_ended(self):
-        self.alarm_status.running = False
-        self.alarm_status.save()
-
-        event_ref = str(uuid.uuid4())
-
-        CameraMotionDetected.objects.create(
-            event_ref=event_ref,
-            motion_started_at=timezone.now(),
-            motion_ended_at=timezone.now(),
-            device=self.device)
+    def test_publish_http_alarm_status(self):
+        self.alarm_status = HTTPAlarmStatusFactory()
 
         notify = NotifyAlarmStatus(self.alarm_messaging_mock)
-        notify.publish_status_changed(self.device.id, self.alarm_status)
-        self._except_publish_alarm_status_call()
+        notify._publish(self.device, self.alarm_status)
+
+        http = HTTPCameraData(
+            user=self.alarm_status.user,
+            password=self.alarm_status.password,
+            endpoint=self.alarm_status.endpoint,
+        )
+
+        self._except_publish_alarm_status_call(http)
 
     @skip('moving this to camera motion test!')
     def test_publish_false_last_motion_being_done(self):

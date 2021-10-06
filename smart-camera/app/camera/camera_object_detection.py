@@ -1,4 +1,6 @@
+from PIL import UnidentifiedImageError
 import numpy
+import logging
 import dataclasses
 import datetime
 import json
@@ -13,6 +15,9 @@ from mqtt.mqtt_client import MqttClient
 from object_detection.detect_people import DetectPeople
 from object_detection.model import People
 from utils.time import is_time_lapsed
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -71,7 +76,7 @@ class CameraObjectDetection:
     def start(self) -> None:
         mqtt = self.get_mqtt(client_name=f'{self._device_id}-{CameraObjectDetection.SERVICE_NAME}')
         mqtt.connect_keep_status(CameraObjectDetection.SERVICE_NAME, self._device_id)
-        
+ 
         self.mqtt_client = mqtt.client
         self.mqtt = mqtt
 
@@ -173,7 +178,11 @@ class CameraObjectDetection:
         self._publish_image(frame, False)
 
     def process_frame(self, frame: BytesIO) -> None:
-        peoples = self.detect_people.process_frame(frame)
+        try:
+            peoples = self.detect_people.process_frame(frame)
+        except UnidentifiedImageError:
+            logger.critical("Cannot decode image with Pillow.")
+            return
 
         is_any_considered_object = len(peoples) > 0
 

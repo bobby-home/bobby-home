@@ -6,7 +6,7 @@ from utils.rate_limit import rate_limited
 class CameraFrameProducer:
     """Take frames from picamera and send it through mqtt to be processed.
     """
-    SERVICE_NAME = 'camera' 
+    SERVICE_NAME = 'camera'
     TOPIC_PICTURE_TO_ANALYZE = 'ia/picture'
 
     TOPIC_PICTURE_STREAM = 'camera/stream'
@@ -20,11 +20,9 @@ class CameraFrameProducer:
     def publish_to_analyze(self, picture):
         self.mqtt_client.publish(f'{self.TOPIC_PICTURE_TO_ANALYZE}/{self._device_id}', picture, qos=0)
 
-
     @rate_limited(max_per_second=15, block=False)
     def publish_stream(self, picture):
         self.mqtt_client.publish(f'{self.TOPIC_PICTURE_STREAM}/{self._device_id}', picture, qos=0)
-
 
     def start(self) -> None:
         mqtt_client = get_mqtt(client_name=f'{self._device_id}-{CameraFrameProducer.SERVICE_NAME}')

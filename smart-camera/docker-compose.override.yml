@@ -24,6 +24,11 @@ services:
         volumes:
             - ./app/:/usr/src/app/
 
+    http_external_cameras:
+        <<: *build
+        volumes:
+            - ./app/:/usr/src/app
+
     vim:
       build:
         context: ./tools/docker/dev

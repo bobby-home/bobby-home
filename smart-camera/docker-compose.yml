@@ -42,6 +42,12 @@ services:
             - backend_mqtt
             - motion
 
+    http_external_cameras:
+        command: python http_external_cameras.py
+        <<: *env
+        networks:
+            - backend_mqtt
+            - motion
 
 networks:
     motion:

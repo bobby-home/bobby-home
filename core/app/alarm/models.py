@@ -65,6 +65,12 @@ class AlarmStatus(models.Model):
         return reverse('alarm:status-detail', args=[str(self.id)])
 
 
+class HTTPAlarmStatus(AlarmStatus):
+    user = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    endpoint = models.URLField()
+
+
 class AlarmScheduleManager(models.Manager):
     # @TODO: could be useless to have this method here.
     def get_next_off(self):

@@ -6,9 +6,17 @@ from utils.mqtt.mqtt_status import MqttJsonStatus
 
 
 @dataclass
+class HTTPCameraData:
+    user: str
+    password: str
+    endpoint: str
+
+
+@dataclass
 class CameraData:
     to_analyze: Optional[bool] = None
     stream: Optional[bool] = None
+    http: Optional[HTTPCameraData] = None
 
 
 class CameraMessaging:

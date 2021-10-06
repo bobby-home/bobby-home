@@ -1,3 +1,4 @@
+from camera.messaging import HTTPCameraData
 from typing import Callable, Optional, List
 import logging
 from django.forms import model_to_dict
@@ -8,7 +9,7 @@ from alarm.messaging import alarm_messaging_factory, AlarmMessaging
 from devices.models import Device
 from utils.mqtt import MQTT
 from utils.mqtt import mqtt_factory
-from alarm.models import AlarmStatus
+from alarm.models import AlarmStatus, HTTPAlarmStatus
 
 
 class NotifyAlarmStatus:
@@ -23,12 +24,20 @@ class NotifyAlarmStatus:
         The only method that actually send an mqtt message.
         It formats the mqtt payload and decide whether or not a mqtt call has to be done.
         """
-        payload = {}
+
+        http_camera_data = None
+        if hasattr(status, 'httpalarmstatus'):
+            http = status.httpalarmstatus
+            http_camera_data = HTTPCameraData(
+                user=http.user,
+                password=http.password,
+                endpoint=http.endpoint,
+            )
 
         checks.verify_services_status(device.device_id, status.running)
 
         self._alarm_messaging \
-            .publish_alarm_status(device.device_id, status.running, payload)
+            .publish_alarm_status(device.device_id, status.running, http_camera_data)
 
     def _publish_alarm_status_with_config(self, device: Device, status: AlarmStatus) -> None:
         self._publish(device, status)

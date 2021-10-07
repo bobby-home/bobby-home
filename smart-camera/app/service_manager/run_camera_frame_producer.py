@@ -99,10 +99,12 @@ class RunCameraFrameProducer(Runnable):
 
     def _process_join(self, process) -> None:
         process.join()
-        process.close()
+
         if process.exitcode != -signal.SIGTERM:
-            # something went wrong.
-            exit()
+            # something went wrong in the child process
+            # -> kill the process. Remainder: we are inside a thread here,
+            # so it appears that sys.exit(1) does not work... So, we will!
+            os.kill(os.getpid(), signal.SIGINT)
 
     def run(self, device_id: str, status: bool, data=None) -> None:
         """
@@ -126,11 +128,14 @@ class RunCameraFrameProducer(Runnable):
 
         if status is True and self._process is None:
             run = partial(self._frame_producer.run, device_id)
-            self._process = Process(target=run)
+            self._process = Process(target=run, daemon=True)
+
             verify = partial(self._process_join, self._process)
-            t = threading.Thread(target=verify)
+            t = threading.Thread(target=verify, daemon=True)
+
             self._process.start()
             t.start()
+
             return
 
         if status is False and self._process:

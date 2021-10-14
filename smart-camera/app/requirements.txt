@@ -3,3 +3,4 @@ picamera==1.13
 pygame==1.9.*
 paho-mqtt==1.5.*
 Pillow==8.3.1
+freezegun==1.1.0

@@ -11,7 +11,7 @@ from camera.camera_object_detection import CameraObjectDetection, MotionPayload
 from object_detection.detect_people_utils import bounding_box_size
 from object_detection.model import BoundingBox, People, People
 from datetime import datetime, timedelta
-
+from freezegun import freeze_time
 
 class TestBoundingBox(TestCase):
     def test_wrong_bounding_box(self):
@@ -77,6 +77,11 @@ class TestCamera(TestCase):
             )
             return payload
 
+    def _set_no_detection(self) -> None:
+        self.detect_motion_mock.process_frame.return_value = []
+
+    def _set_detection(self) -> None:
+        self.detect_motion_mock.process_frame.return_value = [self.people]
 
     def test_first_no_motion_process_frame(self):
         """
@@ -102,17 +107,15 @@ class TestCamera(TestCase):
 
         self.mqtt_mock.client.publish.assert_has_calls(self.no_motion_calls)
 
-    def test_trigger_people_detected_people(self):
+    def test_no_trigger_detection_delay(self):
+        """
+        When somebody is detected, it needs to be detected for X seconds
+        to trigger motion. Otherwise, it should do anything.
+        """
         camera = self._get_camera_with_mocks(people=True)
         camera.process_frame(BytesIO())
 
         self.mqtt_mock.client.publish.assert_not_called()
-
-    def _set_no_detection(self) -> None:
-        self.detect_motion_mock.process_frame.return_value = []
-
-    def _set_detection(self) -> None:
-        self.detect_motion_mock.process_frame.return_value = [self.people]
 
     def test_no_more_motion_dont_do_anything(self):
         camera = self._get_camera_with_mocks(people=False)
@@ -130,32 +133,24 @@ class TestCamera(TestCase):
 
         self.mqtt_mock.client.publish.assert_not_called()
 
-    def test_reset_first_time_people_detected(self):
+    def test_first_time_people_detected_underlying_var(self):
+        """
+        Test if the variable used to delay the trigger is set to None
+        when nothing is detected, to reset it.
+        """
         camera = self._get_camera_with_mocks(people=False)
         camera.process_frame(BytesIO())
-        # ignore the initialization.
-        self.mqtt_mock.client.publish.reset_mock()
 
         # something is detected
-        self._set_detection()
-        camera.process_frame(BytesIO())
+        with freeze_time("2021-10-14"):
+            self._set_detection()
+            camera.process_frame(BytesIO())
+            self.assertIsNotNone(camera._first_time_people_detected)
+            self.assertEqual(camera._first_time_people_detected, datetime(2021, 10, 14), "The variable is not set correctly.")
 
         # no more detection
         self._set_no_detection()
-        self._trigger_no_more_motion(camera)
-
-        camera = self._get_camera_with_mocks(people=False)
         camera.process_frame(BytesIO())
-        # ignore the initialization.
-        self.mqtt_mock.client.publish.reset_mock()
-
-        # something is detected
-        self._set_detection()
-        camera.process_frame(BytesIO())
-
-        # no more detection
-        self._set_no_detection()
-        self._trigger_no_more_motion(camera)
 
         self.assertIsNone(camera._first_time_people_detected)
 

@@ -99,7 +99,7 @@ class CameraObjectDetection:
             return True
 
         time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= self._config.seconds_lapsed_to_trigger_no_motion
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= self._config.deplay_to_trigger_no_motion
 
         if time_lapsed:
             self._last_time_people_detected = None
@@ -136,7 +136,7 @@ class CameraObjectDetection:
             self._first_time_people_detected = datetime.datetime.now()
             return
 
-        if not is_time_lapsed(self._first_time_people_detected, self._config.seconds_lapsed_to_trigger_motion):
+        if not is_time_lapsed(self._first_time_people_detected, self._config.deplay_to_trigger_motion):
             return
 
         self._first_time_people_detected = None

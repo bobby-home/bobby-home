@@ -55,7 +55,7 @@ class TestCamera(TestCase):
         self.detect_motion_mock.process_frame.return_value = [self.people] if people is True else []
 
         if config is None:
-            self.config = CameraObjectDetectionData(seconds_lapsed_to_trigger_motion=3, seconds_lapsed_to_trigger_no_motion=60)
+            self.config = CameraObjectDetectionData(deplay_to_trigger_motion=3, deplay_to_trigger_no_motion=60)
         else:
             self.config = config
 
@@ -199,14 +199,14 @@ class TestCamera(TestCase):
     def _trigger_motion(self, camera) -> None:
         camera.process_frame(BytesIO())
         with patch('utils.time.datetime') as mock_datetime:
-            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=self.config.seconds_lapsed_to_trigger_motion)
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=self.config.deplay_to_trigger_motion)
             camera.process_frame(BytesIO())
 
     def _trigger_no_more_motion(self, camera) -> None:
         with patch('camera.camera_object_detection.datetime') as mock_datetime:
             self.detect_motion_mock.process_frame.return_value = []
 
-            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=self.config.seconds_lapsed_to_trigger_no_motion)
+            mock_datetime.datetime.now.return_value = datetime.now() + timedelta(seconds=self.config.deplay_to_trigger_no_motion)
             camera.process_frame(BytesIO())
 
     def test_motion_no_more_motion(self):

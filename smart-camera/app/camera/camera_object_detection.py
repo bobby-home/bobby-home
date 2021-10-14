@@ -1,3 +1,4 @@
+from camera.camera_object_detection_data import CameraObjectDetectionData
 import numpy
 import dataclasses
 import datetime
@@ -40,24 +41,23 @@ class NumpyEncoder(json.JSONEncoder):
 class CameraObjectDetection:
     SERVICE_NAME = 'object_detection'
 
-    SECONDS_LAPSED_TO_PUBLISH_NO_MOTION = 60
-
     MOTION = 'motion/camera'
     PICTURE = 'motion/picture'
     VIDEO = 'motion/video'
 
-    PING = f'ping/object_detection'
+    PING = 'ping/object_detection'
     PING_SECONDS_FREQUENCY = 60
 
     EVENT_REF_NO_MOTION = '0'
 
-    def __init__(self, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], device_id: str, camera_recording: CameraRecording):
+    def __init__(self, detect_people: DetectPeople, get_mqtt: Callable[[any], MqttClient], config: CameraObjectDetectionData, device_id: str, camera_recording: CameraRecording):
         self.camera_recording = camera_recording
-
+        self._config = config
         self._device_id = device_id
         self.get_mqtt = get_mqtt
 
         self._last_time_people_detected = None
+        self._first_time_people_detected = None
         self._initialize = True
 
         self.detect_people = detect_people
@@ -71,7 +71,7 @@ class CameraObjectDetection:
     def start(self) -> None:
         mqtt = self.get_mqtt(client_name=f'{self._device_id}-{CameraObjectDetection.SERVICE_NAME}')
         mqtt.connect_keep_status(CameraObjectDetection.SERVICE_NAME, self._device_id)
-        
+
         self.mqtt_client = mqtt.client
         self.mqtt = mqtt
 
@@ -99,7 +99,7 @@ class CameraObjectDetection:
             return True
 
         time_lapsed = (self._last_time_people_detected is not None) and (
-            datetime.datetime.now() - self._last_time_people_detected).seconds >= CameraObjectDetection.SECONDS_LAPSED_TO_PUBLISH_NO_MOTION
+            datetime.datetime.now() - self._last_time_people_detected).seconds >= self._config.deplay_to_trigger_no_motion
 
         if time_lapsed:
             self._last_time_people_detected = None
@@ -132,6 +132,15 @@ class CameraObjectDetection:
         self.mqtt_client.publish(f'{self.PING}/{self._device_id}', qos=1)
 
     def _start_detection(self, frame: BytesIO, considerations: List[People]) -> None:
+        if self._first_time_people_detected is None:
+            self._first_time_people_detected = datetime.datetime.now()
+            return
+
+        if not is_time_lapsed(self._first_time_people_detected, self._config.deplay_to_trigger_motion):
+            return
+
+        self._first_time_people_detected = None
+
         self._last_time_people_detected = datetime.datetime.now()
         self._initialize = False
         self.event_ref = self.generate_event_ref()
@@ -177,8 +186,8 @@ class CameraObjectDetection:
 
         is_any_considered_object = len(peoples) > 0
 
-        # first time we detect people
         if is_any_considered_object:
+            # first time we detect people
             if self._last_time_people_detected is None:
                 self._start_detection(frame, peoples)
             else:
@@ -187,6 +196,9 @@ class CameraObjectDetection:
         elif self._need_to_publish_no_motion():
             # people left (some time ago), we let the core knows
             self._no_more_detection(frame)
+
+        if not is_any_considered_object:
+            self._first_time_people_detected = None
 
         if is_time_lapsed(self.last_ping_time, CameraObjectDetection.PING_SECONDS_FREQUENCY, first_true=True):
             self.last_ping_time = datetime.datetime.now()

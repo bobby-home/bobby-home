@@ -28,7 +28,7 @@ def save_motion(device: device_models.Device, detections: Sequence[Detection], e
 
     bounding_boxes = [CameraMotionDetectedBoundingBox(**d.bounding_box_point_and_size, score=d.score, camera_motion_detected=motion)for d in detections]
     CameraMotionDetectedBoundingBox.objects.bulk_create(bounding_boxes)
-    
+ 
     return True
 
 def save_camera_video(data: InMotionVideoData) -> None:

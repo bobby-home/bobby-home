@@ -54,6 +54,9 @@ class CameraMotionDetected(models.Model):
     device = models.ForeignKey(Device, on_delete=models.PROTECT, related_name='camera_motions')
     in_rectangle_roi = models.ManyToManyField(CameraRectangleROI, blank=True)
 
+    def __repr__(self) -> str:
+        return f'{self.event_ref} device={self.device} start={self.motion_started_at} end={self.motion_ended_at} closed_by_system={self.closed_by_system}'
+
 class CameraMotionDetectedBoundingBox(models.Model):
     """
     This is given by Tensorflow, they are bounding boxes around an object.

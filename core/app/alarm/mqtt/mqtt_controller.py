@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass, field
 import re
 import os
-from typing import Any, Optional, Sequence, Type, TypeVar 
+from typing import Any, Optional, Sequence, Type, TypeVar
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
@@ -41,7 +41,7 @@ class CameraMotionPictureTopic(CameraTopic):
     bool_status: bool = field(init=False)
     filename: str = field(init=False)
 
-    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[0-1])$" 
+    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[0-1])$"
 
     def __post_init__(self):
         self.bool_status = self.status == '1'
@@ -81,12 +81,12 @@ class CameraMotionTopic(CameraTopic):
 T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic])
 
 def topic_regex(topic: str, t: T) -> Optional[T]:
-    match = re.match(t._topic_matcher, topic) 
+    match = re.match(t._topic_matcher, topic)
 
     if match:
         groups = match.groupdict()
         return t(**groups) # type: ignore
-    
+
     raise ValueError(f'topic {topic} wrong format. {t._topic_matcher}')
 
 
@@ -191,9 +191,9 @@ def on_discover_alarm(message: MqttMessage) -> None:
     payload = message.payload
     in_data = DiscoverAlarmData(**payload)
     print(f'on_discover_alarm data={in_data}')
-    
+
     tasks.discover_alarm.apply_async(args=[dataclasses.asdict(in_data)])
-    
+
 
 def register(mqtt: MQTT):
     mqtt.add_subscribe((

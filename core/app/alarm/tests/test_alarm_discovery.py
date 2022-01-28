@@ -10,7 +10,7 @@ import alarm.tasks as alarm_tasks
 
 
 class AlarmDiscoveryTaskTestCase(TestCase):
-    
+ 
     @patch("alarm.use_cases.alarm_discovery.discover_alarm")
     def test_it_calls_use_case(self, discover_alarm_patch):
         payload = {
@@ -34,7 +34,7 @@ class AlarmDiscoveryTestCase(TestCase):
 
         devices = Device.objects.all()
         self.assertEqual(1, len(devices))
-        
+ 
         device = devices[0]
 
         self.assertEqual(device.device_type.type, 'esp32cam')
@@ -47,7 +47,7 @@ class AlarmDiscoveryTestCase(TestCase):
 
         devices = Device.objects.all()
         self.assertEqual(3, len(devices))
-        
+ 
         device_types = DeviceType.objects.all()
         self.assertEqual(1, len(device_types))
 
@@ -58,7 +58,7 @@ class AlarmDiscoveryTestCase(TestCase):
 
         alarm_statuses = AlarmStatus.objects.all()
         self.assertEqual(2, len(alarm_statuses))
-        
+ 
         for alarm_status in alarm_statuses:
             self.assertEqual(alarm_status.device.device_type.type, 'esp32cam')
 
@@ -123,6 +123,6 @@ class AlarmDiscoveryTestCase(TestCase):
         payload = {
             "device_id": device.device_id,
             "id": "some_id",
-        }  
+        }
 
         mqtt_mock.publish.assert_called_once_with("registered/alarm", json.dumps(payload))

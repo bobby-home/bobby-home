@@ -1,3 +1,5 @@
+from datetime import timedelta
+from django.utils import timezone
 from typing import Dict, Sequence
 import paho.mqtt.publish as publish
 
@@ -21,11 +23,16 @@ def _split_messages() -> Sequence[Dict]:
     """
     motions = current_motions()
     event_refs = [motion.event_ref for motion in motions]
-    videos = CameraMotionVideo.objects.filter(event_ref__in=event_refs)
+
+    time_threshold = timezone.now() - timedelta(minutes=1)
+    print(f'time threshold={time_threshold}')
+
+    videos = CameraMotionVideo.objects.filter(event_ref__in=event_refs, last_record__lt=time_threshold, is_merged=False)
 
     messages = []
 
     for video in videos:
+        print(f'video last record: {video.last_record}')
         device_id = video.device.device_id
         record_video_number = video.number_records+1
         video_ref = f'{video.event_ref}-{record_video_number}'

@@ -1,3 +1,4 @@
+from django.utils import timezone
 from alarm.use_cases.data import Detection, InMotionVideoData
 from typing import Sequence
 
@@ -35,7 +36,7 @@ def save_camera_video(data: InMotionVideoData) -> None:
     device = device_models.Device.objects.get(device_id=data.device_id)
 
     try:
-        CameraMotionVideo.objects.create(device=device, event_ref=data.event_ref)
+        CameraMotionVideo.objects.create(device=device, event_ref=data.event_ref, last_record=timezone.now())
     except IntegrityError:
         """
         That means that we received a record number that is already taken in account.

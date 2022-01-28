@@ -86,9 +86,13 @@ class CameraMotionVideo(models.Model):
     event_ref = models.UUIDField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     number_records = models.PositiveIntegerField(default=0)
+    last_record = models.DateTimeField()
     is_merged = models.BooleanField(default=False)
 
     device = models.ForeignKey(Device, on_delete=models.PROTECT, related_name='camera_motions_videos')
+
+    def __repr__(self) -> str:
+        return f'{self.event_ref} device={self.device} created_at={self.created_at} last_record={self.last_record} is_merged={self.is_merged}'
 
     def __str__(self):
         return f'{self.event_ref} - {self.created_at}'

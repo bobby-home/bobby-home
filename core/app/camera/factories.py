@@ -22,6 +22,7 @@ class CameraMotionVideoFactory(factory.DjangoModelFactory):
         model = CameraMotionVideo
 
     event_ref = factory.LazyAttribute(lambda obj: str(uuid.uuid4()))
+    last_record = factory.LazyAttribute(lambda obj: timezone.now())
     device = factory.SubFactory(DeviceFactory)
 
 

@@ -15,12 +15,12 @@ class MqttConfig:
     hostname: str
     port: int
 
-    client_id: str = None
+    client_id: str = ""
     clean_session: bool = False
 
     keepalive: int = 120
-    user: str = None
-    password: str = None
+    user: str = ""
+    password: str = ""
 
 
 @dataclass

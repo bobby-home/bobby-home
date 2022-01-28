@@ -1,6 +1,7 @@
+import dataclasses
 import os
 from functools import partial
-from typing import List, Sequence, Union
+from typing import Dict, List, Sequence, Union
 import logging
 import utils.date as dt_utils
 from paho.mqtt.reasoncodes import ReasonCodes
@@ -134,7 +135,7 @@ class MQTT:
         self.client.publish(topic, message, qos=qos, retain=retain)
 
 
-def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
+def mqtt_factory(client_id: str = "", clean_session=False) -> MQTT:
     if client_id is None:
         clean_session = True
 
@@ -148,3 +149,15 @@ def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
     )
 
     return MQTT(mqttConfig, mqtt.Client)
+
+def mqtt_config(client_id: str = "") -> MqttConfig:
+    return MqttConfig(
+        client_id=client_id,
+        user=os.environ['MQTT_USER'],
+        password=os.environ['MQTT_PASSWORD'],
+        hostname=os.environ['MQTT_HOSTNAME'],
+        port=int(os.environ['MQTT_PORT'])
+    )
+
+def mqtt_config_dict(*args, **kwargs) -> Dict:
+    return dataclasses.asdict(mqtt_config(*args, **kwargs))

@@ -4,7 +4,7 @@ import factory
 from django.core.files.base import ContentFile
 from django.utils import timezone
 
-from camera.models import CameraMotionDetected, CameraMotionDetectedPicture, CameraROI, CameraRectangleROI
+from camera.models import CameraMotionDetected, CameraMotionDetectedPicture, CameraMotionVideo, CameraROI, CameraRectangleROI
 from devices.factories import DeviceFactory
 
 
@@ -14,6 +14,14 @@ class CameraMotionDetectedFactory(factory.DjangoModelFactory):
 
     event_ref = factory.LazyAttribute(lambda obj: str(uuid.uuid4()))
     motion_started_at = factory.LazyAttribute(lambda obj: timezone.now())
+    device = factory.SubFactory(DeviceFactory)
+
+
+class CameraMotionVideoFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = CameraMotionVideo
+
+    event_ref = factory.LazyAttribute(lambda obj: str(uuid.uuid4()))
     device = factory.SubFactory(DeviceFactory)
 
 

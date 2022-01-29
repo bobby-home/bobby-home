@@ -1,12 +1,11 @@
 import io
 import time
-
-from picamera import PiCamera, PiCameraCircularIO
 import os
-
 import logging
 
+
 LOGGER = logging.getLogger(__name__)
+
 
 class PiVideoStream:
 
@@ -25,6 +24,8 @@ class PiVideoStream:
         self._ring_buffer = None
 
     def run(self):
+        # Import here so I can unitest on other things than a Raspberry Pi.
+        from picamera import PiCamera, PiCameraCircularIO
         self.camera = PiCamera()
         # Camera warm-up time
         time.sleep(2)

@@ -37,24 +37,42 @@ class ManageRecord:
     @staticmethod
     def _extract_data_from_topic(topic: str) -> Command:
         split = topic.split('/')
-        command = Command(action=split[3])
-
-        if len(split) > 4:
-            command.video_ref = split[4]
+        if len(split) < 5:
+            raise ValueError(f"topic {topic} wrong format")
+        command = Command(action=split[3], video_ref=split[4])
 
         return command
 
-    def _on_record(self, _client, _userdata, message) -> None:
-        data = self._extract_data_from_topic(message.topic)
+    def _ack_video(self, video_ref: str) -> None:
+        self._mqtt_client.client.publish(f'motion/video/{self._device_id}/{video_ref}', qos=1)
 
+    def _on_record(self, _client, _userdata, message) -> None:
+        try:
+            data = self._extract_data_from_topic(message.topic)
+        except ValueError as e:
+            LOGGER.error(e)
+            return
+
+        LOGGER.info(f"_on_record video_ref={data.video_ref} action={data.action} topic={message.topic}")
+
+        action = False
         if data.action == Action.START.value:
-            self._video_stream.start_recording(data.video_ref)
+            start = self._video_stream.start_recording(data.video_ref)
+            if start is False:
+                LOGGER.info("record already started")
         elif data.action == Action.SPLIT.value:
-            self._video_stream.split_recording(data.video_ref)
+            action = self._video_stream.split_recording(data.video_ref)
         elif data.action == Action.END.value:
-            self._video_stream.stop_recording()
+            action = self._video_stream.stop_recording()
         else:
             LOGGER.error(f"action unkown: {data.action}")
+            return
+
+        if action is True:
+            LOGGER.info(f"_on_record video_ref={data.video_ref} ack_video")
+            self._ack_video(data.video_ref)
+        else:
+            LOGGER.info(f"_on_record video_ref={data.video_ref} no action to perform")
 
     def _setup_listeners(self) -> None:
         self._mqtt_client.client.subscribe(f'camera/recording/{self._device_id}/#', qos=2)

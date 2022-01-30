@@ -52,7 +52,7 @@ class PiVideoStream:
             raw_capture.seek(0)
             raw_capture.truncate()
 
-    def start_recording(self, video_ref: str) -> None:
+    def start_recording(self, video_ref: str) -> bool:
         if self._record is False:
             LOGGER.info(f'start recording video_ref={video_ref}')
             self._record = True
@@ -63,18 +63,27 @@ class PiVideoStream:
 
             # split the recording to record frames just after the system detects people.
             self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
+            return True
 
-    def stop_recording(self) -> None:
+        return False
+
+    def stop_recording(self) -> bool:
         if self._record is True:
             LOGGER.info(f'stop recording')
 
             # split recording back to the in-memory circular buffer
             self.camera.split_recording(self._ring_buffer)
             self._record = False
+            return True
 
-    def split_recording(self, video_ref: str) -> None:
+        return False
+
+    def split_recording(self, video_ref: str) -> bool:
         if self._record is True:
             LOGGER.info(f'split_recording video_ref={video_ref}')
 
             # Continue the recording in the specified output; close existing output.
             self.camera.split_recording(os.path.join(PiVideoStream.BASE_VIDEO_PATH, f'{video_ref}.h264'))
+            return True
+ 
+        return False

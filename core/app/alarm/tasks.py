@@ -29,7 +29,12 @@ def camera_motion_detected(data: dict) -> None:
     detections_plain = data.get('detections', [])
     data['detections'] = [Detection(**d) for d in detections_plain]
     in_data = InMotionCameraData(**data)
-    camera_motion.camera_motion_detected(in_data)
+
+    camera_motion = camera_motion.camera_motion_factory()
+    if in_data.status is True:
+        camera_motion.motion_detected(in_data)
+    else:
+        camera_motion.motion_detect_ended(in_data)
 
 @shared_task(name='security.camera_motion_video')
 def camera_motion_video(data: dict) -> None:

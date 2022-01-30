@@ -1,10 +1,12 @@
 import dataclasses
+from typing import Sequence
 import os
 from functools import partial
-from typing import Dict, List, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Union
 import logging
 import utils.date as dt_utils
 from paho.mqtt.reasoncodes import ReasonCodes
+from paho.mqtt import publish
 from utils.mqtt.mqtt_data import MqttConfig, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
 import paho.mqtt.client as mqtt
 
@@ -135,6 +137,34 @@ class MQTT:
         self.client.publish(topic, message, qos=qos, retain=retain)
 
 
+@dataclasses.dataclass
+class MQTTMessage:
+    topic: str
+    payload: Optional[str] = None
+    qos: int = 1
+    retain: bool = False
+
+class MQTTOneShoot:
+    """
+    This module provides some helper functions to allow straightforward publishing of messages in a one-shot manner.
+    In other words, they are useful for the situation where you have a single/multiple messages you want to publish to a broker, then disconnect with nothing else required.
+    """
+    def __init__(self, config: MqttConfig):
+        self._config = dataclasses.asdict(config)
+        self._config.pop('client_id', None)
+
+    def single(self, message: MQTTMessage, client_id: str) -> None:
+        """
+        Wrapper around: https://github.com/eclipse/paho.mqtt.python#single
+        """
+        publish.single(message.topic, message.payload, message.qos, message.retain, client_id=client_id, **self._config)
+
+    def multiple(self, messages: Sequence[MQTTMessage], client_id: str) -> None:
+        """
+        Wrapper around: https://github.com/eclipse/paho.mqtt.python#multiple
+        """
+        publish.multiple(messages, client_id=client_id, **self._config)
+
 def mqtt_factory(client_id: str = "", clean_session=False) -> MQTT:
     if client_id is None:
         clean_session = True
@@ -150,14 +180,12 @@ def mqtt_factory(client_id: str = "", clean_session=False) -> MQTT:
 
     return MQTT(mqttConfig, mqtt.Client)
 
-def mqtt_config(client_id: str = "") -> MqttConfig:
-    return MqttConfig(
-        client_id=client_id,
+def mqtt_one_shoot_factory() -> MQTTOneShoot:
+    config = MqttConfig(
         user=os.environ['MQTT_USER'],
         password=os.environ['MQTT_PASSWORD'],
         hostname=os.environ['MQTT_HOSTNAME'],
         port=int(os.environ['MQTT_PORT'])
     )
 
-def mqtt_config_dict(*args, **kwargs) -> Dict:
-    return dataclasses.asdict(mqtt_config(*args, **kwargs))
+    return MQTTOneShoot(config)

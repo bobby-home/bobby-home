@@ -75,8 +75,13 @@ class ManageRecord:
             LOGGER.info(f"_on_record video_ref={data.video_ref} no action to perform")
 
     def _setup_listeners(self) -> None:
-        self._mqtt_client.client.subscribe(f'camera/recording/{self._device_id}/#', qos=2)
-        self._mqtt_client.client.message_callback_add(f'camera/recording/{self._device_id}/#', self._on_record)
+        mqtt_topic = f'camera/recording/{self._device_id}/#'
+
+        def subscribe(client) -> None:
+            client.subscribe(mqtt_topic, qos=1)
+            client.message_callback_add(mqtt_topic, self._on_record)
+
+        self._mqtt_client.add_on_connected_callbacks(subscribe)
 
 def camera_record_factory(device_id: str, video_stream: PiVideoStream) -> ManageRecord:
     client = get_mqtt(f'{device_id}-manage-record')

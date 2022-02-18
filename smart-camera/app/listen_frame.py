@@ -42,7 +42,7 @@ def subscribe(client) -> None:
     client.subscribe(f'{CameraFrameProducer.TOPIC_PICTURE_TO_ANALYZE}/+', qos=0)
     client.message_callback_add(f'{CameraFrameProducer.TOPIC_PICTURE_TO_ANALYZE}/+', frame_receiver.on_picture)
 
-mqtt_client.on_connected_callbacks.append(subscribe)
+mqtt_client.add_on_connected_callbacks(subscribe)
 mqtt_client.connect()
 
 # topics to know when a camera is up/off

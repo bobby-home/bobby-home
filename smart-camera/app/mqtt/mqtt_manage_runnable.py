@@ -23,7 +23,7 @@ class MqttManageRunnable:
             client.subscribe(mqtt_topic, qos=1)
             client.message_callback_add(mqtt_topic, self._switch_on_or_off)
 
-        mqtt_client.on_connected_callbacks.append(subscribe)
+        mqtt_client.add_on_connected_callbacks(subscribe)
 
         if multi_device is False:
             mqtt_topic = f'status/{service_name}/{device_id}'

@@ -2,7 +2,7 @@ import os
 import struct
 import logging
 from collections import Callable
-from typing import List
+from typing import Any, List
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.reasoncodes import ReasonCodes
@@ -27,7 +27,7 @@ class MqttClient:
         self.mqtt_port = mqtt_port
 
         self._client = client
-        self.on_connected_callbacks: List[Callable[[mqtt.Client], None]] = []
+        self._on_connected_callbacks: List[Callable[[mqtt.Client], None]] = []
 
         self._service_name = None
         self._device_id = None
@@ -35,6 +35,9 @@ class MqttClient:
     @property
     def client(self) -> mqtt.Client:
         return self._client
+
+    def add_on_connected_callbacks(self, cb: Callable) -> None:
+        self._on_connected_callbacks.append(cb)
 
     def connect_keep_status(self, service_name: str, device_id: str):
         """

@@ -58,3 +58,16 @@ class CameraManageRecordTestCase(TestCase):
         self.video_mock.split_recording.return_value = False
         self.manage_record._on_record(None, None, self.split_message)
         self._check_no_ack()
+
+    def test_no_crash_invalid_message(self):
+        """
+        This method is called when it receives mqtt message.
+        If the message is wrong, it should not raise any exception, it would cause the process to crash,
+        thus loosing part of video.
+        """
+        message = FakeMqttMessage(topic=f'camera/recording/wrongthing')
+        self.manage_record._on_record(None, None, message)
+        self._check_no_ack()
+        message = FakeMqttMessage(topic=f'blabla')
+        self.manage_record._on_record(None, None, message)
+        self._check_no_ack()

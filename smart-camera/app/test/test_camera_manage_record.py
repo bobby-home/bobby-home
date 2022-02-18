@@ -48,3 +48,13 @@ class CameraManageRecordTestCase(TestCase):
         self.manage_record._on_record(None, None, self.split_message)
         self.video_mock.split_recording.assert_called_once_with(self.video_ref)
         self._check_ack()
+
+    def test_end_recording_no_ack(self):
+        self.video_mock.stop_recording.return_value = False
+        self.manage_record._on_record(None, None, self.end_message)
+        self._check_no_ack()
+
+    def test_split_recording_no_ack(self):
+        self.video_mock.split_recording.return_value = False
+        self.manage_record._on_record(None, None, self.split_message)
+        self._check_no_ack()

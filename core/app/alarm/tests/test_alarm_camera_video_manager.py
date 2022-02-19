@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 from datetime import timedelta
-from utils.mqtt import MQTTMessage, MQTTOneShoot
+from utils.mqtt import MQTTSendMessage, MQTTOneShoot
 from django.utils import timezone
 from alarm.use_cases.alarm_camera_video_manager import AlarmCameraVideoManager, _split_messages
 from devices.factories import DeviceFactory
@@ -46,7 +46,7 @@ class AlarmCameraVideoManagerTestCase(TestCase):
 
         event_ref = f'{motion.event_ref}-0'
         self.manager.start_recording(self.device.device_id, motion.event_ref)
-        self.mqtt_mock.single.assert_called_once_with(MQTTMessage(topic=f'camera/recording/{self.device.device_id}/start/{event_ref}'), f'start_recording-{motion.event_ref}')
+        self.mqtt_mock.single.assert_called_once_with(MQTTSendMessage(topic=f'camera/recording/{self.device.device_id}/start/{event_ref}'), f'start_recording-{motion.event_ref}')
 
     def test_stop_recording(self):
         motion = CameraMotionDetectedFactory(device=self.device)
@@ -54,4 +54,4 @@ class AlarmCameraVideoManagerTestCase(TestCase):
 
         event_ref = f'{motion.event_ref}-{video.number_records}'
         self.manager.stop_recording(self.device.device_id, motion.event_ref)
-        self.mqtt_mock.single.assert_called_once_with(MQTTMessage(topic=f'camera/recording/{self.device.device_id}/stop/{event_ref}'), f'stop_recording-{motion.event_ref}')
+        self.mqtt_mock.single.assert_called_once_with(MQTTSendMessage(topic=f'camera/recording/{self.device.device_id}/stop/{event_ref}'), f'stop_recording-{motion.event_ref}')

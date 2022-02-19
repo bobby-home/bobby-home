@@ -19,7 +19,7 @@ Use cases:
 - When a motion stop -> calls the camera service to stop recoding.
 """
 
-def _split_messages() -> Sequence[mqtt.MQTTMessage]:
+def _split_messages() -> Sequence[mqtt.MQTTSendMessage]:
     """
     Loop through opened motions and check if it needs to split video for it.
     """
@@ -36,7 +36,7 @@ def _split_messages() -> Sequence[mqtt.MQTTMessage]:
         record_video_number = video.number_records+1
         video_ref = f'{video.event_ref}-{record_video_number}'
 
-        payload = mqtt.MQTTMessage(
+        payload = mqtt.MQTTSendMessage(
             topic=f"camera/recording/{device_id}/split/{video_ref}"
         )
         messages.append(payload)
@@ -55,7 +55,7 @@ class AlarmCameraVideoManager:
 
     def start_recording(self, device_id: str, event_ref: str) -> None:
         video_ref = f'{event_ref}-0'
-        payload = mqtt.MQTTMessage(topic=f"camera/recording/{device_id}/start/{video_ref}")
+        payload = mqtt.MQTTSendMessage(topic=f"camera/recording/{device_id}/start/{video_ref}")
         LOGGER.info(f'start_recording topic={payload.topic} device_id={device_id} video_ref={video_ref}')
         self._mqtt_client.single(payload, f'start_recording-{event_ref}')
 
@@ -67,7 +67,7 @@ class AlarmCameraVideoManager:
             return None
 
         video_ref = f'{event_ref}-{last_video.number_records}'
-        payload = mqtt.MQTTMessage(topic=f"camera/recording/{device_id}/stop/{video_ref}")
+        payload = mqtt.MQTTSendMessage(topic=f"camera/recording/{device_id}/stop/{video_ref}")
         LOGGER.info(f'stop_recording topic={payload.topic} device_id={device_id} video_ref={video_ref}')
         self._mqtt_client.single(payload, f'stop_recording-{event_ref}')
 

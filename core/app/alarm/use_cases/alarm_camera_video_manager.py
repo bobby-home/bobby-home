@@ -72,5 +72,5 @@ class AlarmCameraVideoManager:
         self._mqtt_client.single(payload, f'stop_recording-{event_ref}')
 
 def alarm_camera_video_manager_factory() -> AlarmCameraVideoManager:
-    mqtt = mqtt.mqtt_one_shoot_factory()
-    return AlarmCameraVideoManager(mqtt)
+    m = mqtt.mqtt_one_shoot_factory()
+    return AlarmCameraVideoManager(m)

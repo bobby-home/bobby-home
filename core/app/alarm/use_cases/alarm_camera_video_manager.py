@@ -31,7 +31,7 @@ def _split_messages() -> Sequence[mqtt.MQTTMessage]:
 
     messages = []
     for video in videos:
-        print(f'video last record: {video.last_record}')
+        LOGGER.info(f'video last record: {video.last_record}')
         device_id = video.device.device_id
         record_video_number = video.number_records+1
         video_ref = f'{video.event_ref}-{record_video_number}'

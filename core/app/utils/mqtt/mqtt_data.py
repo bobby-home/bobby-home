@@ -34,6 +34,13 @@ class MqttOneShootConfig:
     auth: MqttAuth
 
 @dataclass
+class MQTTSendMessage:
+    topic: str
+    payload: Optional[str] = None
+    qos: int = 1
+    retain: bool = False
+
+@dataclass
 class MqttMessage:
     topic: str
     payload: PublishPayloadType

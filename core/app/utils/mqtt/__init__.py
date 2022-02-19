@@ -6,7 +6,7 @@ import logging
 import utils.date as dt_utils
 from paho.mqtt.reasoncodes import ReasonCodes
 from paho.mqtt import publish
-from utils.mqtt.mqtt_data import MqttAuth, MqttConfig, MqttOneShootConfig, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
+from utils.mqtt.mqtt_data import MqttAuth, MqttConfig, MqttOneShootConfig, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage, MQTTSendMessage
 import paho.mqtt.client as mqtt
 
 _LOGGER = logging.getLogger(__name__)
@@ -135,14 +135,6 @@ class MQTT:
 
         self.client.publish(topic, message, qos=qos, retain=retain)
 
-
-@dataclasses.dataclass
-class MQTTMessage:
-    topic: str
-    payload: Optional[str] = None
-    qos: int = 1
-    retain: bool = False
-
 class MQTTOneShoot:
     """
     This module provides some helper functions to allow straightforward publishing of messages in a one-shot manner.
@@ -151,13 +143,13 @@ class MQTTOneShoot:
     def __init__(self, config: MqttOneShootConfig):
         self._config = dataclasses.asdict(config)
 
-    def single(self, message: MQTTMessage, client_id: str) -> None:
+    def single(self, message: MQTTSendMessage, client_id: str) -> None:
         """
         Wrapper around: https://github.com/eclipse/paho.mqtt.python#single
         """
         publish.single(message.topic, message.payload, message.qos, message.retain, client_id=client_id, **self._config)
 
-    def multiple(self, messages: Sequence[MQTTMessage], client_id: str) -> None:
+    def multiple(self, messages: Sequence[MQTTSendMessage], client_id: str) -> None:
         """
         Wrapper around: https://github.com/eclipse/paho.mqtt.python#multiple
         """

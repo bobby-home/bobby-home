@@ -1,10 +1,12 @@
+import dataclasses
 import os
 from functools import partial
-from typing import List, Sequence, Union
+from typing import List, Optional, Sequence, Union
 import logging
 import utils.date as dt_utils
 from paho.mqtt.reasoncodes import ReasonCodes
-from utils.mqtt.mqtt_data import MqttConfig, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage
+from paho.mqtt import publish
+from utils.mqtt.mqtt_data import MqttAuth, MqttConfig, MqttOneShootConfig, MqttTopicSubscription, MqttTopicFilterSubscription, MqttMessage, MQTTSendMessage
 import paho.mqtt.client as mqtt
 
 _LOGGER = logging.getLogger(__name__)
@@ -133,8 +135,28 @@ class MQTT:
 
         self.client.publish(topic, message, qos=qos, retain=retain)
 
+class MQTTOneShoot:
+    """
+    This module provides some helper functions to allow straightforward publishing of messages in a one-shot manner.
+    In other words, they are useful for the situation where you have a single/multiple messages you want to publish to a broker, then disconnect with nothing else required.
+    """
+    def __init__(self, config: MqttOneShootConfig):
+        self._config = dataclasses.asdict(config)
 
-def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
+    def single(self, message: MQTTSendMessage, client_id: str) -> None:
+        """
+        Wrapper around: https://github.com/eclipse/paho.mqtt.python#single
+        """
+        publish.single(message.topic, message.payload, message.qos, message.retain, client_id=client_id, **self._config)
+
+    def multiple(self, messages: Sequence[MQTTSendMessage], client_id: str) -> None:
+        """
+        Wrapper around: https://github.com/eclipse/paho.mqtt.python#multiple
+        """
+        raw_messages = [dataclasses.asdict(msg) for msg in messages]
+        publish.multiple(raw_messages, client_id=client_id, **self._config)
+
+def mqtt_factory(client_id: str = "", clean_session=False) -> MQTT:
     if client_id is None:
         clean_session = True
 
@@ -148,3 +170,12 @@ def mqtt_factory(client_id: str = None, clean_session=False) -> MQTT:
     )
 
     return MQTT(mqttConfig, mqtt.Client)
+
+def mqtt_one_shoot_factory() -> MQTTOneShoot:
+    config = MqttOneShootConfig(
+        hostname=os.environ['MQTT_HOSTNAME'],
+        port=int(os.environ['MQTT_PORT']),
+        auth=MqttAuth(username=os.environ['MQTT_USER'], password=os.environ['MQTT_PASSWORD'])
+    )
+
+    return MQTTOneShoot(config)

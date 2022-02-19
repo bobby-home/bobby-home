@@ -15,6 +15,7 @@ services:
     mqtt_broker:
         volumes:
             - ./config/mosquitto/mosquitto-test.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/test-passwd:/mosquitto/config/passwd
 
     celery_worker:
         <<: *build

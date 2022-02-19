@@ -22,6 +22,16 @@ class MqttConfig:
     user: str = None
     password: str = None
 
+@dataclass
+class MqttAuth:
+    username: str
+    password: str
+
+@dataclass
+class MqttOneShootConfig:
+    hostname: str
+    port: int
+    auth: MqttAuth
 
 @dataclass
 class MqttMessage:

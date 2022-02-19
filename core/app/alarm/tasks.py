@@ -30,11 +30,13 @@ def camera_motion_detected(data: dict) -> None:
     data['detections'] = [Detection(**d) for d in detections_plain]
     in_data = InMotionCameraData(**data)
 
-    camera_motion = camera_motion.camera_motion_factory()
+    cm = camera_motion.camera_motion_factory()
     if in_data.status is True:
-        camera_motion.motion_detected(in_data)
+        cm.motion_detected(in_data)
+    elif in_data.status is False:
+        cm.motion_detect_ended(in_data)
     else:
-        camera_motion.motion_detect_ended(in_data)
+        LOGGER.error(f"Incorrect status '{in_data.status}'. Should be python boolean.")
 
 @shared_task(name='security.camera_motion_video')
 def camera_motion_video(data: dict) -> None:

@@ -47,8 +47,10 @@ class SaveMotionTestCase(TestCase):
     def test_save_motion_rectangles(self):
         detections = (
             Detection(
-                bounding_box=[],
-                bounding_box_point_and_size={'x': 10, 'y': 15, 'w': 200, 'h': 150},
+                x=10,
+                y=15,
+                w=200,
+                h=150,
                 class_id='people',
                 score=0.8
             ),
@@ -57,18 +59,17 @@ class SaveMotionTestCase(TestCase):
         save_motion(self.device, detections, self.event_ref, True)
 
         motions = CameraMotionDetected.objects.filter(device__device_id=self.device.device_id)
-        self.assertTrue(len(motions), 1)
+        self.assertTrue(len(motions), len(detections))
         motion = motions[0]
 
         bounding_boxes = CameraMotionDetectedBoundingBox.objects.filter(camera_motion_detected=motion)
-        self.assertTrue(len(bounding_boxes), len(detections))
-        bounding_box = bounding_boxes[0]
+        self.assertTrue((len(bounding_boxes) == len(detections)), msg="It should inserts one bounding box per detection")
 
         for bounding_box, detection in zip(bounding_boxes, detections):
-            detection_plain = dataclasses.asdict(detection)
-            expected_bounding_box = detection_plain['bounding_box_point_and_size']
-            expected_bounding_box['score'] = detection.score
-            
+            expected_bounding_box = dataclasses.asdict(detection)
+            # class_id is not stored in the model. We only manage people detection for now.
+            expected_bounding_box.pop('class_id', None)
+
             self.assertEqual(
                 model_to_dict(bounding_box, exclude=('camera_motion_detected', 'id')),
                 expected_bounding_box

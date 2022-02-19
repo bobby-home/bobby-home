@@ -97,7 +97,14 @@ def on_motion_camera(message: MqttMessage) -> None:
     LOGGER.info(f'on_motion_camera payload={payload} topic={topic}')
 
     detections_plain = payload.get('detections', [])
-    payload['detections'] = [Detection(**d) for d in detections_plain]
+
+    # we might remove this in future.
+    # introduced a breaking change in PR #273 in order to migrate the object detection service.
+    try:
+        payload['detections'] = [Detection(**d) for d in detections_plain]
+    except TypeError:
+        LOGGER.error(f"Can't deal with {data}. Maybe you're running the old object-detection service.")
+        return
 
     data_payload = CameraMotionPayload(**payload)
 

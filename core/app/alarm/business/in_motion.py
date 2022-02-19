@@ -27,7 +27,11 @@ def save_motion(device: device_models.Device, detections: Sequence[Detection], e
         motion.motion_ended_at = timezone.now()
         motion.save()
 
-    bounding_boxes = [CameraMotionDetectedBoundingBox(**d.bounding_box_point_and_size, score=d.score, camera_motion_detected=motion)for d in detections]
+    bounding_boxes = [CameraMotionDetectedBoundingBox(
+        x=d.x, y=d.y, w=d.w, h=d.h,
+        score=d.score, camera_motion_detected=motion
+        ) for d in detections]
+
     CameraMotionDetectedBoundingBox.objects.bulk_create(bounding_boxes)
 
     return True

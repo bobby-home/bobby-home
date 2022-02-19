@@ -27,6 +27,7 @@ def camera_motion_picture(data: dict) -> None:
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(data: dict) -> None:
     detections_plain = data.get('detections', [])
+
     data['detections'] = [Detection(**d) for d in detections_plain]
     in_data = InMotionCameraData(**data)
 

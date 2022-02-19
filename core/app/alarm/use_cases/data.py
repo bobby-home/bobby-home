@@ -4,10 +4,13 @@ from typing import Any, Optional, Sequence
 
 @dataclass
 class Detection:
-    bounding_box: Any
-    bounding_box_point_and_size: Any
+    x: float
+    y: float
+    w: float
+    h: float
     class_id: str
     score: float
+
 
 @dataclass
 class InMotionCameraData:

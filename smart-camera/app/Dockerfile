@@ -2,6 +2,7 @@ FROM python:3.7.9-buster
 
 ARG USER_ID
 ARG GROUP_ID
+ARG REQUIREMENTS=requirements.txt
 
 RUN groupadd -f -g $GROUP_ID camera && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID camera; \
     mkdir -p /var/lib/camera; \
@@ -35,25 +36,13 @@ USER camera
 # add pip dependencies folder to PATH
 ENV PATH="/home/camera/.local/bin:${PATH}"
 
-COPY requirements.txt /tmp/
+COPY $REQUIREMENTS /tmp/
 RUN pip install --user --requirement /tmp/requirements.txt
-
-RUN dpkgArch="$(dpkg --print-architecture)"; \
-    case "${dpkgArch##*-}" in \
-        armv7) tfLiteRuntime='https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-linux_armv7l.whl';; \
-        armhf) tfLiteRuntime='https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-linux_armv7l.whl';; \
-        amd64) tfLiteRuntime='https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-linux_x86_64.whl';; \
-        *) echo >&2; echo >&2 "error: current architecture ($dpkgArch) is not supported." ;; \
-    esac; \
-    pip install $tfLiteRuntime
 
 ENV MEDIA_FOLDER=/var/lib/camera/media
 RUN mkdir -p "$MEDIA_FOLDER" && chown -R camera:camera "$MEDIA_FOLDER" && chmod 700 "$MEDIA_FOLDER"
 
-ENV TF_MODELS_FOLDER=/var/lib/camera/tf-models
-RUN mkdir -p "$TF_MODELS_FOLDER" && chown -R camera:camera "$TF_MODELS_FOLDER" && chmod 700 "$TF_MODELS_FOLDER"
-
-VOLUME ["/var/lib/camera/media", "/var/lib/camera/tf-models"]
+VOLUME ["/var/lib/camera/media"]
 
 # ADD ca.crt /usr/local/share/ca-certificates/ca.cert
 # RUN chmod 644 /usr/local/share/ca-certificates/ca.cert && update-ca-certificates

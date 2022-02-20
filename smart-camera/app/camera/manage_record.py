@@ -29,10 +29,9 @@ class ManageRecord:
         self._device_id = device_id
         self._mqtt_client = mqtt_client
 
+        self._setup_listeners()
         self._mqtt_client.connect()
         self._mqtt_client.client.loop_start()
-
-        self._setup_listeners()
 
     @staticmethod
     def _extract_data_from_topic(topic: str) -> Command:
@@ -59,7 +58,7 @@ class ManageRecord:
         if data.action == Action.START.value:
             start = self._video_stream.start_recording(data.video_ref)
             if start is False:
-                LOGGER.info("record already started")
+                LOGGER.warn("record already started")
         elif data.action == Action.SPLIT.value:
             action = self._video_stream.split_recording(data.video_ref)
         elif data.action == Action.END.value:

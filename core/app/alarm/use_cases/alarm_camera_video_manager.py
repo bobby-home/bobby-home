@@ -49,7 +49,7 @@ class AlarmCameraVideoManager:
         self._mqtt_client = mqtt_client
 
     def split_recordings(self, event_ref: str) -> None:
-        LOGGER.info('split_recordings event_ref={event_ref}')
+        LOGGER.info(f'split_recordings event_ref={event_ref}')
         messages = _split_messages()
         self._mqtt_client.multiple(messages, f'split_recordings-{event_ref}')
 

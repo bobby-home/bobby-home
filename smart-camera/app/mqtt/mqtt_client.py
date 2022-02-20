@@ -73,7 +73,7 @@ class MqttClient:
             )
             return
 
-        for callback in self.on_connected_callbacks:
+        for callback in self._on_connected_callbacks:
             callback(_client)
 
 def get_mqtt(client_name: str) -> MqttClient:

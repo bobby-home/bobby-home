@@ -31,13 +31,16 @@ class CameraManageRecordTestCase(TestCase):
     def _check_ack(self):
         self.mqtt_mock.client.publish.assert_called_once_with(f'motion/video/{self.device_id}/{self.video_ref}', qos=1)
 
+    def _check_ack_start(self):
+        self.mqtt_mock.client.publish.assert_called_once_with(f'ack/video/started/{self.device_id}/{self.video_ref}', qos=2)
+
     def _check_no_ack(self):
         self.mqtt_mock.client.publish.assert_not_called()
 
     def test_start_recording(self):
         self.manage_record._on_record(None, None, self.start_message)
         self.video_mock.start_recording.assert_called_once_with(self.video_ref)
-        self._check_no_ack()
+        self._check_ack_start()
 
     def test_end_recording(self):
         self.manage_record._on_record(None, None, self.end_message)

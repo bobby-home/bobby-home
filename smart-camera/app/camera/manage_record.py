@@ -4,6 +4,7 @@ import enum
 from mqtt.mqtt_client import MqttClient, get_mqtt
 from camera.pivideostream import PiVideoStream
 
+logging.basicConfig(level=logging.INFO)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +46,9 @@ class ManageRecord:
     def _ack_video(self, video_ref: str) -> None:
         self._mqtt_client.client.publish(f'motion/video/{self._device_id}/{video_ref}', qos=1)
 
+    def _ack_start(self, video_ref: str) -> None:
+        self._mqtt_client.client.publish(f'ack/video/started/{self._device_id}/{video_ref}', qos=2)
+
     def _on_record(self, _client, _userdata, message) -> None:
         try:
             data = self._extract_data_from_topic(message.topic)
@@ -53,12 +57,14 @@ class ManageRecord:
             return
 
         LOGGER.info(f"_on_record video_ref={data.video_ref} action={data.action} topic={message.topic}")
-
+        print('sdfgvopmihsdfgjksfdehgskljdegjkledh')
         action = False
         if data.action == Action.START.value:
             start = self._video_stream.start_recording(data.video_ref)
             if start is False:
                 LOGGER.warn("record already started")
+            else:
+                self._ack_start(data.video_ref)
         elif data.action == Action.SPLIT.value:
             action = self._video_stream.split_recording(data.video_ref)
         elif data.action == Action.END.value:
@@ -77,6 +83,7 @@ class ManageRecord:
         mqtt_topic = f'camera/recording/{self._device_id}/#'
 
         def subscribe(client) -> None:
+            print(f'manage_record subscribe to {mqtt_topic}')
             client.subscribe(mqtt_topic, qos=1)
             client.message_callback_add(mqtt_topic, self._on_record)
 

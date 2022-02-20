@@ -19,11 +19,6 @@ services:
         volumes:
             - ./app/:/usr/src/app/
 
-    listen_frame:
-        <<: *build
-        volumes:
-            - ./app/:/usr/src/app/
-
     vim:
       build:
         context: ./tools/docker/dev

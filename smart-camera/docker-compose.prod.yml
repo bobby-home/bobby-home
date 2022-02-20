@@ -22,7 +22,3 @@ services:
         logging: *loki-logging
         restart: unless-stopped
 
-    listen_frame:
-        <<: *cameraimage
-        logging: *loki-logging
-        restart: unless-stopped

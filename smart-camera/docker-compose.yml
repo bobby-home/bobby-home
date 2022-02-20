@@ -33,16 +33,6 @@ services:
         # Give access to the rpi audio device. Otherwise it cannot play sound! see issue #126
         privileged: true
 
-    listen_frame:
-        command: bash -c "python listen_frame.py"
-        volumes:
-            - tf-models:/var/lib/camera/tf-models
-        <<: *env
-        networks:
-            - backend_mqtt
-            - motion
-
-
 networks:
     motion:
         name: motion
@@ -53,5 +43,3 @@ networks:
 volumes:
     camera_videos:
         external: true
-    tf-models:
-        driver: local

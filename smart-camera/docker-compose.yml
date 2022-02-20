@@ -18,8 +18,8 @@ services:
         environment:
                 - LD_LIBRARY_PATH=/opt/vc/lib
         volumes:
-            - camera_videos/:/var/lib/camera/media
-            - tf-models/:/var/lib/camera/tf-models
+            - camera_videos:/var/lib/camera/media
+            - tf-models:/var/lib/camera/tf-models
             - /opt/vc:/opt/vc
         devices:
                 - "/dev/vchiq:/dev/vchiq"
@@ -36,7 +36,7 @@ services:
     listen_frame:
         command: bash -c "python listen_frame.py"
         volumes:
-            - tf-models/:/var/lib/camera/tf-models
+            - tf-models:/var/lib/camera/tf-models
         <<: *env
         networks:
             - backend_mqtt

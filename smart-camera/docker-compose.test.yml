@@ -1,0 +1,48 @@
+version: "3.8"
+
+x-build: &build
+    build:
+        context: ./app
+        dockerfile: ../docker/functional_tests/Dockerfile
+        args:
+            USER_ID: ${USER_ID}
+            GROUP_ID: ${GROUP_ID}
+
+x-env: &env
+    env_file:
+        - .env.test
+        - ~/.device
+
+services:
+    mqtt_broker:
+        image: eclipse-mosquitto:2.0.11
+        volumes:
+            - ./config/mosquitto/mosquitto-test.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/test-passwd:/mosquitto/config/passwd
+        ports:
+            - "8883:8883"
+
+    camera:
+        <<: *build
+        <<: *env
+        volumes:
+            - camera_test_videos:/var/lib/camera/media
+            - ./app/:/usr/src/app/
+        depends_on:
+            - mqtt_broker
+    
+    functionnal_tests:
+        <<: *build
+        <<: *env
+        volumes:
+            - camera_test_videos:/var/lib/camera/media
+            - ./app/:/usr/src/app/
+        depends_on:
+            - camera
+
+    sound:
+        <<: *build
+        <<: *env
+
+volumes:
+    camera_test_videos:

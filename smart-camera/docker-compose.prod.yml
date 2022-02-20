@@ -16,9 +16,26 @@ services:
         <<: *cameraimage
         logging: *loki-logging
         restart: unless-stopped
+        networks:
+            - backend_mqtt
+            - motion
+        volumes:
+            - camera_videos:/var/lib/camera/media
 
     sound:
         <<: *cameraimage
         logging: *loki-logging
         restart: unless-stopped
+        networks:
+            - backend_mqtt
+            - motion
 
+volumes:
+    camera_videos:
+
+ networks:
+    motion:
+        name: motion
+    backend_mqtt:
+        external:
+            name: backend_mqtt

@@ -48,31 +48,41 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         return super().setUp()
 
     def _get_start_ack_topic(self, video_ref: str):
-        return f'ack/video/started/{self.device_id}/{video_ref}'
+        return f'ack/video/started/#'
 
     def _get_start_topic(self, video_ref: str):
         return f'camera/recording/{self.device_id}/start/{video_ref}'
 
+    def _get_camera_connected_topic(self):
+        return f'connected/camera/{self.device_id}'
+
     def _start_camera(self) -> None:
         self.client.publish(f'status/camera_manager/{self.device_id}', payload='{"status": "true", "data": {}}', qos=2)
 
-    def on_ack_start(self, **_kwargs):
+    def on_connected_camera(self, _client, _userdata, msg):
+        start_topic = self._get_start_topic(self.video_ref)
+        self.client.publish(start_topic, qos=2)
+        # wait for the recorder to be up
+        # as of today I don't have a feedback when it comes to life.
+        time.sleep(3)
+
+    def on_ack_start(self,  _client, _userdata, msg):
         expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-before.h264')
         self.assertIsFile(expected_video_path)
         self.client.disconnect()
 
     def test_start_record(self):
-        start_topic = self._get_start_topic(self.video_ref)
         ack_topic = self._get_start_ack_topic(self.video_ref)
+        camera_connected_topic = self._get_camera_connected_topic()
 
-        time.sleep(2)
-
-        self.client.on_message = self.on_ack_start
-        self.client.subscribe(ack_topic)
         self.client.connect(self.hostname, self.port)
+
+        self.client.subscribe(ack_topic)
+        self.client.subscribe(camera_connected_topic)
+
+        self.client.message_callback_add(ack_topic, self.on_ack_start)
+        self.client.message_callback_add(camera_connected_topic, self.on_connected_camera)
+
         self._start_camera()
-        time.sleep(3)
-        self.client.publish(start_topic, qos=2)
-        LOGGER.error('hello world, please see me')
         self.client.loop_forever()
 

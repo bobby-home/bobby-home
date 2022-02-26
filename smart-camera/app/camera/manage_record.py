@@ -17,7 +17,9 @@ class Action(enum.Enum):
 @dataclass
 class Command:
     action: str
-    video_ref: str = ""
+    video_ref: str
+    split_number: int
+    event_ref: str
 
 
 class ManageRecord:
@@ -36,10 +38,27 @@ class ManageRecord:
 
     @staticmethod
     def _extract_data_from_topic(topic: str) -> Command:
+        """
+        Shitty code. I'll need to improve that with regexes.
+        """
         split = topic.split('/')
         if len(split) < 5:
             raise ValueError(f"topic {topic} wrong format")
-        command = Command(action=split[3], video_ref=split[4])
+
+        video_ref = split[4]
+        video_ref_split = video_ref.split('-')
+        if len(video_ref_split) == 0:
+            raise ValueError(f"video_ref {video_ref} wrong format. Should be uuidv4-split_number.")
+
+        split_number = video_ref_split[-1]
+        event_ref = '-'.join(video_ref_split[:-1])
+
+        command = Command(
+            action=split[3],
+            video_ref=split[4],
+            split_number=int(split_number),
+            event_ref=event_ref,
+        )
 
         return command
 
@@ -57,7 +76,6 @@ class ManageRecord:
             return
 
         LOGGER.info(f"_on_record video_ref={data.video_ref} action={data.action} topic={message.topic}")
-        print('sdfgvopmihsdfgjksfdehgskljdegjkledh')
         action = False
         if data.action == Action.START.value:
             start = self._video_stream.start_recording(data.video_ref)
@@ -65,9 +83,13 @@ class ManageRecord:
                 LOGGER.warn("record already started")
             else:
                 self._ack_start(data.video_ref)
-        elif data.action == Action.SPLIT.value:
+            return
+
+        if data.action == Action.SPLIT.value:
+            ack_video_ref = data.event_ref + f'-{data.split_number -1}'
             action = self._video_stream.split_recording(data.video_ref)
         elif data.action == Action.END.value:
+            ack_video_ref = data.event_ref + f'-{data.split_number}'
             action = self._video_stream.stop_recording()
         else:
             LOGGER.error(f"action unkown: {data.action}")
@@ -75,7 +97,7 @@ class ManageRecord:
 
         if action is True:
             LOGGER.info(f"_on_record video_ref={data.video_ref} ack_video")
-            self._ack_video(data.video_ref)
+            self._ack_video(ack_video_ref)
         else:
             LOGGER.info(f"_on_record video_ref={data.video_ref} no action to perform")
 

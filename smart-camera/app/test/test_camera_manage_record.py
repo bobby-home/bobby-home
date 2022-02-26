@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import uuid4
 from camera.pivideostream import PiVideoStream
 from mqtt.mqtt_client import MqttClient
 from camera.manage_record import ManageRecord
@@ -14,8 +15,11 @@ class CameraManageRecordTestCase(TestCase):
     def setUp(self) -> None:
         self.mqtt_mock = Mock(spec_set=MqttClient)
         self.video_mock = Mock(spec_set=PiVideoStream)
-        self.device_id = "device_id_uuid"
-        self.video_ref = "video_ref_uuid"
+        self.device_id = str(uuid4())
+
+        self.video_ref_uuid = str(uuid4())
+        self.video_ref = f'{self.video_ref_uuid}-1'
+
         self.manage_record = ManageRecord(self.mqtt_mock, self.device_id, self.video_mock)
 
         self.start_message = FakeMqttMessage(topic=f'camera/recording/{self.device_id}/start/{self.video_ref}')
@@ -37,6 +41,9 @@ class CameraManageRecordTestCase(TestCase):
     def _check_no_ack(self):
         self.mqtt_mock.client.publish.assert_not_called()
 
+    def _check_ack_split(self):
+        self.mqtt_mock.client.publish.assert_called_once_with(f'motion/video/{self.device_id}/{self.video_ref_uuid}-0', qos=1)
+
     def test_start_recording(self):
         self.manage_record._on_record(None, None, self.start_message)
         self.video_mock.start_recording.assert_called_once_with(self.video_ref)
@@ -50,7 +57,7 @@ class CameraManageRecordTestCase(TestCase):
     def test_split_recording(self):
         self.manage_record._on_record(None, None, self.split_message)
         self.video_mock.split_recording.assert_called_once_with(self.video_ref)
-        self._check_ack()
+        self._check_ack_split()
 
     def test_end_recording_no_ack(self):
         self.video_mock.stop_recording.return_value = False

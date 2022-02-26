@@ -1,6 +1,7 @@
 import os
 import logging
 import time
+from typing import Optional
 from unittest import TestCase
 from uuid import uuid4
 
@@ -47,40 +48,88 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         self.video_ref = str(uuid4())
         return super().setUp()
 
-    def _get_start_ack_topic(self, video_ref: str):
-        return f'ack/video/started/#'
-
-    def _get_start_topic(self, video_ref: str):
-        return f'camera/recording/{self.device_id}/start/{video_ref}'
-
     def _get_camera_connected_topic(self):
         return f'connected/camera/{self.device_id}'
+
+    def _get_start_ack_topic(self, video_ref: str):
+        """
+        When we start a video, the camera publishes on this topic.
+        The last parameter is the video_ref.
+        """
+        return f'ack/video/started/+'
+
+    def _get_start_recording_topic(self, video_ref: str):
+        return f'camera/recording/{self.device_id}/start/{video_ref}-0'
+
+    def _get_video_ack_topic(self, split_number: Optional[int] = None) -> str:
+        """"
+        When a video is created, the camera publish on this topic.
+        The last parameter is the video_ref.
+        It creates a file when:
+        - split
+        - end
+        Start is a special case and it doesn't publish on this topic.
+        """
+        if split_number is None:
+            return f'motion/video/{self._device_id}/+'
+
+        return f'motion/video/{self._device_id}/{self.video_ref}-{split_number}'
+
+    def _get_split_topic(self, video_ref: str, split_number: int) -> str:
+        return f'camera/recording/{self.device_id}/split/{video_ref}-{split_number}'
 
     def _start_camera(self) -> None:
         self.client.publish(f'status/camera_manager/{self.device_id}', payload='{"status": "true", "data": {}}', qos=2)
 
-    def on_connected_camera(self, _client, _userdata, msg):
-        start_topic = self._get_start_topic(self.video_ref)
+    def _split_camera_video(self, split_number: int) -> None:
+        topic = self._get_split_topic(self.video_ref, split_number)
+        self.client.publish(topic)
+
+    def _stop_camera_video(self) -> None:
+        topic = f'camera/recording/{self._device_id}/end'
+        self.client.publish(topic)
+
+    def on_connected_camera(self, _client, _userdata, msg) -> None:
+        LOGGER.info("on_connected_camera", msg)
+        start_topic = self._get_start_recording_topic(self.video_ref)
         self.client.publish(start_topic, qos=2)
         # wait for the recorder to be up
         # as of today I don't have a feedback when it comes to life.
         time.sleep(3)
 
-    def on_ack_start(self,  _client, _userdata, msg):
+    def on_ack_start_recording(self,  _client, _userdata, msg) -> None:
+        LOGGER.info("on_ack_start_recording", msg)
         expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-before.h264')
         self.assertIsFile(expected_video_path)
-        self.client.disconnect()
+        time.sleep(3)
+
+        # ask to split
+        split_topic = self._split_camera_video(f'{self.video_ref}-1')
+        self.client.publish(split_topic)
+
+    def on_ack_video(self, _client, _userdata, msg) -> None:
+        LOGGER.info("on_ack_video", msg)
+        # todo: check if file is on the disk.
+        # if it's the first split, split again.
+        # else (second), stop the record.
+        #self.client.publish()
+
+    def on_ack_split(self, _client, _userdata, msg) -> None:
+        pass
 
     def test_start_record(self):
-        ack_topic = self._get_start_ack_topic(self.video_ref)
+        start_ack_topic = self._get_start_ack_topic(self.video_ref)
+        ack_video_topic = self._get_video_ack_topic()
         camera_connected_topic = self._get_camera_connected_topic()
 
         self.client.connect(self.hostname, self.port)
 
-        self.client.subscribe(ack_topic)
+        self.client.subscribe(start_ack_topic)
         self.client.subscribe(camera_connected_topic)
+        self.client.subscribe(ack_video_topic)
 
-        self.client.message_callback_add(ack_topic, self.on_ack_start)
+        self.client.message_callback_add(start_ack_topic, self.on_ack_start_recording)
+        self.client.message_callback_add(ack_video_topic, self.on_ack_start)
         self.client.message_callback_add(camera_connected_topic, self.on_connected_camera)
 
         self._start_camera()

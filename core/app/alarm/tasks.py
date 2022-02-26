@@ -1,3 +1,5 @@
+from alarm.use_cases.alarm_camera_video_manager import alarm_camera_video_manager_factory
+from camera.models import CameraMotionDetected, CameraMotionVideo
 from alarm.use_cases.camera_video import camera_video
 from utils.mqtt import mqtt_factory
 import uuid
@@ -68,6 +70,16 @@ def start_schedule_range(_schedule_range_uuid):
 def end_schedule_range(_schedule_range_uuid):
     alarm_schedule_range.end_schedule_range()
 
+@shared_task('camera_recording_split_video')
+def camera_recording_split_video(event_ref: str) -> None:
+    video_manager = alarm_camera_video_manager_factory()
+    split = video_manager.split_recording(event_ref)
+    if split is True:
+        LOGGER.info(f"motion {event_ref} still, schedule next video split.")
+        # = 60s
+        camera_recording_split_video.apply_async(args=[event_ref], countdown=60)
+    else:
+        LOGGER.info(f"motion {event_ref} is done, don't split video anymore.")
 
 def check_ping(status: AlarmStatus) -> Tuple[bool, Ping]:
     try:

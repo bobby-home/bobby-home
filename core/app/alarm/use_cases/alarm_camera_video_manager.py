@@ -4,7 +4,7 @@ from django.utils import timezone
 from typing import Sequence
 
 from utils import mqtt
-from camera.models import CameraMotionVideo
+from camera.models import CameraMotionDetected, CameraMotionVideo
 from alarm.business.alarm_motions import current_motions
 
 LOGGER = logging.getLogger(__name__)
@@ -49,9 +49,35 @@ class AlarmCameraVideoManager:
         self._mqtt_client = mqtt_client
 
     def split_recordings(self, event_ref: str) -> None:
+        """
+        changing the way of doing, won't be used!
+        @todo remove!
+        """
         LOGGER.info(f'split_recordings event_ref={event_ref}')
         messages = _split_messages()
         self._mqtt_client.multiple(messages, f'split_recordings-{event_ref}')
+
+    def split_recording(self, event_ref: str) -> bool:
+        LOGGER.info(f'split_recording event_ref={event_ref}')
+
+        try:
+            CameraMotionDetected.objects.get(
+                closed_by_system=False,
+                motion_ended_at__isnull=True,
+                event_ref=event_ref)
+
+            video = CameraMotionVideo.objects.get(event_ref=event_ref)
+            device_id = video.device.device_id
+            record_video_number = video.number_records+1
+            video_ref = f'{video.event_ref}-{record_video_number}'
+
+            payload = mqtt.MQTTSendMessage(
+                topic=f"camera/recording/{device_id}/split/{video_ref}"
+            )
+            self._mqtt_client.single(payload, client_id=f'split_recordings-{event_ref}')
+            return True
+        except CameraMotionDetected.DoesNotExist:
+            return False
 
     def start_recording(self, device_id: str, event_ref: str) -> None:
         video_ref = f'{event_ref}-0'

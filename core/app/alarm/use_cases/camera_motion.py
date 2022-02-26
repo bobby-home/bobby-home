@@ -42,7 +42,7 @@ class CameraMotion:
             return None
 
         self._record_manager.start_recording(device.device_id, data.event_ref)
-        integration_camera_motion(device)
+        integration_camera_motion(device, data.event_ref)
 
 def camera_motion_factory() -> CameraMotion:
     record_manager = alarm_camera_video_manager_factory()

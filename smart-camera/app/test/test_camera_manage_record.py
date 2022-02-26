@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import uuid4
 from camera.pivideostream import PiVideoStream
 from mqtt.mqtt_client import MqttClient
-from camera.manage_record import ManageRecord
+from camera.manage_record import Command, ManageRecord
 from unittest.case import TestCase
 from unittest.mock import Mock
 
@@ -43,6 +43,15 @@ class CameraManageRecordTestCase(TestCase):
 
     def _check_ack_split(self):
         self.mqtt_mock.client.publish.assert_called_once_with(f'motion/video/{self.device_id}/{self.video_ref_uuid}-0', qos=1)
+
+    def test_extract_data_from_topic(self):
+        print(' MKJHESRFGKJLMESGKJDRFHGLKJRFDGJKDRHGJKRFH')
+        topic = self.manage_record._extract_data_from_topic(f'camera/recording/{self.device_id}/split/{self.video_ref}')
+        expected_command = Command(
+            action='split', video_ref=self.video_ref, split_number=1, event_ref=self.video_ref_uuid
+        )
+        self.assertEqual(topic, expected_command)
+        print(topic)
 
     def test_start_recording(self):
         self.manage_record._on_record(None, None, self.start_message)

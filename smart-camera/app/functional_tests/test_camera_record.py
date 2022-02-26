@@ -23,7 +23,6 @@ But I don't need any code from it, tests should be independent.
 - stop_record
     -> file has been created
     -> + mqtt ack publish
-
 """
 
 class TestCaseBase(TestCase):

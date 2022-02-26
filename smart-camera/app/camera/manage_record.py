@@ -63,6 +63,7 @@ class ManageRecord:
         return command
 
     def _ack_video(self, video_ref: str) -> None:
+        LOGGER.info(f'_ack_video video_ref={video_ref}')
         self._mqtt_client.client.publish(f'motion/video/{self._device_id}/{video_ref}', qos=1)
 
     def _ack_start(self, video_ref: str) -> None:
@@ -96,7 +97,6 @@ class ManageRecord:
             return
 
         if action is True:
-            LOGGER.info(f"_on_record video_ref={data.video_ref} ack_video")
             self._ack_video(ack_video_ref)
         else:
             LOGGER.info(f"_on_record video_ref={data.video_ref} no action to perform")

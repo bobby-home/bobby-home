@@ -49,6 +49,7 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         self.video_ref = str(uuid4())
 
     def tearDown(self) -> None:
+        self._stop_camera_video()
         for file in os.listdir(self.base_video_path):
             path = os.path.join(self.base_video_path, file)
 
@@ -121,11 +122,10 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         time.sleep(3)
 
         # ask to split
-        split_topic = self._split_camera_video(f'{self.video_ref}-1')
-        self.client.publish(split_topic)
+        self._split_camera_video(f'{self.video_ref}-1')
 
     def on_ack_video(self, _client, _userdata, msg) -> None:
-        LOGGER.info("on_ack_video", msg)
+        LOGGER.info("on_ack_video")
         # todo: check if file is on the disk.
         # if it's the first split, split again.
         # else (second), stop the record.

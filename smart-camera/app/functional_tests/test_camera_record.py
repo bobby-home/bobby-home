@@ -46,10 +46,11 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         self.client = mqtt.Client(client_id="test_camera_record")
         self.client.username_pw_set(user, password)
 
+        self.split_number = 0
         self.video_ref = str(uuid4())
 
     def tearDown(self) -> None:
-        self._stop_camera_video()
+        self._stop_camera_video(self.split_number)
         for file in os.listdir(self.base_video_path):
             path = os.path.join(self.base_video_path, file)
 
@@ -93,8 +94,8 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         topic = self._get_split_topic(self.video_ref, split_number)
         self.client.publish(topic)
 
-    def _stop_camera_video(self) -> None:
-        topic = f'camera/recording/{self.device_id}/end'
+    def _stop_camera_video(self, split_number: int) -> None:
+        topic = f'camera/recording/{self.device_id}/end/{self.video_ref}-{split_number}'
         self.client.publish(topic)
 
     def on_connected_camera(self, _client, _userdata, msg) -> None:
@@ -105,34 +106,50 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
         # as of today I don't have any feedback on it.
         time.sleep(3)
         self.client.publish(start_topic, qos=2)
-        # wait for the recorder to be up
-        # as of today I don't have a feedback when it comes to life.
-        time.sleep(3)
+
+    def _assert_file_exists(self) -> None:
+        if self.split_number == 0:
+            expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-0-before.h264')
+            self.assertIsFile(expected_video_path)
+
+            expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-0.h264')
+            self.assertIsFile(expected_video_path)
+        else:
+            expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-{self.split_number}.h264')
+            self.assertIsFile(expected_video_path)
 
     def on_ack_start_recording(self,  _client, _userdata, msg) -> None:
         LOGGER.info("on_ack_start_recording")
         LOGGER.info(msg)
 
-        expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-0-before.h264')
-        self.assertIsFile(expected_video_path)
-
-        expected_video_path = os.path.join(self.base_video_path, f'{self.video_ref}-0.h264')
-        self.assertIsFile(expected_video_path)
-
-        time.sleep(3)
+        self._assert_file_exists()
 
         # ask to split
-        self._split_camera_video(f'{self.video_ref}-1')
+        self.split_number = self.split_number +1
+        self._split_camera_video(split_number=self.split_number)
 
-    def on_ack_video(self, _client, _userdata, msg) -> None:
-        LOGGER.info("on_ack_video")
+    def on_ack_first_video(self, _client, _userdata, msg) -> None:
+        LOGGER.info("on_ack_first_video")
         # todo: check if file is on the disk.
         # if it's the first split, split again.
         # else (second), stop the record.
         #self.client.publish()
+        self._assert_file_exists()
 
-    def on_ack_split(self, _client, _userdata, msg) -> None:
-        pass
+        self.split_number = self.split_number +1
+        self._split_camera_video(split_number=self.split_number)
+
+    def on_ack_second_video(self, _client, _userdata, msg) -> None:
+        LOGGER.info("on_ack_second_video")
+
+        self._assert_file_exists()
+        self._stop_camera_video(split_number=self.split_number)
+
+    def on_ack_end_video(self, _client, _userdata, msg) -> None:
+        LOGGER.info("on_ack_end_video")
+        self._assert_file_exists()
+        self.client.disconnect()
+
 
     def test_start_record(self):
         LOGGER.info('test_start_record')
@@ -143,13 +160,18 @@ class IntegrationCameraRecordTestCase(TestCaseBase):
 
         self.client.connect(self.hostname, self.port)
 
-        self.client.subscribe(start_ack_topic)
         self.client.subscribe(camera_connected_topic)
-        self.client.subscribe(ack_video_topic)
-
-        self.client.message_callback_add(start_ack_topic, self.on_ack_start_recording)
-        self.client.message_callback_add(ack_video_topic, self.on_ack_video)
         self.client.message_callback_add(camera_connected_topic, self.on_connected_camera)
+
+        self.client.subscribe(start_ack_topic)
+        self.client.message_callback_add(start_ack_topic, self.on_ack_start_recording)
+
+        self.client.subscribe(ack_video_topic)
+        first_topic = self._get_video_ack_topic(split_number=0)
+        LOGGER.info(f'add callback on {first_topic}')
+        self.client.message_callback_add(first_topic, self.on_ack_first_video)
+        self.client.message_callback_add(self._get_video_ack_topic(split_number=1), self.on_ack_second_video)
+        self.client.message_callback_add(self._get_video_ack_topic(split_number=2), self.on_ack_end_video)
 
         self._start_camera()
         LOGGER.info("start mqtt loop")

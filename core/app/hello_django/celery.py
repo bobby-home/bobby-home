@@ -1,10 +1,6 @@
 from __future__ import absolute_import, unicode_literals
-
 import os
-from uuid import uuid4
-
 from celery import Celery
-
 # set the default Django settings module for the 'celery' program.
 from celery.schedules import crontab
 

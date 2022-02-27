@@ -70,7 +70,7 @@ def start_schedule_range(_schedule_range_uuid):
 def end_schedule_range(_schedule_range_uuid):
     alarm_schedule_range.end_schedule_range()
 
-@shared_task('camera_recording_split_video')
+@shared_task(name='camera_recording_split_video')
 def camera_recording_split_video(event_ref: str) -> None:
     video_manager = alarm_camera_video_manager_factory()
     split = video_manager.split_recording(event_ref)

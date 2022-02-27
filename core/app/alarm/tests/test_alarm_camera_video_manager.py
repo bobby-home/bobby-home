@@ -1,8 +1,10 @@
+import logging
 from unittest.mock import Mock
 from datetime import timedelta
+from uuid import uuid4
 from utils.mqtt import MQTTSendMessage, MQTTOneShoot
 from django.utils import timezone
-from alarm.use_cases.alarm_camera_video_manager import AlarmCameraVideoManager, _split_messages
+from alarm.use_cases.alarm_camera_video_manager import AlarmCameraVideoManager
 from devices.factories import DeviceFactory
 from camera.factories import CameraMotionDetectedFactory, CameraMotionVideoFactory
 from django.test.testcases import TestCase
@@ -28,18 +30,28 @@ class AlarmCameraVideoManagerTestCase(TestCase):
         )
         return super().setUp()
 
-    def test_messages(self):
-        messages = _split_messages()
-        self.assertEqual(2, len(messages))
-        for i, message in enumerate(messages):
-            video = self.videos[i]
-            self.assertEqual(message.topic, f'camera/recording/{self.device.device_id}/split/{video.event_ref}-{video.number_records+1}')
+    def test_split_recording_no_motion(self):
+        uuid = str(uuid4())
+        self.manager.split_recording(uuid)
+        self.mqtt_mock.single.assert_not_called()
 
-    def test_split_recording(self):
-        ref = 'job_uuid'
-        self.manager.split_recordings(ref)
-        messages = _split_messages()
-        self.mqtt_mock.multiple.assert_called_once_with(messages, f'split_recordings-{ref}')
+    def test_split_recording_motion(self):
+        # the two are linked.
+        motion = self.motions[0]
+        video = self.videos[0]
+        expected_topic = f'camera/recording/{motion.device.device_id}/split/{motion.event_ref}-{video.number_records+1}'
+        expected_message = MQTTSendMessage(topic=expected_topic, payload=None, qos=1, retain=False)
+
+        self.manager.split_recording(motion.event_ref)
+        self.mqtt_mock.single.assert_called_once_with(expected_message, client_id=f'split_recording-{motion.event_ref}')
+
+    def test_split_recording_motion_ended(self):
+        motion = self.motions[0]
+        motion.motion_ended_at = timezone.now()
+        motion.save()
+
+        self.manager.split_recording(motion.event_ref)
+        self.mqtt_mock.single.assert_not_called()
 
     def test_start_recording(self):
         motion = CameraMotionDetectedFactory(device=self.device)

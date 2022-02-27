@@ -19,43 +19,9 @@ Use cases:
 - When a motion stop -> calls the camera service to stop recoding.
 """
 
-def _split_messages() -> Sequence[mqtt.MQTTSendMessage]:
-    """
-    Loop through opened motions and check if it needs to split video for it.
-    """
-    motions = current_motions()
-    event_refs = [motion.event_ref for motion in motions]
-
-    time_threshold = timezone.now() - timedelta(minutes=1)
-    videos = CameraMotionVideo.objects.filter(event_ref__in=event_refs, last_record__lt=time_threshold, is_merged=False)
-
-    messages = []
-    for video in videos:
-        LOGGER.info(f'video last record: {video.last_record}')
-        device_id = video.device.device_id
-        record_video_number = video.number_records+1
-        video_ref = f'{video.event_ref}-{record_video_number}'
-
-        payload = mqtt.MQTTSendMessage(
-            topic=f"camera/recording/{device_id}/split/{video_ref}"
-        )
-        messages.append(payload)
-
-    return messages
-
-
 class AlarmCameraVideoManager:
     def __init__(self, mqtt_client: mqtt.MQTTOneShoot) -> None:
         self._mqtt_client = mqtt_client
-
-    def split_recordings(self, event_ref: str) -> None:
-        """
-        changing the way of doing, won't be used!
-        @todo remove!
-        """
-        LOGGER.info(f'split_recordings event_ref={event_ref}')
-        messages = _split_messages()
-        self._mqtt_client.multiple(messages, f'split_recordings-{event_ref}')
 
     def split_recording(self, event_ref: str) -> bool:
         LOGGER.info(f'split_recording event_ref={event_ref}')
@@ -71,10 +37,13 @@ class AlarmCameraVideoManager:
             record_video_number = video.number_records+1
             video_ref = f'{video.event_ref}-{record_video_number}'
 
+            timediff_seconds = (timezone.now() - video.last_record).total_seconds()
+
+            LOGGER.info(f'split_recording event_ref={event_ref} video_ref={video_ref} device_id={device_id} last record was {timediff_seconds} seconds ago.')
             payload = mqtt.MQTTSendMessage(
                 topic=f"camera/recording/{device_id}/split/{video_ref}"
             )
-            self._mqtt_client.single(payload, client_id=f'split_recordings-{event_ref}')
+            self._mqtt_client.single(payload, client_id=f'split_recording-{event_ref}')
             return True
         except CameraMotionDetected.DoesNotExist:
             return False

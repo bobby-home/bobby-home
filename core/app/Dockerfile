@@ -41,7 +41,7 @@ ARG USER_ID
 ARG GROUP_ID
 
 # add our user with its group
-RUN groupadd -f -g $GROUP_ID house && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID house; \
+RUN groupadd -f --gid $GROUP_ID house && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID house; \
     mkdir -p /var/lib/house; \
 	chown -R house:house /var/lib/house
 

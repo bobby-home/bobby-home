@@ -2,7 +2,7 @@ import os
 import struct
 import logging
 from collections import Callable
-from typing import List
+from typing import Any, List
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.reasoncodes import ReasonCodes
@@ -26,11 +26,18 @@ class MqttClient:
         self.mqtt_hostname = mqtt_hostname
         self.mqtt_port = mqtt_port
 
-        self.client = client
-        self.on_connected_callbacks: List[Callable[[mqtt.Client], None]] = []
+        self._client = client
+        self._on_connected_callbacks: List[Callable[[mqtt.Client], None]] = []
 
         self._service_name = None
         self._device_id = None
+
+    @property
+    def client(self) -> mqtt.Client:
+        return self._client
+
+    def add_on_connected_callbacks(self, cb: Callable) -> None:
+        self._on_connected_callbacks.append(cb)
 
     def connect_keep_status(self, service_name: str, device_id: str):
         """
@@ -40,17 +47,17 @@ class MqttClient:
         self._device_id = device_id
 
         # Will message has to be set before we connect.
-        self.client.will_set(f'connected/{service_name}/{device_id}', payload=struct.pack('?', False), qos=1, retain=True)
+        self._client.will_set(f'connected/{service_name}/{device_id}', payload=struct.pack('?', False), qos=1, retain=True)
         self.connect()
-        self.client.publish(f'connected/{service_name}/{device_id}', payload=struct.pack('?', True), qos=1, retain=True)
+        self._client.publish(f'connected/{service_name}/{device_id}', payload=struct.pack('?', True), qos=1, retain=True)
 
     def connect(self):
-        self.client.connect(self.mqtt_hostname, int(self.mqtt_port), keepalive=120)
+        self._client.connect(self.mqtt_hostname, int(self.mqtt_port), keepalive=120)
 
     def disconnect(self):
         if self._service_name and self._device_id:
-            self.client.publish(f'connected/{self._service_name}/{self._device_id}', payload=struct.pack('?', False), qos=1, retain=True)
-        self.client.disconnect()
+            self._client.publish(f'connected/{self._service_name}/{self._device_id}', payload=struct.pack('?', False), qos=1, retain=True)
+        self._client.disconnect()
 
     @staticmethod
     def _mqtt_on_disconnect(_client, _userdata, rc):
@@ -66,7 +73,7 @@ class MqttClient:
             )
             return
 
-        for callback in self.on_connected_callbacks:
+        for callback in self._on_connected_callbacks:
             callback(_client)
 
 def get_mqtt(client_name: str) -> MqttClient:

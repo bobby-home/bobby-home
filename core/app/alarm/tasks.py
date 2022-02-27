@@ -1,3 +1,5 @@
+from alarm.use_cases.alarm_camera_video_manager import alarm_camera_video_manager_factory
+from camera.models import CameraMotionDetected, CameraMotionVideo
 from alarm.use_cases.camera_video import camera_video
 from utils.mqtt import mqtt_factory
 import uuid
@@ -27,9 +29,17 @@ def camera_motion_picture(data: dict) -> None:
 @shared_task(name="security.camera_motion_detected")
 def camera_motion_detected(data: dict) -> None:
     detections_plain = data.get('detections', [])
+
     data['detections'] = [Detection(**d) for d in detections_plain]
     in_data = InMotionCameraData(**data)
-    camera_motion.camera_motion_detected(in_data)
+
+    cm = camera_motion.camera_motion_factory()
+    if in_data.status is True:
+        cm.motion_detected(in_data)
+    elif in_data.status is False:
+        cm.motion_detect_ended(in_data)
+    else:
+        LOGGER.error(f"Incorrect status '{in_data.status}'. Should be python boolean.")
 
 @shared_task(name='security.camera_motion_video')
 def camera_motion_video(data: dict) -> None:
@@ -60,6 +70,16 @@ def start_schedule_range(_schedule_range_uuid):
 def end_schedule_range(_schedule_range_uuid):
     alarm_schedule_range.end_schedule_range()
 
+@shared_task(name='camera_recording_split_video')
+def camera_recording_split_video(event_ref: str) -> None:
+    video_manager = alarm_camera_video_manager_factory()
+    split = video_manager.split_recording(event_ref)
+    if split is True:
+        LOGGER.info(f"motion {event_ref} still, schedule next video split.")
+        # = 60s
+        camera_recording_split_video.apply_async(args=[event_ref], countdown=60)
+    else:
+        LOGGER.info(f"motion {event_ref} is done, don't split video anymore.")
 
 def check_ping(status: AlarmStatus) -> Tuple[bool, Ping]:
     try:

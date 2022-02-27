@@ -1,8 +1,9 @@
-version: '3.7'
+version: "3.8"
 
 x-build: &build
     build:
         context: ./app
+        dockerfile: ../docker/functional_tests/Dockerfile
         args:
             USER_ID: ${USER_ID}
             GROUP_ID: ${GROUP_ID}
@@ -10,43 +11,38 @@ x-build: &build
 x-env: &env
     env_file:
         - .env.test
+        - ~/.device
 
 services:
     mqtt_broker:
+        image: eclipse-mosquitto:2.0.11
         volumes:
             - ./config/mosquitto/mosquitto-test.conf:/mosquitto/config/mosquitto.conf
             - ./config/mosquitto/test-passwd:/mosquitto/config/passwd
+        ports:
+            - "8883:8883"
 
-    celery_worker:
+    camera:
         <<: *build
         <<: *env
         volumes:
-            - camera_test_videos:/var/lib/house/video
+            - camera_test_videos:/var/lib/camera/media
             - ./app/:/usr/src/app/
-
-    celery_beat:
+        depends_on:
+            - mqtt_broker
+    
+    functionnal_tests:
         <<: *build
         <<: *env
         volumes:
+            - camera_test_videos:/var/lib/camera/media
             - ./app/:/usr/src/app/
+        depends_on:
+            - camera
 
-    web:
+    sound:
         <<: *build
         <<: *env
-        volumes:
-            - ./app/:/usr/src/app/
-
-    python_process_mqtt:
-        <<: *build
-        <<: *env
-        volumes:
-            - ./app/:/usr/src/app/
-
-    telegram_bot:
-        <<: *build
-        <<: *env
-        volumes:
-            - ./app/:/usr/src/app/
 
 volumes:
     camera_test_videos:

@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass, field
 import re
 import os
-from typing import Any, Optional, Sequence, Type, TypeVar 
+from typing import Any, Optional, Sequence, Type, TypeVar
 
 from hello_django.loggers import LOGGER
 from utils.mqtt.mqtt_data import MqttTopicFilterSubscription, MqttTopicSubscription, \
@@ -41,7 +41,7 @@ class CameraMotionPictureTopic(CameraTopic):
     bool_status: bool = field(init=False)
     filename: str = field(init=False)
 
-    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[0-1])$" 
+    _topic_matcher = CAMERA_TOPIC_MATCHER + rf"/{PICTURE_EVENT_REF_GROUP}/(?P<status>[0-1])$"
 
     def __post_init__(self):
         self.bool_status = self.status == '1'
@@ -81,12 +81,12 @@ class CameraMotionTopic(CameraTopic):
 T = TypeVar('T', Type[CameraMotionPictureTopic], Type[CameraMotionVideoTopic], Type[CameraMotionTopic])
 
 def topic_regex(topic: str, t: T) -> Optional[T]:
-    match = re.match(t._topic_matcher, topic) 
+    match = re.match(t._topic_matcher, topic)
 
     if match:
         groups = match.groupdict()
         return t(**groups) # type: ignore
-    
+
     raise ValueError(f'topic {topic} wrong format. {t._topic_matcher}')
 
 
@@ -97,7 +97,14 @@ def on_motion_camera(message: MqttMessage) -> None:
     LOGGER.info(f'on_motion_camera payload={payload} topic={topic}')
 
     detections_plain = payload.get('detections', [])
-    payload['detections'] = [Detection(**d) for d in detections_plain]
+
+    # we might remove this in future.
+    # introduced a breaking change in PR #273 in order to migrate the object detection service.
+    try:
+        payload['detections'] = [Detection(**d) for d in detections_plain]
+    except TypeError:
+        LOGGER.error(f"Can't deal with {message.payload}. Maybe you're running the old object-detection service.")
+        return
 
     data_payload = CameraMotionPayload(**payload)
 
@@ -108,10 +115,11 @@ def on_motion_camera(message: MqttMessage) -> None:
         detections=data_payload.detections,
     )
 
+    # 0 = initialization
     if in_data.event_ref != '0':
-        # 0 = initialization
         tasks.camera_motion_detected.apply_async(args=[dataclasses.asdict(in_data)])
-
+    else:
+        LOGGER.info(f"on_camera_motion event_ref = '0', ignoring. {in_data}")
 
 def on_motion_video(message: MqttMessage) -> None:
     topic = topic_regex(message.topic, CameraMotionVideoTopic)
@@ -135,6 +143,7 @@ def on_motion_picture(message: MqttMessage):
 
     if topic.event_ref == "0":
         # Initialization: no motion
+        LOGGER.info(f"on_motion_picture event_ref = '0', ignoring. {topic}")
         return
 
     data_payload = CameraMotionPicturePayload(image=message.payload)
@@ -191,9 +200,9 @@ def on_discover_alarm(message: MqttMessage) -> None:
     payload = message.payload
     in_data = DiscoverAlarmData(**payload)
     print(f'on_discover_alarm data={in_data}')
-    
+
     tasks.discover_alarm.apply_async(args=[dataclasses.asdict(in_data)])
-    
+
 
 def register(mqtt: MQTT):
     mqtt.add_subscribe((

@@ -1,9 +1,6 @@
 from __future__ import absolute_import, unicode_literals
-
 import os
-
 from celery import Celery
-
 # set the default Django settings module for the 'celery' program.
 from celery.schedules import crontab
 
@@ -54,3 +51,4 @@ def periodic_check_pings() -> None:
 def backend_cleanup() -> None:
     from mqtt_services.tasks import cleanup
     cleanup()
+

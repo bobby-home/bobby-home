@@ -12,13 +12,18 @@ services:
     camera:
         <<: *build
         volumes:
+            - camera_videos:/var/lib/camera/media
             - ./app/:/usr/src/app/
-
+        networks:
+            - backend_mqtt
+            - motion
     sound:
         <<: *build
         volumes:
             - ./app/:/usr/src/app/
-
+        networks:
+            - backend_mqtt
+            - motion
     vim:
       build:
         context: ./tools/docker/dev
@@ -28,3 +33,14 @@ services:
         - ~/.vimrc/:/home/camera/.vimrc
         - ./app/:/usr/src/app/
       command: bash -c "source /home/camera/.nvm/nvm.sh && node -v && vim"
+
+volumes:
+    camera_videos:
+        external: true
+
+networks:
+    motion:
+        name: motion
+    backend_mqtt:
+        external:
+            name: backend_mqtt

@@ -30,6 +30,7 @@ services:
         <<: *build
         <<: *env
         volumes:
+            - camera_videos:/var/lib/house/video
             - ./app/:/usr/src/app/
 
     celery_beat:

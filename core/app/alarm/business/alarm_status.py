@@ -1,5 +1,5 @@
-from camera.models import CameraMotionDetected
 from devices.models import Device
+from alarm.business.alarm_motions import current_motions_device
 
 
 def can_turn_off(device: Device) -> bool:
@@ -18,9 +18,4 @@ def can_turn_off(device: Device) -> bool:
     bool
         Whether or not the alarm can be turned off for the given device.
     """
-    try:
-        motion = CameraMotionDetected.objects.filter(device=device, closed_by_system=False).latest('motion_started_at')
-    except CameraMotionDetected.DoesNotExist:
-        return True
-
-    return motion.motion_ended_at is not None
+    return not current_motions_device(device).exists()

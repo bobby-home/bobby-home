@@ -66,6 +66,8 @@ services:
         logging: *loki-logging
         restart: unless-stopped
         <<: *env
+        volumes:
+            - camera_videos:/var/lib/house/video
 
     celery_beat:
         <<: *coreimage

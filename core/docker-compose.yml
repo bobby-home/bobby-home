@@ -36,7 +36,6 @@ services:
     celery_worker:
         command: bash -c "celery -A hello_django worker --loglevel=INFO"
         volumes:
-            - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
             - ~/.ssh:/home/house/.ssh:ro # for rsync to get videos from dumb devices.
         networks:

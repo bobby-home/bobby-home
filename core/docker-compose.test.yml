@@ -21,6 +21,7 @@ services:
         <<: *build
         <<: *env
         volumes:
+            - camera_test_videos:/var/lib/house/video
             - ./app/:/usr/src/app/
 
     celery_beat:
@@ -47,3 +48,5 @@ services:
         volumes:
             - ./app/:/usr/src/app/
 
+volumes:
+    camera_test_videos:

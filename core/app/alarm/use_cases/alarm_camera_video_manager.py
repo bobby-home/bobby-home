@@ -27,19 +27,25 @@ class AlarmCameraVideoManager:
         LOGGER.info(f'split_recording event_ref={event_ref}')
 
         try:
-            CameraMotionDetected.objects.get(
+            camera_motion = CameraMotionDetected.objects.get(
                 closed_by_system=False,
                 motion_ended_at__isnull=True,
                 event_ref=event_ref)
 
-            video = CameraMotionVideo.objects.get(event_ref=event_ref)
-            device_id = video.device.device_id
-            record_video_number = video.number_records+1
-            video_ref = f'{video.event_ref}-{record_video_number}'
+            try:
+                video = CameraMotionVideo.objects.get(event_ref=event_ref)
+                record_video_number = video.number_records+1
+                timediff_seconds = (timezone.now() - video.last_record).total_seconds()
+                LOGGER.info(f'last record found was {timediff_seconds} seconds ago.')
+            except CameraMotionVideo.DoesNotExist:
+                # it's the first split video.
+                record_video_number = 1
 
-            timediff_seconds = (timezone.now() - video.last_record).total_seconds()
+            device_id = camera_motion.device.device_id
+            video_ref = f'{camera_motion.event_ref}-{record_video_number}'
 
-            LOGGER.info(f'split_recording event_ref={event_ref} video_ref={video_ref} device_id={device_id} last record was {timediff_seconds} seconds ago.')
+
+            LOGGER.info(f'split_recording event_ref={event_ref} video_ref={video_ref} device_id={device_id}')
             payload = mqtt.MQTTSendMessage(
                 topic=f"camera/recording/{device_id}/split/{video_ref}"
             )

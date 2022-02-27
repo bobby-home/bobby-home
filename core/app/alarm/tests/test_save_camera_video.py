@@ -37,8 +37,8 @@ class SaveCameraVideoTestCase(TransactionTestCase):
         save_camera_video(self.data_first_video)
 
         video = CameraMotionVideo.objects.get(device=self.device, event_ref=self.event_ref)
-        
-        self.assertEqual(video.number_records, 0)
+
+        self.assertEqual(video.number_records, 1)
         self.assertEqual(str(video.event_ref), self.event_ref)
         self.assertFalse(video.is_merged)
 
@@ -47,11 +47,11 @@ class SaveCameraVideoTestCase(TransactionTestCase):
         save_camera_video(self.data)
 
         videos = CameraMotionVideo.objects.filter(device=self.device, event_ref=self.event_ref)
-        
+
         self.assertEqual(1, len(videos))
         video = videos[0]
 
-        self.assertEqual(video.number_records, 1)
+        self.assertEqual(video.number_records, 2)
         self.assertEqual(str(video.event_ref), self.event_ref)
         self.assertFalse(video.is_merged)
 
@@ -66,7 +66,7 @@ class SaveCameraVideoTestCase(TransactionTestCase):
 
         save_camera_video(self.data)
         videos = CameraMotionVideo.objects.filter(device=self.device, event_ref=event_ref)
- 
+
         self.assertEqual(1, len(videos))
         video = videos[0]
 

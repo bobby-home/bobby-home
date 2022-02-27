@@ -47,5 +47,5 @@ def save_camera_video(data: InMotionVideoData) -> None:
         - "Hey, I got the record nb. 3", "Ok, but I already got record nb 4 so it's fine".
         """
         CameraMotionVideo.objects.filter(device=device, event_ref=data.event_ref)\
-            .update(number_records=Greatest('number_records', data.video_split_number))
+            .update(number_records=Greatest('number_records', data.video_split_number+1))
 

@@ -85,7 +85,7 @@ class CameraMotionDetectedPicture(models.Model):
 class CameraMotionVideo(models.Model):
     event_ref = models.UUIDField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    number_records = models.PositiveIntegerField(default=0)
+    number_records = models.PositiveIntegerField(default=1)
     last_record = models.DateTimeField()
     is_merged = models.BooleanField(default=False)
 

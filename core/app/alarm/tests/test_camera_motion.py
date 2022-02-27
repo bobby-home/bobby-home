@@ -34,7 +34,7 @@ class CameraMotionTestCase(TestCase):
         self.camera_motion.motion_detected(in_data)
         self._assert_save_motion(save_motion_mock, status=True)
 
-        integration_camera_motion.assert_called_once_with(self.device)
+        integration_camera_motion.assert_called_once_with(self.device, in_data.event_ref)
 
     @patch('alarm.business.in_motion.save_motion')
     @patch('alarm.use_cases.camera_motion.integration_alarm_status_changed')

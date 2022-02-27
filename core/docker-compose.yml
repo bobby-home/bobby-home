@@ -34,7 +34,7 @@ services:
             - backend_mqtt
 
     celery_worker:
-        command: bash -c "celery -A hello_django worker --autoscale=2,1 --loglevel=INFO"
+        command: bash -c "celery -A hello_django worker --loglevel=INFO"
         volumes:
             - camera_videos:/var/lib/house/video
             - medias:/var/lib/house/media
@@ -111,6 +111,4 @@ volumes:
     mosquitto-data:
         driver: local
     vim-plugins:
-        driver: local
-    camera_videos:
         driver: local

@@ -103,7 +103,7 @@ def on_motion_camera(message: MqttMessage) -> None:
     try:
         payload['detections'] = [Detection(**d) for d in detections_plain]
     except TypeError:
-        LOGGER.error(f"Can't deal with {data}. Maybe you're running the old object-detection service.")
+        LOGGER.error(f"Can't deal with {message.payload}. Maybe you're running the old object-detection service.")
         return
 
     data_payload = CameraMotionPayload(**payload)
@@ -115,10 +115,11 @@ def on_motion_camera(message: MqttMessage) -> None:
         detections=data_payload.detections,
     )
 
+    # 0 = initialization
     if in_data.event_ref != '0':
-        # 0 = initialization
         tasks.camera_motion_detected.apply_async(args=[dataclasses.asdict(in_data)])
-
+    else:
+        LOGGER.info(f"on_camera_motion event_ref = '0', ignoring. {in_data}")
 
 def on_motion_video(message: MqttMessage) -> None:
     topic = topic_regex(message.topic, CameraMotionVideoTopic)
@@ -142,6 +143,7 @@ def on_motion_picture(message: MqttMessage):
 
     if topic.event_ref == "0":
         # Initialization: no motion
+        LOGGER.info(f"on_motion_picture event_ref = '0', ignoring. {topic}")
         return
 
     data_payload = CameraMotionPicturePayload(image=message.payload)

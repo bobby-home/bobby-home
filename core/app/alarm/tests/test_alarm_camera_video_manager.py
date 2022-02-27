@@ -35,6 +35,19 @@ class AlarmCameraVideoManagerTestCase(TestCase):
         self.manager.split_recording(uuid)
         self.mqtt_mock.single.assert_not_called()
 
+    def test_split_recording_first_video(self):
+        """
+        For the first video, we won't have any CameraMotionVideo in the database.
+        It should ask to split the video with a split number set to 1.
+        """
+        motion = CameraMotionDetectedFactory(device=self.device)
+
+        expected_topic = f'camera/recording/{motion.device.device_id}/split/{motion.event_ref}-1'
+        expected_message = MQTTSendMessage(topic=expected_topic, payload=None, qos=1, retain=False)
+
+        self.manager.split_recording(motion.event_ref)
+        self.mqtt_mock.single.assert_called_once_with(expected_message, client_id=f'split_recording-{motion.event_ref}')
+
     def test_split_recording_motion(self):
         # the two are linked.
         motion = self.motions[0]

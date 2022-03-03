@@ -1,0 +1,32 @@
+version: "3.8"
+
+x-env: &env
+    env_file:
+        - .env.test
+
+services:
+    mqtt_broker:
+        image: eclipse-mosquitto:2.0.11
+        volumes:
+            - ./config/mosquitto/mosquitto-test.conf:/mosquitto/config/mosquitto.conf
+            - ./config/mosquitto/test-passwd:/mosquitto/config/passwd
+        ports:
+            - "8883:8883"
+
+    object_detection:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        <<: *env
+        depends_on:
+            - mqtt_broker
+
+    functional_tests:
+        <<: *env
+        build:
+            context: .
+            dockerfile: ./docker/functional_tests/Dockerfile
+        volumes:
+            - ./functional_tests/:/usr/src/app/
+        depends_on:
+            - object_detection

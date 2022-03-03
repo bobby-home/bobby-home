@@ -1,0 +1,12 @@
+version: "3.8"
+
+x-env: &env
+    env_file:
+        - .env
+
+services:
+    object_detection:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        <<: *env

@@ -79,4 +79,4 @@ class AlarmCameraVideoManagerTestCase(TestCase):
 
         event_ref = f'{motion.event_ref}-{video.number_records}'
         self.manager.stop_recording(self.device.device_id, motion.event_ref)
-        self.mqtt_mock.single.assert_called_once_with(MQTTSendMessage(topic=f'camera/recording/{self.device.device_id}/stop/{event_ref}'), f'stop_recording-{motion.event_ref}')
+        self.mqtt_mock.single.assert_called_once_with(MQTTSendMessage(topic=f'camera/recording/{self.device.device_id}/end/{event_ref}'), f'stop_recording-{motion.event_ref}')

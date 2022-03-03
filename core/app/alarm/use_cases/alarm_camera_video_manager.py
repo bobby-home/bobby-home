@@ -68,7 +68,7 @@ class AlarmCameraVideoManager:
             return None
 
         video_ref = f'{event_ref}-{last_video.number_records}'
-        payload = mqtt.MQTTSendMessage(topic=f"camera/recording/{device_id}/stop/{video_ref}")
+        payload = mqtt.MQTTSendMessage(topic=f"camera/recording/{device_id}/end/{video_ref}")
         LOGGER.info(f'stop_recording topic={payload.topic} device_id={device_id} video_ref={video_ref}')
         self._mqtt_client.single(payload, f'stop_recording-{event_ref}')
 

@@ -12,7 +12,7 @@ x-env: &env
         - ~/.device
 
 x-coreimage: &coreimage
-    image: bobbyhome/core:0.6.0
+    image: bobbyhome/core:0.7.0
 
 services:
     redis-broker:

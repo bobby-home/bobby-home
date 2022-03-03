@@ -1,0 +1,8 @@
+node_modules
+__pycache__
+.idea
+.pytest_cache
+.vscode
+mosquitto/passwd
+.git
+*.swp

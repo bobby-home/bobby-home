@@ -2,3 +2,6 @@ version: "3.8"
 
 services:
     object_detection:
+        # otherwise the container can't access to time.blabla
+        # issue: 100% cpu because our software uses time.sleep() in the main loop.
+        privileged: True

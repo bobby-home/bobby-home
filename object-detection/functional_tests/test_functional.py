@@ -6,7 +6,6 @@ The most important: it works, I'll rewrite this in the future.
 import os
 import logging
 import json
-import time
 from unittest import TestCase
 from uuid import uuid4
 import paho.mqtt.client as mqtt
@@ -35,6 +34,7 @@ class FunctionalTestCase(TestCase):
         password = os.environ['MQTT_PASSWORD']
         self.hostname = os.environ['MQTT_HOSTNAME']
         self.port = int(os.environ['MQTT_PORT'])
+
         self.up_threshold = int(os.environ['NB_FRAME_UP_THRESHOLD'])
         self.down_threshold = int(os.environ['NB_FRAME_DOWN_THRESHOLD'])
 
@@ -168,6 +168,7 @@ class FunctionalTestCase(TestCase):
         self.client.loop_forever()
 
     def test_motion_then_no_motion_triggers(self):
+        LOGGER.info(f'test_motion_then_no_motion_triggers')
         self.motion_subscribe()
         self.motion_picture_subscribe()
 

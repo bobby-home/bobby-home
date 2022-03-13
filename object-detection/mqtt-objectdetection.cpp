@@ -135,25 +135,6 @@ TEST_CASE("MotionPayload_to_json") {
     }
 }
 
-std::string extract_device_id(const std::string topic)
-{
-    std::regex rgx(R"(.+$)");
-    std::smatch match;
-
-    if (std::regex_search(topic, match, rgx)) {
-        return match[0];
-    }
-
-    std::cerr << "cannot find camera id in topic " << topic << std::endl;
-    return "";
-}
-TEST_CASE("extract_device_id") {
-    CHECK(extract_device_id("ia/picture/98af8M") == "98af8M");
-    CHECK(extract_device_id("ia/picture/98af8M/") == "");
-    // should I be more specific on the device_id regex?
-    CHECK(extract_device_id("something/wrong") == "wrong");
-}
-
 enum class State {
     TRIGGER_MOTION,
     TRIGGER_NO_MOTION,
@@ -365,14 +346,16 @@ public:
         json payload_json = payload_obj;
         std::string payload = payload_json.dump();
 
-        std::cout << "trigger motion: json to publish: " << payload << std::endl;
 
-        mqtt::message_ptr pubmsg = mqtt::make_message(get_motion_topic(device_id), payload);
+        auto motion_topic = get_motion_topic(device_id);
+        mqtt::message_ptr pubmsg = mqtt::make_message(motion_topic, payload);
+        fmt::print("trigger motion topic={} payload={}\n", motion_topic, payload);
         mqtt_client_.publish(pubmsg);
 
-        std::cout << "send motion picture" << std::endl;
-        pubmsg = mqtt::make_message(get_motion_picture_topic(device_id, event_ref, true), picture, size);
+        auto picture_topic = get_motion_picture_topic(device_id, event_ref, true);
+        pubmsg = mqtt::make_message(picture_topic, picture, size);
         pubmsg->set_qos(1);
+        fmt::print("send motion picture topic={}\n", picture_topic);
         mqtt_client_.publish(pubmsg);
 
         return event_ref;
@@ -475,11 +458,6 @@ public:
 
     void process_frame(const std::string topic, char* data, size_t payload_size)
     {
-        std::string device_id = extract_device_id(topic);
-        if (device_id.empty()) {
-            return;
-        }
-
         cv::Mat raw_data(1, payload_size, CV_8UC1, data);
         cv::Mat decoded_img = cv::imdecode(raw_data, cv::IMREAD_COLOR);
         if (decoded_img.empty())
@@ -506,7 +484,20 @@ public:
         }
         else if (std::regex_match(topic, base_match, TOPIC_REGEX))
         {
-            process_frame_video(device_id, detections, data, payload_size);
+            // The first sub_match is the whole string; the next
+            // sub_match is the first parenthesized expression.
+            if (base_match.size() == 2)
+            {
+                std::ssub_match base_sub_match = base_match[1];
+                std::string device_id = base_sub_match.str();
+
+                detections.erase(
+                    std::remove_if (detections.begin(), detections.end(), [](Detection const detection) { return detection.name != "person"; }),
+                    detections.end());
+
+                process_frame_video(device_id, detections, data, payload_size);
+            }
+
         }
         else
         {

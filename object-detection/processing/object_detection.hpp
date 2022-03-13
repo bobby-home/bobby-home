@@ -53,15 +53,10 @@ public:
 
     //void runInference(std::vector<std::uint8_t> rgb_image);
     //void runInference(uint8_t* rgb_image, size_t size);
-    std::vector<Detection> runInference(cv::Mat& img_matrice);
-protected:
-	// Retrieve the top-n most likely results.
-	void interpretOutputs();
-
+    void runInference(cv::Mat& img_matrice, std::vector<Detection> &detections);
 private:
+    void interpretOutputs(std::vector<Detection> &detections);
 	void readLabelsFile(const std::string &file_name);
-
-	std::vector<Detection> output_results_;
 
     // labels read from the labels file.
 	//std::vector<std::string> labels_;

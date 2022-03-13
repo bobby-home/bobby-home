@@ -34,9 +34,18 @@ using json = nlohmann::json;
 using namespace std::chrono_literals;
 
 
-const std::string CLIENT_ID("bobby_cpp_objectdetection");
+inline const std::string CLIENT_ID = "bobby_cpp_objectdetection";
+
 // last parameter is the device id
-const std::string TOPIC("ia/picture/+");
+inline const std::string TOPIC = "ia/picture/+";
+inline const std::regex TOPIC_REGEX("ia/picture/(.+)");
+
+// last parameter is a reference, an event, uuid...
+// it will answer with the same event, it's used to keep track of req/res.
+inline const std::string PICTURE_TOPIC = "object-detection/picture/+";
+inline const std::regex PICTURE_TOPIC_REGEX("object-detection/picture/(.+)");
+
+inline const std::string OBJECT_DETECTION_RES_TOPIC = "object-detection/response";
 
 const int	QOS = 1;
 const int	N_RETRY_ATTEMPTS = 5;
@@ -64,12 +73,17 @@ struct NoMoreMotionPayload {
     bool status = false;
 };
 
+struct DetectionPayload {
+    std::string event_ref;
+    std::vector<Detection> detections;
+};
+
 // JSON PART
 void to_json(json& j, const Detection& r)
 {
     j = {
         {"score", r.confidence},
-        {"class_id", "people"},
+        {"class_id", r.name},
         {"x", r.x},
         {"y", r.y},
         {"w", r.width},
@@ -95,6 +109,13 @@ void to_json(json& j, const NoMoreMotionPayload& p)
     };
 }
 
+void to_json(json& j, const DetectionPayload& p)
+{
+    j = {
+            {"event_ref", p.event_ref},
+            {"detections", p.detections}
+    };
+}
 TEST_CASE("MotionPayload_to_json") {
     std::vector<Detection> detections = {};
     std::string event_ref = uuid_v4();
@@ -116,7 +137,7 @@ TEST_CASE("MotionPayload_to_json") {
 
 std::string extract_device_id(const std::string topic)
 {
-    std::regex rgx(R"(\w+$)");
+    std::regex rgx(R"(.+$)");
     std::smatch match;
 
     if (std::regex_search(topic, match, rgx)) {
@@ -317,6 +338,25 @@ public:
         return fmt::format("ping/object_detection/{}", device_id);
     }
 
+    std::string get_object_detection_topic(const std::string &event_ref)
+    {
+        return fmt::format("{}/{}", OBJECT_DETECTION_RES_TOPIC, event_ref);
+    }
+
+    void trigger_detection_answer(const std::string &event_ref, std::vector<Detection> &detections, char* picture, size_t size)
+    {
+        DetectionPayload payload_obj = {event_ref, detections};
+        json payload_json = payload_obj;
+        std::string payload = payload_json.dump();
+
+        std::cout << "detection_answer: json to publish: " << payload << std::endl;
+
+        const std::string answer_topic = get_object_detection_topic(event_ref);
+        mqtt::message_ptr pubmsg = mqtt::make_message(answer_topic, payload);
+        fmt::print("publish to topic: {}\n", answer_topic);
+        mqtt_client_.publish(pubmsg);
+    }
+
     std::string trigger_motion(const std::string &device_id, std::vector<Detection> &detections, char* picture, size_t size)
     {
         fmt::print("");
@@ -387,26 +427,21 @@ public:
             nb_frame_up_threshold_(nb_frame_up_threshold),
             nb_frame_down_threshold_(nb_frame_down_threshold) {}
 
-    void process_frame(const std::string topic, char* data, size_t payload_size)
+    /**
+     * Process frame video uses an algorithm to decide either or not the object should be considered,
+     * and thus publish the event.
+     * It's done because we send multiple frames (video), and it reduces a little bit our false positive events.
+     * So, no every frame will receive an answer.
+     * -> publish first frame. No answer.
+     * -> ...
+     * -> people is considered as a threat -> trigger.
+     *  Same thing when people is not detected anymore to avoid to trigger/untrigger too quickly.
+     */
+    void process_frame_video(const std::string &device_id, std::vector<Detection> &detections, char* picture, size_t payload_size)
     {
-        std::string device_id = extract_device_id(topic);
-        if (device_id.empty()) {
-            return;
-        }
-
         auto device = get_device_(device_id);
 
-        cv::Mat raw_data(1, payload_size, CV_8UC1, data);
-        cv::Mat decoded_img = cv::imdecode(raw_data, cv::IMREAD_COLOR);
-        if (decoded_img.empty())
-        {
-            std::cerr << "error in imdecode, empty image" << std::endl;
-            return;
-        }
-        std::vector<Detection> detections = object_detection_.runInference(decoded_img);
-
         fmt::print("device analyzer before analyze {}\n", device->analyzer->toString());
-
         fmt::print("detections size: {}\n", detections.size());
         auto todo = device->analyzer->analyze(detections);
         fmt::print("device analyzer after analyze {}\n", device->analyzer->toString());
@@ -418,13 +453,13 @@ public:
             case State::TRIGGER_MOTION:
             {
                 std::cout << "alert alert alert!" << std::endl;
-                auto event_ref = mqtt_client_.trigger_motion(device_id, detections, data, payload_size);
+                auto event_ref = mqtt_client_.trigger_motion(device_id, detections, picture, payload_size);
                 device->current_motion_event_ref = event_ref;
                 break;
             }
             case State::TRIGGER_NO_MOTION:
                 std::cout << "stop the alert" << std::endl;
-                mqtt_client_.trigger_no_motion(device_id, device->current_motion_event_ref, detections, data, payload_size);
+                mqtt_client_.trigger_no_motion(device_id, device->current_motion_event_ref, detections, picture, payload_size);
                 device->current_motion_event_ref = "";
                 break;
             default:
@@ -435,6 +470,47 @@ public:
         {
             mqtt_client_.send_ping(device_id);
             std::cout << "sending ping" << std::endl;
+        }
+    }
+
+    void process_frame(const std::string topic, char* data, size_t payload_size)
+    {
+        std::string device_id = extract_device_id(topic);
+        if (device_id.empty()) {
+            return;
+        }
+
+        cv::Mat raw_data(1, payload_size, CV_8UC1, data);
+        cv::Mat decoded_img = cv::imdecode(raw_data, cv::IMREAD_COLOR);
+        if (decoded_img.empty())
+        {
+            std::cerr << "error in imdecode, empty image" << std::endl;
+            return;
+        }
+        std::vector<Detection> detections;
+        object_detection_.runInference(decoded_img, detections);
+
+        std::smatch base_match;
+
+        if (std::regex_match(topic, base_match, PICTURE_TOPIC_REGEX))
+        {
+            // The first sub_match is the whole string; the next
+            // sub_match is the first parenthesized expression.
+            if (base_match.size() == 2)
+            {
+                std::ssub_match base_sub_match = base_match[1];
+                std::string event_ref = base_sub_match.str();
+                // Process frame instant publishes the answer to the MQTT topic for every frame it receives.
+                mqtt_client_.trigger_detection_answer(event_ref, detections, data, payload_size);
+            }
+        }
+        else if (std::regex_match(topic, base_match, TOPIC_REGEX))
+        {
+            process_frame_video(device_id, detections, data, payload_size);
+        }
+        else
+        {
+            fmt::print(stderr, "topic: {} unrecognizable.", topic);
         }
     }
 
@@ -591,6 +667,7 @@ protected:
 			<< "\nPress Q<Enter> to quit\n" << std::endl;
 
 		mqtt_client_.subscribe(TOPIC, QOS, nullptr, subListener_);
+		mqtt_client_.subscribe(PICTURE_TOPIC, QOS, nullptr, subListener_);
 	}
 
 	// Callback for when the connection is lost.

@@ -126,7 +126,7 @@ void ObjectDetection::init()
 
 //void ObjectDetection::runInference(std::vector<std::uint8_t> rgb_image)
 //void ObjectDetection::runInference(uint8_t* rgb_image, size_t size)
-std::vector<Detection> ObjectDetection::runInference(cv::Mat& img_matrice)
+void ObjectDetection::runInference(cv::Mat& img_matrice, std::vector<Detection> &detections)
 {
     cv::resize(img_matrice, img_matrice, cv::Size(tf_w_, tf_h_));
     cv::cvtColor(img_matrice, img_matrice, cv::COLOR_BGR2RGB);
@@ -160,11 +160,10 @@ std::vector<Detection> ObjectDetection::runInference(cv::Mat& img_matrice)
 		throw std::runtime_error("TfStage: Failed to invoke TFLite");
 	}
 
-	interpretOutputs();
-    return output_results_;
+	interpretOutputs(detections);
 }
 
-void ObjectDetection::interpretOutputs()
+void ObjectDetection::interpretOutputs(std::vector<Detection> &detections)
 {
 	int box_index = interpreter_->outputs()[0];
 	int class_index = interpreter_->outputs()[1];
@@ -174,8 +173,6 @@ void ObjectDetection::interpretOutputs()
     float *boxes = interpreter_->tensor(box_index)->data.f;
 	float *scores = interpreter_->tensor(score_index)->data.f;
 	float *classes = interpreter_->tensor(class_index)->data.f;
-
-	output_results_.clear();
 
 	for (int i = 0; i < num_detections; i++) {
 		int c = classes[i];
@@ -206,7 +203,7 @@ void ObjectDetection::interpretOutputs()
 		//w = w * main_stream_info_.width / lores_info_.width;
 
 		Detection detection(c, labels_[c], scores[i], x, y, w, h);
-        output_results_.push_back(detection);
+        detections.push_back(detection);
         std::cout << "detected somebody " << scores[i] << " label id:" << c << " -> " << labels_[c] << std::endl;
         std::cout << "-------" << std::endl;
 	}
@@ -214,7 +211,7 @@ void ObjectDetection::interpretOutputs()
 	//if (config_->verbose)
 	if (false)
     {
-		for (auto &detection : output_results_)
+		for (auto &detection : detections)
 			std::cerr << detection.toString() << std::endl;
 	}
 }

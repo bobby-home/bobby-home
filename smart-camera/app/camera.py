@@ -8,7 +8,7 @@ device_id = os.environ['DEVICE_ID']
 
 camera_mqtt_client = get_mqtt(f"{device_id}-camera_manager")
 
-camera_manager = RunCameraFrameProducer()
+camera_manager = RunCameraFrameProducer(device_id)
 MqttManageRunnable(device_id, 'camera_manager', camera_mqtt_client, camera_manager, status_json=True)
 
 camera_mqtt_client.client.loop_forever()

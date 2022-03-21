@@ -49,20 +49,25 @@ class PiVideoStream:
         raw_capture = io.BytesIO()
         try:
             for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
-                if self._is_run is False:
-                    LOGGER.info("picamera stop to capture_continuous")
-                    return
                 raw_capture.seek(0)
 
-                self.process_frame(raw_capture)
+                self._is_run = self.process_frame(raw_capture)
 
                 # "Rewind" the stream to the beginning so we can read its content
                 raw_capture.seek(0)
                 raw_capture.truncate()
+
+                if self._is_run is False:
+                    LOGGER.info("picamera stop to capture_continuous")
+                    return
         except:
             # stop the camera?
             LOGGER.error("got error while capturing value")
             raise
+        finally:
+            LOGGER.info("closing picamera")
+            self.camera.close()
+            self._ring_buffer.close()
 
     def start_recording(self, video_ref: str) -> bool:
         if self._record is False:

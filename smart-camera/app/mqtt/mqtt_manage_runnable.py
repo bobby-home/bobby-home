@@ -90,7 +90,7 @@ class MqttManageRunnable:
         if status:
             self._runnable.run(device_id, True, data)
         else:
-            self._runnable.run(device_id, False)
+            self._runnable.run(device_id, False, data)
 
 # WIP: work with TLS.
 # os.environ['REQUESTS_CA_BUNDLE'] = "/usr/local/share/ca-certificates/ca.cert"

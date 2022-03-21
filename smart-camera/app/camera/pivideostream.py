@@ -22,6 +22,10 @@ class PiVideoStream:
         self._record = False
 
         self._ring_buffer = None
+        self._is_run = True
+
+    def set_run(self, status: bool) -> None:
+        self._is_run = status
 
     def run(self):
         # Import here so I can unitest on other things than a Raspberry Pi.
@@ -43,14 +47,22 @@ class PiVideoStream:
         camera.start_recording(self._ring_buffer, format='h264')
 
         raw_capture = io.BytesIO()
-        for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
-            raw_capture.seek(0)
+        try:
+            for _ in camera.capture_continuous(raw_capture, format='jpeg', use_video_port=True):
+                if self._is_run is False:
+                    LOGGER.info("picamera stop to capture_continuous")
+                    return
+                raw_capture.seek(0)
 
-            self.process_frame(raw_capture)
+                self.process_frame(raw_capture)
 
-            # "Rewind" the stream to the beginning so we can read its content
-            raw_capture.seek(0)
-            raw_capture.truncate()
+                # "Rewind" the stream to the beginning so we can read its content
+                raw_capture.seek(0)
+                raw_capture.truncate()
+        except:
+            # stop the camera?
+            LOGGER.error("got error while capturing value")
+            raise
 
     def start_recording(self, video_ref: str) -> bool:
         if self._record is False:

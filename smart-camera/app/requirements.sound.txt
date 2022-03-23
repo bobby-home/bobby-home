@@ -1,2 +1,2 @@
-picamera==1.13
+pygame==2.1.*
 paho-mqtt==1.5.*

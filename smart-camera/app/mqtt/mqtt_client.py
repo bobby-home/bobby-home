@@ -1,7 +1,7 @@
 import os
 import struct
 import logging
-from collections import Callable
+from typing import Callable
 from typing import Any, List
 
 import paho.mqtt.client as mqtt

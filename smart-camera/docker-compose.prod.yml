@@ -10,6 +10,9 @@ x-logging: &loki-logging
 x-cameraimage: &cameraimage
     image: bobbyhome/camera:0.6.0
 
+x-soundimage: &soundimage
+    image: bobbyhome/sound:0.1.0
+
 
 services:
     camera:
@@ -23,7 +26,7 @@ services:
             - camera_videos:/var/lib/camera/media
 
     sound:
-        <<: *cameraimage
+        <<: *soundimage
         logging: *loki-logging
         restart: unless-stopped
         networks:
